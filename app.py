@@ -1136,35 +1136,81 @@ with tab_tactical:
     # 1. Dynamic Operational Condition Status Banner
     today_w = warnings[0] if warnings else {}
     w_color = today_w.get("alert_color", "Green")
+    w_sum = today_w.get("warning_summary", "No Warning")
+    
     nowcast_color = nowcast_info.get("alert_color", "Green")
+    nowcast_msg = nowcast_info.get("message", "Convective weather alert issued.")
+    has_nowcast = nowcast_info.get("has_active_nowcast", False) or nowcast_color in ["Red", "Orange"]
+    
     c_inside = damini.get("total_strikes_inside_boundary", 0)
     c_20 = damini.get("total_strikes_20km", 0)
     c_40 = damini.get("total_strikes_40km", 0)
 
-    if w_color == "Red" or nowcast_color == "Red":
+    # Pinpoint exact trigger feed and build clear operational message
+    if w_color == "Red":
         cond_class = "condition-banner-red"
-        cond_title = f"🔴 CONDITION RED: SEVERE WEATHER WARNING ACTIVE ({active_district.upper()})"
+        cond_title = f"🔴 CONDITION RED: IMD SEVERE WEATHER WARNING ACTIVE ({active_district.upper()})"
         cond_badge = "CRITICAL ALERT"
         cond_bg = "rgba(239, 68, 68, 0.2)"
         cond_fg = "#FCA5A5"
         cond_border = "rgba(239, 68, 68, 0.4)"
-        cond_desc = f"Immediate disaster management protocol active for {active_district}. {today_w.get('warning_summary', 'Severe thunderstorm and heavy precipitation in effect.')}"
-    elif w_color == "Orange" or nowcast_color == "Orange" or c_inside > 0:
+        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Immediate district disaster management protocols in effect."
+    elif nowcast_color == "Red" and has_nowcast:
+        cond_class = "condition-banner-red"
+        cond_title = f"🔴 CONDITION RED: RMC GUWAHATI 3-HOUR NOWCAST WARNING ({active_district.upper()})"
+        cond_badge = "RADAR NOWCAST"
+        cond_bg = "rgba(239, 68, 68, 0.2)"
+        cond_fg = "#FCA5A5"
+        cond_border = "rgba(239, 68, 68, 0.4)"
+        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg} <i>(Note: 5-Day synoptic baseline is currently {w_color} Alert).</i>"
+    elif c_inside > 0:
+        cond_class = "condition-banner-red"
+        cond_title = f"🔴 CONDITION RED: ACTIVE GROUND LIGHTNING STRIKES ({active_district.upper()})"
+        cond_badge = "SENSOR STRIKES"
+        cond_bg = "rgba(239, 68, 68, 0.2)"
+        cond_fg = "#FCA5A5"
+        cond_border = "rgba(239, 68, 68, 0.4)"
+        cond_desc = f"<b>Trigger: IITM-ILDN Ground Sensors:</b> {c_inside} active ground strike(s) detected inside {active_district} in past 45m. Restrict outdoor movement."
+    elif w_color == "Orange":
         cond_class = "condition-banner-orange"
-        cond_title = f"🟠 CONDITION ORANGE: CONVECTIVE / THUNDERSTORM WATCH ({active_district.upper()})"
+        cond_title = f"🟠 CONDITION ORANGE: IMD WEATHER WATCH ({active_district.upper()})"
         cond_badge = "ENHANCED WATCH"
         cond_bg = "rgba(249, 115, 22, 0.2)"
         cond_fg = "#FB923C"
         cond_border = "rgba(249, 115, 22, 0.4)"
-        cond_desc = f"Heightened operational readiness. {nowcast_info.get('message', today_w.get('warning_summary', 'Convective hazard monitored across sector.'))}"
-    elif w_color == "Yellow" or nowcast_color == "Yellow" or c_20 > 0:
+        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Field personnel on enhanced standby."
+    elif nowcast_color == "Orange" and has_nowcast:
+        cond_class = "condition-banner-orange"
+        cond_title = f"🟠 CONDITION ORANGE: RMC GUWAHATI NOWCAST WATCH ({active_district.upper()})"
+        cond_badge = "RADAR WATCH"
+        cond_bg = "rgba(249, 115, 22, 0.2)"
+        cond_fg = "#FB923C"
+        cond_border = "rgba(249, 115, 22, 0.4)"
+        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg}"
+    elif w_color == "Yellow":
         cond_class = "condition-banner-yellow"
-        cond_title = f"🟡 CONDITION YELLOW: ADVISORY IN EFFECT ({active_district.upper()})"
+        cond_title = f"🟡 CONDITION YELLOW: IMD WEATHER ADVISORY ({active_district.upper()})"
         cond_badge = "ADVISORY"
         cond_bg = "rgba(234, 179, 8, 0.2)"
         cond_fg = "#FACC15"
         cond_border = "rgba(234, 179, 8, 0.4)"
-        cond_desc = f"Moderate meteorological activity observed. {today_w.get('warning_summary', 'Routine precautionary monitoring active.')}"
+        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Precautionary monitoring active."
+    elif nowcast_color == "Yellow" and has_nowcast:
+        cond_class = "condition-banner-yellow"
+        cond_title = f"🟡 CONDITION YELLOW: RMC GUWAHATI NOWCAST ADVISORY ({active_district.upper()})"
+        cond_badge = "NOWCAST ADVISORY"
+        cond_bg = "rgba(234, 179, 8, 0.2)"
+        cond_fg = "#FACC15"
+        cond_border = "rgba(234, 179, 8, 0.4)"
+        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg}"
+    elif c_20 > 0:
+        cond_class = "condition-banner-yellow"
+        cond_title = f"🟡 CONDITION YELLOW: LIGHTNING ACTIVITY NEAR PERIMETER ({active_district.upper()})"
+        cond_badge = "PERIMETER SENSOR"
+        cond_bg = "rgba(234, 179, 8, 0.2)"
+        cond_fg = "#FACC15"
+        cond_border = "rgba(234, 179, 8, 0.4)"
+        cond_desc = f"<b>Trigger: IITM-ILDN Ground Sensors:</b> {c_20} lightning strike(s) detected within 20 km of {active_district} perimeter."
     else:
         cond_class = "condition-banner-green"
         cond_title = f"🟢 CONDITION GREEN: ROUTINE OPERATIONAL READINESS ({active_district.upper()})"
@@ -1172,7 +1218,7 @@ with tab_tactical:
         cond_bg = "rgba(16, 185, 129, 0.2)"
         cond_fg = "#6EE7B7"
         cond_border = "rgba(16, 185, 129, 0.4)"
-        cond_desc = f"Atmospheric parameters within normal baseline. No severe weather warnings active for {active_district}."
+        cond_desc = f"Atmospheric parameters within normal baseline. No severe weather warnings active for {active_district} across 5-day forecast, radar nowcast, or sensor feeds."
 
     st.markdown(f"""
     <div class="condition-banner {cond_class}">
