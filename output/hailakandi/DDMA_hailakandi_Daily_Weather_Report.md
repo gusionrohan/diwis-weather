@@ -3,23 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Hailakandi (Assam) | **Basin:** Barak Sub-Basin (Dhaleswari & Katakhal Corridor) | **HQ Coordinates:** 24.68°N, 92.56°E  
-**Bulletin Issued:** 2026-10-20 16:37:10 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-20 22:42:36 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
 * **Current Ambient Temperature:** 25.2 °C
 * **Today's Maximum / Minimum Temperature:** 31.5°C / 22.9°C
 * **Relative Humidity:** 88% | **Surface Wind Speed:** 4.5 km/h
-
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | 31.5 °C | 22.9 °C | +0.5°C |
-| Day 2 | 2026-10-21 | 32.3 °C | 23.0 °C | +1.3°C |
-| Day 3 | 2026-10-22 | 31.9 °C | 24.7 °C | +0.9°C |
-| Day 4 | 2026-10-23 | 31.6 °C | 24.0 °C | +0.6°C |
-| Day 5 | 2026-10-24 | 31.5 °C | 22.6 °C | +0.5°C |
 
 ---
 

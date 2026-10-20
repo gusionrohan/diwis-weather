@@ -84,23 +84,12 @@ def generate_markdown_report(combined_data: dict = None, output_path: str = None
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
 * **Current Ambient Temperature:** {t_c_str}
 * **Today's Maximum / Minimum Temperature:** {max_min_str}
 * **Relative Humidity:** {hum_str} | **Surface Wind Speed:** {w_spd_str}
 
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-"""
-    for tf in temp_fc:
-        dep = tf.get('departure_c')
-        dep_str = f"+{dep}°C" if dep is not None and dep > 0 else (f"{dep}°C" if dep is not None else "N/A")
-        max_v = tf.get('max_temp_c', '-')
-        min_v = tf.get('min_temp_c', '-')
-        md += f"| Day {tf.get('day_index')} | {tf.get('date')} | {max_v} °C | {min_v} °C | {dep_str} |\n"
-
-    md += f"""
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
@@ -302,11 +291,10 @@ def generate_pdf_report(custom_data: dict = None, generated_by: str = "Operator"
     story.append(Paragraph(f"Data Sources: <b>India Meteorological Department (IMD) & IITM-ILDN</b> &nbsp;|&nbsp; Bulletin Issued: <b>{datetime.now().strftime('%d-%b-%Y %H:%M IST')}</b>", meta_style))
     story.append(HRFlowable(width="100%", thickness=1.0, color=colors.HexColor("#0284C7"), spaceAfter=3))
 
-    # 2. Temperature Section
+    # 2. Temperature Section (Current Observations Only)
     temp_obs = data.get("temperature_data", {}).get("current_observation") or {}
-    temp_fc = data.get("temperature_data", {}).get("daily_temperature_forecast_5days", [])
     
-    story.append(Paragraph(f"<b>1. 🌡️ Temperature Observations & 5-Day Forecast — {dist_name}</b>", section_heading))
+    story.append(Paragraph(f"<b>1. 🌡️ Current Meteorological & Temperature Observations — {dist_name}</b>", section_heading))
     
     t_c = temp_obs.get('temperature_c')
     t_c_display = f"{t_c} °C" if t_c is not None else "N/A"
@@ -330,44 +318,11 @@ def generate_pdf_report(custom_data: dict = None, generated_by: str = "Operator"
     t_temp_metrics.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#FFFBEB")),
         ('BOX', (0,0), (-1,-1), 0.8, colors.HexColor("#FDE68A")),
-        ('PADDING', (0,0), (-1,-1), 2.8),
+        ('PADDING', (0,0), (-1,-1), 3.2),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
     ]))
     story.append(t_temp_metrics)
-    story.append(Spacer(1, 2))
-    
-    # 5-Day Temperature Forecast Table
-    temp_table_data = [
-        [
-            Paragraph("Day", cell_head_style),
-            Paragraph("Forecast Date", cell_head_style),
-            Paragraph("Maximum Temp (°C)", cell_head_style),
-            Paragraph("Minimum Temp (°C)", cell_head_style),
-            Paragraph("Departure from Normal (°C)", cell_head_style)
-        ]
-    ]
-    for tf in temp_fc:
-        dep = tf.get('departure_c')
-        dep_str = f"+{dep}°C" if dep is not None and dep > 0 else (f"{dep}°C" if dep is not None else "N/A")
-        max_v = tf.get('max_temp_c', '-')
-        min_v = tf.get('min_temp_c', '-')
-        temp_table_data.append([
-            Paragraph(f"Day {tf.get('day_index')}", cell_bold_style),
-            Paragraph(str(tf.get('date', 'N/A')), cell_body_style),
-            Paragraph(f"{max_v} °C" if max_v != '-' else '-', cell_body_style),
-            Paragraph(f"{min_v} °C" if min_v != '-' else '-', cell_body_style),
-            Paragraph(dep_str, cell_body_style)
-        ])
-    t_temp = Table(temp_table_data, colWidths=[65, 115, 125, 125, 118])
-    t_temp.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#B45309")),
-        ('PADDING', (0,0), (-1,-1), 2.2),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#CBD5E1")),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor("#FFFBEB")]),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-    ]))
-    story.append(t_temp)
-    story.append(Spacer(1, 3))
+    story.append(Spacer(1, 4))
 
     # 3. Rainfall Section
     obs = data.get("observed_rainfall_past24h", {})
