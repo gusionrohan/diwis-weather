@@ -68,15 +68,32 @@ st.markdown("""
         display: none !important;
     }
     
+    /* Hide Streamlit top header, GitHub repository buttons, fork/edit icons, share, and menus completely */
+    header[data-testid="stHeader"], header {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+    }
+    #MainMenu, footer {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    [data-testid="stToolbar"], [data-testid="stToolbarActions"], [data-testid="stDecoration"], [data-testid="stStatusWidget"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    .stAppDeployButton, [data-testid="manage-app-button"] {
+        display: none !important;
+    }
+    button[title*="GitHub"], button[title*="git"], button[title*="Share"], button[title*="Star"] {
+        display: none !important;
+    }
+    
     /* Global styles */
     .block-container {
-        padding-top: 4.0rem !important;
+        padding-top: 1.8rem !important;
         padding-bottom: 2.5rem;
         max-width: 1200px;
-    }
-    header[data-testid="stHeader"] {
-        background: rgba(15, 23, 42, 0.7) !important;
-        backdrop-filter: blur(10px);
     }
     .header-box {
         background: linear-gradient(135deg, #1E3A8A 0%, #0284C7 50%, #059669 100%);
