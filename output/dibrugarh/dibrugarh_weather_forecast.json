@@ -1,0 +1,685 @@
+{
+  "metadata": {
+    "target_location": {
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "subdivision": "Upper Assam",
+      "river_basin": "Upper Brahmaputra & Burhi Dihing Basin",
+      "regional_center": "RMC Guwahati",
+      "coordinates": "27.47°N, 94.91°E",
+      "upstream_monitored_districts": [
+        "Changlang",
+        "Tirap",
+        "East Siang",
+        "Tinsukia"
+      ]
+    },
+    "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
+    "scraped_at_local": "2026-10-20T16:42:02.281423",
+    "output_directory": "output/dibrugarh"
+  },
+  "temperature_data": {
+    "status": "OK",
+    "current_observation": {
+      "temperature_c": 23.7,
+      "relative_humidity_pct": 89,
+      "wind_speed_kmh": 1.7,
+      "surface_pressure_hpa": 1002.4,
+      "today_max_c": 29.9,
+      "today_min_c": 21.4,
+      "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
+      "recorded_at_ist": "2026-10-20 16:40 IST"
+    },
+    "daily_temperature_forecast_5days": [
+      {
+        "day_index": 1,
+        "date": "2026-10-20",
+        "max_temp_c": 29.9,
+        "min_temp_c": 21.4,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": -1.1
+      },
+      {
+        "day_index": 2,
+        "date": "2026-10-21",
+        "max_temp_c": 30.7,
+        "min_temp_c": 20.5,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": -0.3
+      },
+      {
+        "day_index": 3,
+        "date": "2026-10-22",
+        "max_temp_c": 30.5,
+        "min_temp_c": 20.4,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": -0.5
+      },
+      {
+        "day_index": 4,
+        "date": "2026-10-23",
+        "max_temp_c": 30.3,
+        "min_temp_c": 20.6,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": -0.7
+      },
+      {
+        "day_index": 5,
+        "date": "2026-10-24",
+        "max_temp_c": 30.4,
+        "min_temp_c": 20.0,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": -0.6
+      }
+    ]
+  },
+  "lightning_zones_data": {
+    "overall_alert": "⚡ High Risk (Thunderstorms & Lightning Likely)",
+    "storm_track_movement": "Upstream-to-Downstream: Propagating along Upper Brahmaputra & Burhi Dihing Basin across Dibrugarh.",
+    "active_window": "Next 3 to 6 Hours (Convective Storm Window)",
+    "safety_advice": "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.",
+    "source": "IMD (India Meteorological Department) & IITM-ILDN",
+    "sectors": [
+      {
+        "zone_name": "Southern Sector (Naharkatia & Namrup Hills Entry)",
+        "coordinates": "27.28° N, 95.33° E",
+        "latitude": 27.28,
+        "longitude": 95.33,
+        "localities": "Naharkatia, Namrup, Joypur Rainforest, Burhi Dihing Bank",
+        "alert_level": "Orange Alert (Be Prepared)",
+        "alert_color": "Orange",
+        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Heavy Showers",
+        "expected_winds": "💨 Squalls (40 - 50 km/h)",
+        "action_suggested": "Avoid venturing into open plantation tracts and tea garden open grounds.",
+        "convective_status": "Convective storm triggers along Patkai foothills and river entry."
+      },
+      {
+        "zone_name": "Central Sector (Dibrugarh City & Moran HQ)",
+        "coordinates": "27.47° N, 94.91° E",
+        "latitude": 27.47,
+        "longitude": 94.91,
+        "localities": "Dibrugarh Town, Boiragimoth, Moran, Barbaruah, DC Office",
+        "alert_level": "Orange Alert (Be Prepared)",
+        "alert_color": "Orange",
+        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Gusty Winds",
+        "expected_winds": "💨 Gusty winds (35 - 45 km/h)",
+        "action_suggested": "Take shelter inside concrete buildings; avoid parking under old trees.",
+        "convective_status": "Intense urban-rural heat-moisture convective convergence."
+      },
+      {
+        "zone_name": "Northern Sector (Chabua & Brahmaputra Embankment)",
+        "coordinates": "27.52° N, 95.18° E",
+        "latitude": 27.52,
+        "longitude": 95.18,
+        "localities": "Chabua, Rohmoria, Bogibeel Bridge Approach, River Islands",
+        "alert_level": "Yellow Alert (Be Updated)",
+        "alert_color": "Yellow",
+        "hazard_phenomenon": "⚡ Moderate Thunderstorm & Squalls",
+        "expected_winds": "💨 Gusts (30 - 40 km/h)",
+        "action_suggested": "Suspend boat crossings across Brahmaputra during thunderstorm window.",
+        "convective_status": "Wide braided river channel squalls and embankment winds."
+      }
+    ]
+  },
+  "damini_sensor_lightning": {
+    "status": "Operational",
+    "source": "IITM-ILDN (Indian Lightning Location Network / DAMINI Network - MoES)",
+    "district": "Dibrugarh",
+    "district_coordinates": "27.47°N, 94.91°E",
+    "district_boundary_bbox": {
+      "min_lat": 27.05,
+      "max_lat": 27.65,
+      "min_lon": 94.7,
+      "max_lon": 95.45
+    },
+    "total_strikes_inside_boundary": 0,
+    "total_strikes_inside_all_time": 0,
+    "total_strikes_20km": 0,
+    "total_strikes_40km": 0,
+    "total_strikes_100km": 0,
+    "nearest_strike_km": null,
+    "nearest_strike_direction": null,
+    "nearest_strike_time_ist": null,
+    "alarm_level": "🟢 All Clear (No Active Strikes inside Dibrugarh Boundary)",
+    "safety_action": "Safe to proceed with normal outdoor activities. Stay updated with IMD nowcasts.",
+    "strikes_inside_district": [],
+    "strikes": []
+  },
+  "observed_rainfall_past24h": {
+    "district": "Dibrugarh",
+    "recorded_date": "2026-10-20",
+    "actual_rainfall_mm": "0 mm",
+    "normal_rainfall_mm": "3 mm",
+    "departure_percentage": "-100%",
+    "departure_category": "Large Deficient",
+    "map_color_hex": "#FFFFFF",
+    "status": "OK"
+  },
+  "rainfall_forecast_5days": [
+    {
+      "day_index": 1,
+      "day_code": "Day_1",
+      "date": "2026-10-20",
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 2,
+      "day_code": "Day_2",
+      "date": "2026-10-21",
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 3,
+      "day_code": "Day_3",
+      "date": "2026-10-22",
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 4,
+      "day_code": "Day_4",
+      "date": "2026-10-23",
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 5,
+      "day_code": "Day_5",
+      "date": "2026-10-24",
+      "district": "Dibrugarh",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    }
+  ],
+  "severe_weather_warnings_5days": {
+    "district": "Dibrugarh",
+    "state": "Assam",
+    "issue_date": "",
+    "last_updated_utc": "1970-01-01T00:00:00Z",
+    "status": "OK",
+    "daily_warnings": [
+      {
+        "day_index": 1,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 2,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 3,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 4,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 5,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      }
+    ]
+  },
+  "current_nowcast_warning": {
+    "district": "Dibrugarh",
+    "state": "Assam",
+    "issuing_center": "RMC Guwahati",
+    "date": "2026-10-20",
+    "time_of_issue_ist": "22:00 Hrs",
+    "valid_upto_ist": "01:00 Hrs",
+    "alert_color": "Red",
+    "alert_level": "Warning (Take Action)",
+    "message": "Convective weather warning active over Dibrugarh district.",
+    "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
+    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
+    "last_updated_utc": "2026-10-20T22:00:23Z",
+    "has_active_nowcast": true
+  },
+  "upstream_mizoram_rainfall": [
+    {
+      "upstream_district": "Changlang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh",
+      "river_link": "Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Tirap",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Patkai mountain runoff & Disang/Burhi Dihing tributary network",
+      "river_link": "Patkai mountain runoff & Disang/Burhi Dihing tributary network",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "East Siang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Siang (Brahmaputra main stem) massive upstream discharge corridor",
+      "river_link": "Siang (Brahmaputra main stem) massive upstream discharge corridor",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Tinsukia",
+      "state": "Assam",
+      "river_link_to_hailakandi": "Adjoining district tributary watershed & shared Dibrugarh river corridor",
+      "river_link": "Adjoining district tributary watershed & shared Dibrugarh river corridor",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    }
+  ],
+  "upstream_catchment_rainfall": [
+    {
+      "upstream_district": "Changlang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh",
+      "river_link": "Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Tirap",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Patkai mountain runoff & Disang/Burhi Dihing tributary network",
+      "river_link": "Patkai mountain runoff & Disang/Burhi Dihing tributary network",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "East Siang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Siang (Brahmaputra main stem) massive upstream discharge corridor",
+      "river_link": "Siang (Brahmaputra main stem) massive upstream discharge corridor",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Tinsukia",
+      "state": "Assam",
+      "river_link_to_hailakandi": "Adjoining district tributary watershed & shared Dibrugarh river corridor",
+      "river_link": "Adjoining district tributary watershed & shared Dibrugarh river corridor",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    }
+  ],
+  "synoptic_bulletin": {
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
+    "local_pdf_path": "output/dibrugarh/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "download_successful": true,
+    "synoptic_excerpts": [
+      {
+        "category": "Official IMD Regional Outlook (Upper Assam)",
+        "headline": "Northeast Regional Atmospheric Systems",
+        "details": "Isolated to Scattered rainfall likely over Assam & Meghalaya on 20th October; Nagaland, Manipur, Mizoram & Tripura during 20th-22nd October. West India: Isolated to Scattered rainfall likely over Konkan & Goa and Madhya Maharashtra during 20th-23rd October; Marathawada during 20th-21st October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely over Konkan & Goa and Madhya Maharashtra on 20th Octo",
+        "impact_on_hailakandi": "Synoptic influence affecting Dibrugarh and adjoining river basins."
+      },
+      {
+        "category": "National Synoptic Weather Systems",
+        "headline": "Significant National Features",
+        "details": "Weather Systems and Warnings: Northwest India: Isolated to Scattered rainfall likely over Jammu-Kashmir-Ladakh-Gilgit-Baltistan-Muzaffarabad during 23rd-25th October; Himachal Pradesh during 24th-25th October; Uttarakhand during 23rd-26th October. Isolated to Scattered rainfall likely over Haryana Chandigarh & Delhi and Punjab during 24th-25th October; West Rajasthan on 24th October; East Rajasthan on 20th October and on 24th October.",
+        "impact_on_hailakandi": "Influences regional air masses and moisture advection into Dibrugarh."
+      }
+    ]
+  }
+}

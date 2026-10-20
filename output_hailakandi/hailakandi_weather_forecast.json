@@ -14,20 +14,20 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-20T20:52:35.338579",
-    "output_directory": "output\\hailakandi"
+    "scraped_at_local": "2026-10-20T16:37:10.106665",
+    "output_directory": "output/hailakandi"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 25.4,
+      "temperature_c": 25.2,
       "relative_humidity_pct": 88,
-      "wind_speed_kmh": 6.2,
-      "surface_pressure_hpa": 1011.5,
+      "wind_speed_kmh": 4.5,
+      "surface_pressure_hpa": 1011.1,
       "today_max_c": 31.5,
       "today_min_c": 22.9,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-20 20:51 IST"
+      "recorded_at_ist": "2026-10-20 16:35 IST"
     },
     "daily_temperature_forecast_5days": [
       {
@@ -280,14 +280,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-20",
-    "time_of_issue_ist": "19:00 Hrs",
-    "valid_upto_ist": "22:00 Hrs",
+    "time_of_issue_ist": "22:00 Hrs",
+    "valid_upto_ist": "01:00 Hrs",
     "alert_color": "Red",
     "alert_level": "Warning (Take Action)",
     "message": "Convective weather warning active over Hailakandi district.",
     "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
     "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
-    "last_updated_utc": "2026-10-20T18:32:22Z",
+    "last_updated_utc": "2026-10-20T22:00:23Z",
     "has_active_nowcast": true
   },
   "upstream_mizoram_rainfall": [
@@ -572,7 +572,7 @@
   ],
   "synoptic_bulletin": {
     "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
-    "local_pdf_path": "output\\hailakandi\\pdfs\\IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "local_pdf_path": "output/hailakandi/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {

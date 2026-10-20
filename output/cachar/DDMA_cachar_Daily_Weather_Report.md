@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Cachar (Assam) | **Basin:** Central Barak River Basin | **HQ Coordinates:** 24.83°N, 92.79°E  
-**Bulletin Issued:** 2026-10-20 20:56:50 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-20 16:38:22 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Temperature Observations & 5-Day Forecast
 *Source: Surface Observations & 5-Day Temperature Network*
-* **Current Ambient Temperature:** 25.6 °C
+* **Current Ambient Temperature:** 24.6 °C
 * **Today's Maximum / Minimum Temperature:** 32.6°C / 21.6°C
-* **Relative Humidity:** 87% | **Surface Wind Speed:** 1.8 km/h
+* **Relative Humidity:** 91% | **Surface Wind Speed:** 2.8 km/h
 
 | Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -31,8 +31,8 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |

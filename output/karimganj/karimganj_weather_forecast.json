@@ -1,0 +1,592 @@
+{
+  "metadata": {
+    "target_location": {
+      "district": "Karimganj",
+      "state": "Assam",
+      "subdivision": "Barak Valley",
+      "river_basin": "Kushiara & Longai River Basin",
+      "regional_center": "RMC Guwahati",
+      "coordinates": "24.87°N, 92.35°E",
+      "upstream_monitored_districts": [
+        "North Tripura",
+        "Mamit",
+        "Unakoti"
+      ]
+    },
+    "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
+    "scraped_at_local": "2026-10-20T16:39:29.867562",
+    "output_directory": "output/karimganj"
+  },
+  "temperature_data": {
+    "status": "OK",
+    "current_observation": {
+      "temperature_c": 24.5,
+      "relative_humidity_pct": 90,
+      "wind_speed_kmh": 3.6,
+      "surface_pressure_hpa": 1011.4,
+      "today_max_c": 31.6,
+      "today_min_c": 22.3,
+      "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
+      "recorded_at_ist": "2026-10-20 16:38 IST"
+    },
+    "daily_temperature_forecast_5days": [
+      {
+        "day_index": 1,
+        "date": "2026-10-20",
+        "max_temp_c": 31.6,
+        "min_temp_c": 22.3,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 0.6
+      },
+      {
+        "day_index": 2,
+        "date": "2026-10-21",
+        "max_temp_c": 32.2,
+        "min_temp_c": 22.0,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 1.2
+      },
+      {
+        "day_index": 3,
+        "date": "2026-10-22",
+        "max_temp_c": 32.2,
+        "min_temp_c": 21.8,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 1.2
+      },
+      {
+        "day_index": 4,
+        "date": "2026-10-23",
+        "max_temp_c": 31.7,
+        "min_temp_c": 22.8,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 0.7
+      },
+      {
+        "day_index": 5,
+        "date": "2026-10-24",
+        "max_temp_c": 31.4,
+        "min_temp_c": 22.0,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 0.4
+      }
+    ]
+  },
+  "lightning_zones_data": {
+    "overall_alert": "⚡ High Risk (Thunderstorms & Lightning Likely)",
+    "storm_track_movement": "Upstream-to-Downstream: Propagating along Kushiara & Longai River Basin across Karimganj.",
+    "active_window": "Next 3 to 6 Hours (Convective Storm Window)",
+    "safety_advice": "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.",
+    "source": "IMD (India Meteorological Department) & IITM-ILDN",
+    "sectors": [
+      {
+        "zone_name": "Southern Sector (Patharkandi & Tripura Entry)",
+        "coordinates": "24.53° N, 92.33° E",
+        "latitude": 24.53,
+        "longitude": 92.33,
+        "localities": "Patharkandi, Lowairpoa, Bazaricherra, Churaibari",
+        "alert_level": "Orange Alert (Be Prepared)",
+        "alert_color": "Orange",
+        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Gusty Winds",
+        "expected_winds": "💨 Squalls (40 - 50 km/h)",
+        "action_suggested": "Take shelter in permanent masonry buildings away from high poles.",
+        "convective_status": "Longai valley convective entry from Tripura/Mizoram ridges."
+      },
+      {
+        "zone_name": "Central Sector (Karimganj Town & Nilambazar)",
+        "coordinates": "24.87° N, 92.35° E",
+        "latitude": 24.87,
+        "longitude": 92.35,
+        "localities": "Karimganj Town, Nilambazar, Settlement Belt, DC Office",
+        "alert_level": "Orange Alert (Be Prepared)",
+        "alert_color": "Orange",
+        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Moderate Rain",
+        "expected_winds": "💨 Gusts (35 - 45 km/h)",
+        "action_suggested": "Avoid taking shelter under lone trees in open wetland belts.",
+        "convective_status": "Kushiara river basin cloud transit and localized thunder cells."
+      },
+      {
+        "zone_name": "Northern Sector (Badarpur & Barak Junction)",
+        "coordinates": "24.90° N, 92.58° E",
+        "latitude": 24.9,
+        "longitude": 92.58,
+        "localities": "Badarpur, Bhanga, Deorail, Barak River Confluence",
+        "alert_level": "Yellow Alert (Be Updated)",
+        "alert_color": "Yellow",
+        "hazard_phenomenon": "⚡ Moderate Thunderstorm & Squall",
+        "expected_winds": "💨 Gusts (30 - 40 km/h)",
+        "action_suggested": "Secure loose structures and stay clear of river junctions.",
+        "convective_status": "River junction squalls and wetland convective showers."
+      }
+    ]
+  },
+  "damini_sensor_lightning": {
+    "status": "Operational",
+    "source": "IITM-ILDN (Indian Lightning Location Network / DAMINI Network - MoES)",
+    "district": "Karimganj",
+    "district_coordinates": "24.87°N, 92.35°E",
+    "district_boundary_bbox": {
+      "min_lat": 24.25,
+      "max_lat": 25.05,
+      "min_lon": 92.2,
+      "max_lon": 92.65
+    },
+    "total_strikes_inside_boundary": 0,
+    "total_strikes_inside_all_time": 0,
+    "total_strikes_20km": 0,
+    "total_strikes_40km": 0,
+    "total_strikes_100km": 0,
+    "nearest_strike_km": null,
+    "nearest_strike_direction": null,
+    "nearest_strike_time_ist": null,
+    "alarm_level": "🟢 All Clear (No Active Strikes inside Karimganj Boundary)",
+    "safety_action": "Safe to proceed with normal outdoor activities. Stay updated with IMD nowcasts.",
+    "strikes_inside_district": [],
+    "strikes": []
+  },
+  "observed_rainfall_past24h": {
+    "district": "Karimganj",
+    "recorded_date": "2026-10-20",
+    "actual_rainfall_mm": null,
+    "normal_rainfall_mm": null,
+    "departure_percentage": null,
+    "departure_category": "Data Unavailable",
+    "map_color_hex": "#94A3B8",
+    "status": "UNAVAILABLE"
+  },
+  "rainfall_forecast_5days": [
+    {
+      "day_index": 1,
+      "day_code": "Day_1",
+      "date": "2026-10-20",
+      "district": "Karimganj",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 2,
+      "day_code": "Day_2",
+      "date": "2026-10-21",
+      "district": "Karimganj",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 3,
+      "day_code": "Day_3",
+      "date": "2026-10-22",
+      "district": "Karimganj",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 4,
+      "day_code": "Day_4",
+      "date": "2026-10-23",
+      "district": "Karimganj",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    },
+    {
+      "day_index": 5,
+      "day_code": "Day_5",
+      "date": "2026-10-24",
+      "district": "Karimganj",
+      "state": "Assam",
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
+    }
+  ],
+  "severe_weather_warnings_5days": {
+    "district": "Karimganj",
+    "state": "Assam",
+    "issue_date": "",
+    "last_updated_utc": "1970-01-01T00:00:00Z",
+    "status": "OK",
+    "daily_warnings": [
+      {
+        "day_index": 1,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 2,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 3,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 4,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      },
+      {
+        "day_index": 5,
+        "warning_category_codes": [],
+        "warning_descriptions": [],
+        "warning_summary": "No Warning",
+        "alert_color": "Green",
+        "alert_level": "No Warning (No Action)",
+        "additional_remarks": "None",
+        "status": "OK"
+      }
+    ]
+  },
+  "current_nowcast_warning": {
+    "district": "Karimganj",
+    "state": "Assam",
+    "issuing_center": "RMC Guwahati",
+    "date": "2026-10-20",
+    "time_of_issue_ist": "22:00 Hrs",
+    "valid_upto_ist": "01:00 Hrs",
+    "alert_color": "Red",
+    "alert_level": "Warning (Take Action)",
+    "message": "Convective weather warning active over Karimganj district.",
+    "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
+    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
+    "last_updated_utc": "2026-10-20T22:00:23Z",
+    "has_active_nowcast": true
+  },
+  "upstream_mizoram_rainfall": [
+    {
+      "upstream_district": "North Tripura",
+      "state": "Tripura",
+      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from North Tripura (Tripura) into Karimganj",
+      "river_link": "Upstream mountain catchment & moisture advection corridor from North Tripura (Tripura) into Karimganj",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Mamit",
+      "state": "Mizoram",
+      "river_link_to_hailakandi": "Longai river headwaters flowing into Karimganj lowlands",
+      "river_link": "Longai river headwaters flowing into Karimganj lowlands",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-17"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-18"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-19"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Unakoti",
+      "state": "Tripura",
+      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Unakoti (Tripura) into Karimganj",
+      "river_link": "Upstream mountain catchment & moisture advection corridor from Unakoti (Tripura) into Karimganj",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        }
+      ]
+    }
+  ],
+  "upstream_catchment_rainfall": [
+    {
+      "upstream_district": "North Tripura",
+      "state": "Tripura",
+      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from North Tripura (Tripura) into Karimganj",
+      "river_link": "Upstream mountain catchment & moisture advection corridor from North Tripura (Tripura) into Karimganj",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Mamit",
+      "state": "Mizoram",
+      "river_link_to_hailakandi": "Longai river headwaters flowing into Karimganj lowlands",
+      "river_link": "Longai river headwaters flowing into Karimganj lowlands",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-17"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-18"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-19"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-20"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Unakoti",
+      "state": "Tripura",
+      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Unakoti (Tripura) into Karimganj",
+      "river_link": "Upstream mountain catchment & moisture advection corridor from Unakoti (Tripura) into Karimganj",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
+        }
+      ]
+    }
+  ],
+  "synoptic_bulletin": {
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
+    "local_pdf_path": "output/karimganj/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "download_successful": true,
+    "synoptic_excerpts": [
+      {
+        "category": "Official IMD Regional Outlook (Barak Valley)",
+        "headline": "Northeast Regional Atmospheric Systems",
+        "details": "Isolated to Scattered rainfall likely over Assam & Meghalaya on 20th October; Nagaland, Manipur, Mizoram & Tripura during 20th-22nd October. West India: Isolated to Scattered rainfall likely over Konkan & Goa and Madhya Maharashtra during 20th-23rd October; Marathawada during 20th-21st October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely over Konkan & Goa and Madhya Maharashtra on 20th Octo",
+        "impact_on_hailakandi": "Synoptic influence affecting Karimganj and adjoining river basins."
+      },
+      {
+        "category": "National Synoptic Weather Systems",
+        "headline": "Significant National Features",
+        "details": "Weather Systems and Warnings: Northwest India: Isolated to Scattered rainfall likely over Jammu-Kashmir-Ladakh-Gilgit-Baltistan-Muzaffarabad during 23rd-25th October; Himachal Pradesh during 24th-25th October; Uttarakhand during 23rd-26th October. Isolated to Scattered rainfall likely over Haryana Chandigarh & Delhi and Punjab during 24th-25th October; West Rajasthan on 24th October; East Rajasthan on 20th October and on 24th October.",
+        "impact_on_hailakandi": "Influences regional air masses and moisture advection into Karimganj."
+      }
+    ]
+  }
+}

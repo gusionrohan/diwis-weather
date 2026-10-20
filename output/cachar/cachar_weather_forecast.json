@@ -15,20 +15,20 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-20T20:56:49.261941",
-    "output_directory": "output\\cachar"
+    "scraped_at_local": "2026-10-20T16:38:22.536701",
+    "output_directory": "output/cachar"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 25.6,
-      "relative_humidity_pct": 87,
-      "wind_speed_kmh": 1.8,
+      "temperature_c": 24.6,
+      "relative_humidity_pct": 91,
+      "wind_speed_kmh": 2.8,
       "surface_pressure_hpa": 1011.0,
       "today_max_c": 32.6,
       "today_min_c": 21.6,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-20 20:55 IST"
+      "recorded_at_ist": "2026-10-20 16:37 IST"
     },
     "daily_temperature_forecast_5days": [
       {
@@ -167,10 +167,10 @@
       "date": "2026-10-20",
       "district": "Cachar",
       "state": "Assam",
-      "rainfall_category": "Data Pending",
-      "station_coverage": "N/A",
-      "map_color_hex": "#94A3B8",
-      "status": "UNAVAILABLE"
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
     },
     {
       "day_index": 2,
@@ -178,10 +178,10 @@
       "date": "2026-10-21",
       "district": "Cachar",
       "state": "Assam",
-      "rainfall_category": "Data Pending",
-      "station_coverage": "N/A",
-      "map_color_hex": "#94A3B8",
-      "status": "UNAVAILABLE"
+      "rainfall_category": "Dry",
+      "station_coverage": "No rain",
+      "map_color_hex": "#ffffff",
+      "status": "OK"
     },
     {
       "day_index": 3,
@@ -281,14 +281,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-20",
-    "time_of_issue_ist": "19:00 Hrs",
-    "valid_upto_ist": "22:00 Hrs",
+    "time_of_issue_ist": "22:00 Hrs",
+    "valid_upto_ist": "01:00 Hrs",
     "alert_color": "Red",
     "alert_level": "Warning (Take Action)",
     "message": "Convective weather warning active over Cachar district.",
     "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
     "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
-    "last_updated_utc": "2026-10-20T18:32:22Z",
+    "last_updated_utc": "2026-10-20T22:00:23Z",
     "has_active_nowcast": true
   },
   "upstream_mizoram_rainfall": [
@@ -665,7 +665,7 @@
   ],
   "synoptic_bulletin": {
     "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
-    "local_pdf_path": "output\\cachar\\pdfs\\IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "local_pdf_path": "output/cachar/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {

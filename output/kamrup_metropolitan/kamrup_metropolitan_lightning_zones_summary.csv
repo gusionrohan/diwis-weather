@@ -1,0 +1,4 @@
+Sector Name,Coordinates,Latitude,Longitude,Key Localities,IMD Alert Level,Hazard Phenomenon,Expected Wind Gusts,Data Source
+Southern Sector (Meghalaya Foothills & Khanapara),"26.11° N, 91.82° E",26.11,91.82,"Khanapara, Jorabat, Basistha, Meghalaya Border Gate",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Heavy Downpour,💨 Squalls (40 - 50 km/h),Source: IMD
+Central Sector (Guwahati Urban Core & Dispur HQ),"26.18° N, 91.75° E",26.18,91.75,"Dispur, Panbazar, Paltan Bazar, Ganeshguri, DC Office",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Urban Gusts,💨 Gusts (35 - 45 km/h),Source: IMD
+Northern Sector (Brahmaputra Bank & Jalukbari),"26.22° N, 91.68° E",26.22,91.68,"Jalukbari, Pandu, North Guwahati, Saraighat Approach",Yellow Alert (Be Updated),⚡ Moderate Thunderstorm & Riverine Squall,💨 Gusts (30 - 40 km/h),Source: IMD
