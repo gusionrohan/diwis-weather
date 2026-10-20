@@ -1,0 +1,4 @@
+Sector Name,Coordinates,Latitude,Longitude,Key Localities,IMD Alert Level,Hazard Phenomenon,Expected Wind Gusts,Data Source
+Southern Sector (Mizoram Border & Katlicherra),"24.42° N, 92.58° E",24.42,92.58,"Katlicherra, Jamira, South Hailakandi, Bilaipur",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Heavy Rain,💨 Squalls (45 - 55 km/h),Source: IMD
+Central Sector (Hailakandi HQ & Lala Valley),"24.68° N, 92.56° E",24.68,92.56,"Hailakandi Town, Lala, Monacherra, DC Office",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Gusty Winds,💨 Gusty winds (40 - 50 km/h),Source: IMD
+Northern Sector (Algapur Barak Floodplain),"24.78° N, 92.55° E",24.78,92.55,"Algapur, Mohanpur, Kalinagar, Barak Bank",Yellow Alert (Be Updated),⚡ Moderate Thunderstorm & Lightning,💨 Gusts (35 - 45 km/h),Source: IMD

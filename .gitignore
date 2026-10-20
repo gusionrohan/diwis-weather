@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment & Logs
+.env
+*.log
+scheduler.log
+
+# Large downloaded bulletin PDFs (downloaded dynamically during sync)
+output/**/pdfs/
+output_hailakandi/pdfs/
+*.pdf
+
+# SQLite temporary WAL and SHM files
+*.db-wal
+*.db-shm
+output_hailakandi/*.db
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
