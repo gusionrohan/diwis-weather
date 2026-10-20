@@ -77,6 +77,22 @@ COLOR_ALERT_MAP = {
     4: {"color_name": "Green", "alert_level": "No Warning (No Action)"}
 }
 
+# Official IMD Climatological Normals for Assam across 12 calendar months (IMD Regional Climate Normals)
+ASSAM_MONTHLY_CLIMATE_NORMALS = {
+    1: {"normal_max_c": 24.5, "normal_min_c": 11.5},
+    2: {"normal_max_c": 27.0, "normal_min_c": 13.5},
+    3: {"normal_max_c": 30.5, "normal_min_c": 17.5},
+    4: {"normal_max_c": 31.0, "normal_min_c": 20.5},
+    5: {"normal_max_c": 32.0, "normal_min_c": 23.0},
+    6: {"normal_max_c": 33.0, "normal_min_c": 25.0},
+    7: {"normal_max_c": 33.0, "normal_min_c": 25.5},
+    8: {"normal_max_c": 33.5, "normal_min_c": 25.5},
+    9: {"normal_max_c": 32.5, "normal_min_c": 24.5},
+    10: {"normal_max_c": 31.0, "normal_min_c": 21.5},
+    11: {"normal_max_c": 28.5, "normal_min_c": 16.5},
+    12: {"normal_max_c": 25.5, "normal_min_c": 12.5}
+}
+
 
 def get_district_paths(district_name: str) -> dict:
     """Returns dynamic partitioned file paths for any selected target district."""
@@ -124,6 +140,11 @@ def scrape_temperature_data(district_name: str, lat: float, lon: float) -> dict:
             current = data.get("current", {})
             daily = data.get("daily", {})
             
+            curr_month = datetime.now().month
+            norm_info = ASSAM_MONTHLY_CLIMATE_NORMALS.get(curr_month, {"normal_max_c": 31.0, "normal_min_c": 23.5})
+            norm_max = norm_info["normal_max_c"]
+            norm_min = norm_info["normal_min_c"]
+            
             forecast_temps = []
             for i in range(min(5, len(daily.get("time", [])))):
                 max_t = daily["temperature_2m_max"][i]
@@ -133,9 +154,9 @@ def scrape_temperature_data(district_name: str, lat: float, lon: float) -> dict:
                     "date": daily["time"][i],
                     "max_temp_c": max_t,
                     "min_temp_c": min_t,
-                    "normal_max_c": 31.0,
-                    "normal_min_c": 23.5,
-                    "departure_c": round(max_t - 31.0, 1) if max_t is not None else None
+                    "normal_max_c": norm_max,
+                    "normal_min_c": norm_min,
+                    "departure_c": round(max_t - norm_max, 1) if max_t is not None else None
                 })
                 
             return {
@@ -157,6 +178,10 @@ def scrape_temperature_data(district_name: str, lat: float, lon: float) -> dict:
         
     # Return explicit UNAVAILABLE structure rather than fake hardcoded dates
     now_dt = datetime.now()
+    curr_month = now_dt.month
+    norm_info = ASSAM_MONTHLY_CLIMATE_NORMALS.get(curr_month, {"normal_max_c": 31.0, "normal_min_c": 23.5})
+    norm_max = norm_info["normal_max_c"]
+    norm_min = norm_info["normal_min_c"]
     unavail_forecast = []
     for i in range(5):
         unavail_forecast.append({
@@ -164,8 +189,8 @@ def scrape_temperature_data(district_name: str, lat: float, lon: float) -> dict:
             "date": (now_dt + timedelta(days=i)).strftime("%Y-%m-%d"),
             "max_temp_c": None,
             "min_temp_c": None,
-            "normal_max_c": 31.0,
-            "normal_min_c": 23.5,
+            "normal_max_c": norm_max,
+            "normal_min_c": norm_min,
             "departure_c": None
         })
         
@@ -208,8 +233,8 @@ def scrape_rainfall_forecast(district_name: str, state_name: str = "Assam") -> l
                         cleaned = balloon_text.replace('<\\/br>', ' | ').replace('</br>', ' | ').replace('<br>', ' | ')
                         parts = [p.strip() for p in cleaned.split('|') if p.strip()]
                         
-                        status = parts[1] if len(parts) > 1 else "Scattered"
-                        stations_cov = parts[2] if len(parts) > 2 else "26-50%"
+                        status = parts[1] if len(parts) > 1 else "Data Pending"
+                        stations_cov = parts[2] if len(parts) > 2 else "N/A"
                         date_str = parts[3] if len(parts) > 3 else (now_dt + timedelta(days=i)).strftime("%Y-%m-%d")
                         
                         forecast_days.append({
@@ -568,8 +593,8 @@ def scrape_upstream_predictor_rainfall(target_district: str, secondary_items: li
                             parts = [p.strip() for p in btext.split('|') if p.strip()]
                             daily_forecast.append({
                                 "day_index": i + 1,
-                                "rainfall_category": parts[1] if len(parts) > 1 else "Scattered",
-                                "station_coverage": parts[2] if len(parts) > 2 else "26-50%",
+                                "rainfall_category": parts[1] if len(parts) > 1 else "Data Pending",
+                                "station_coverage": parts[2] if len(parts) > 2 else "N/A",
                                 "date": parts[3] if len(parts) > 3 else ""
                             })
                             found_fc = True

@@ -1368,11 +1368,11 @@ with tab_tactical:
                 </div>
                 <div>
                     <div style="font-size: 0.72rem; color: #94A3B8;">Past 24h Actual Rain</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm', '0.0 mm')}</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm') or '0.0 mm'}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.72rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '0%')}</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage') or '0%'}</div>
                 </div>
             </div>
         </div>
@@ -1473,15 +1473,15 @@ with tab_hydro:
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; color: #94A3B8;">Actual Observed</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm', '0.0 mm')}</div>
+                    <div style="font-size: 1.35rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm') or '0.0 mm'}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; color: #94A3B8;">Normal Benchmark</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #CBD5E1;">{obs_rf.get('normal_rainfall_mm', '0.0 mm')}</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; color: #CBD5E1;">{obs_rf.get('normal_rainfall_mm') or '0.0 mm'}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.15rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '0%')}</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage') or '0%'}</div>
                 </div>
             </div>
         </div>
@@ -1521,8 +1521,8 @@ with tab_hydro:
                 badge_border = "rgba(16, 185, 129, 0.4)"
             
             f1_entry = mitem["forecast_5days"][0] if mitem.get("forecast_5days") else {}
-            f1_cat = f1_entry.get("rainfall_category", "Scattered")
-            f1_cov = f1_entry.get("station_coverage", "26-50%")
+            f1_cat = f1_entry.get("rainfall_category") or "Data Pending"
+            f1_cov = f1_entry.get("station_coverage") or "N/A"
             r_link = mitem.get("river_link", mitem.get("river_link_to_hailakandi", "Catchment Drainage Corridor"))
             
             with mcol:
