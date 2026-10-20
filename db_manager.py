@@ -200,13 +200,15 @@ def init_db(db_path: str = None):
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
         now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        p_admin123 = hash_password("admin123")
+        bootstrap_pwd = os.environ.get("DIWIS_ADMIN_PASSWORD", "admin123")
+        p_bootstrap = hash_password(bootstrap_pwd)
+        must_change = 1 if bootstrap_pwd == "admin123" else 0
         
         # Master Super Administrator
         cursor.execute("""
         INSERT INTO users (username, password_hash, full_name, role, district, created_at, created_by, must_change_password)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-        """, ('admin', p_admin123, 'State Super Administrator', 'superadmin', 'ALL', now_ts, 'system'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, ('admin', p_bootstrap, 'State Super Administrator', 'superadmin', 'ALL', now_ts, 'system', must_change))
 
         # Seed District Admins for all Assam districts
         try:
@@ -217,8 +219,8 @@ def init_db(db_path: str = None):
                 u_name = f"admin_{clean_dist}"
                 cursor.execute("""
                 INSERT OR IGNORE INTO users (username, password_hash, full_name, role, district, created_at, created_by, must_change_password)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                """, (u_name, p_admin123, f"{d} DDMA District Admin", "district_admin", d, now_ts, "system"))
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (u_name, p_bootstrap, f"{d} DDMA District Admin", "district_admin", d, now_ts, "system", must_change))
         except Exception:
             pass
 
@@ -455,11 +457,45 @@ def update_user_password(
                 return False, "Current password verification failed. Password was not changed."
                 
         new_hash = hash_password(new_password)
-        cursor.execute("UPDATE users SET password_hash = ? WHERE LOWER(username) = LOWER(?)", (new_hash, username.strip()))
+        cursor.execute("UPDATE users SET password_hash = ?, must_change_password = 0 WHERE LOWER(username) = LOWER(?)", (new_hash, username.strip()))
         conn.commit()
         return True, f"Password for '{username}' updated successfully with secure encryption."
     except Exception as e:
         return False, f"Failed to update password: {e}"
+    finally:
+        conn.close()
+
+
+def sync_admin_from_secrets(custom_password: str, custom_username: str = "admin", db_path: str = None) -> bool:
+    """
+    Dynamically configures or updates the Superadmin account using credentials provided
+    via Streamlit Cloud Secrets (st.secrets['ADMIN_PASSWORD']) or environment variables.
+    Ensures production passwords are never exposed in source code or public repositories.
+    """
+    if not custom_password or len(str(custom_password).strip()) < 6:
+        return False
+    target_path = resolve_db_path(db_path)
+    init_db(target_path)
+    conn = get_connection(target_path)
+    cursor = conn.cursor()
+    try:
+        u_clean = str(custom_username).strip().lower()
+        pwd_hash = hash_password(str(custom_password).strip())
+        now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute("SELECT id FROM users WHERE LOWER(username) = ?", (u_clean,))
+        row = cursor.fetchone()
+        if row:
+            cursor.execute("UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?", (pwd_hash, row[0]))
+        else:
+            cursor.execute("""
+            INSERT INTO users (username, password_hash, full_name, role, district, created_at, created_by, must_change_password)
+            VALUES (?, ?, ?, 'superadmin', 'ALL', ?, 'secrets', 0)
+            """, (u_clean, pwd_hash, "State Super Administrator", now_ts))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"[!] sync_admin_from_secrets error: {e}")
+        return False
     finally:
         conn.close()
 

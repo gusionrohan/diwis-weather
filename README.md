@@ -21,13 +21,22 @@ A specialized meteorological & hydrological intelligence platform integrating di
 
 ## 🔐 Authentication & Role-Based Access Control (RBAC)
 
-| Role | Default Username Format | Initial Password | Permissions |
+| Role | Username Format | Password Management | Permissions |
 | :--- | :--- | :--- | :--- |
-| **State Super Admin** | `admin` | `admin123` | Universal access across all 35 Assam districts, manage all users |
-| **District DDMA Admin** | `admin_<district>` *(e.g. `admin_hailakandi`)* | `admin123` | Locked to selected district, manage & create district staff |
-| **District Staff** | Created by District Admin | Assigned by Admin | Locked to district, view dashboard & trigger IMD/SQL synchronizations |
+| **State Super Admin** | `admin` *(or custom via Secrets)* | Configured via `ADMIN_PASSWORD` secret (or prompted on 1st login) | Universal access across all 35 Assam districts, manage all users |
+| **District DDMA Admin** | `admin_<district>` *(e.g. `admin_hailakandi`)* | Provisioned by Super Admin | Locked to selected district, manage & create district staff |
+| **District Staff** | Created by District Admin | Assigned by District Admin | Locked to district, view dashboard & trigger IMD/SQL synchronizations |
 
-> **Password Security**: All user passwords are encrypted using **Salted Scrypt hashing** (`hashlib.scrypt`). Users can change their own passwords anytime via the profile ribbon with verification of their current password.
+### 🛡️ Production Security & Streamlit Cloud Secrets
+To securely set your Superadmin password in production without hardcoding or committing it to GitHub:
+1. In your **Streamlit Community Cloud** app dashboard, go to **Settings** $\rightarrow$ **Secrets** (or create `.streamlit/secrets.toml` locally).
+2. Enter your private credentials:
+   ```toml
+   ADMIN_USERNAME = "admin"
+   ADMIN_PASSWORD = "YourStrongSecretPassword123!"
+   ```
+3. DIWIS dynamically applies your private password on startup using **NIST-approved Salted Scrypt key derivation** (`hashlib.scrypt`).
+4. If bootstrap credentials are ever used, DIWIS automatically intercepts the session and requires a **mandatory password update** before granting dashboard access.
 
 ---
 

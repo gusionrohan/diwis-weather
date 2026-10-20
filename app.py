@@ -23,6 +23,7 @@ from db_manager import (
     delete_user_by_admin,
     get_district_users,
     update_user_password,
+    sync_admin_from_secrets,
     hash_password,
     hash_password_md5
 )
@@ -37,6 +38,24 @@ st.set_page_config(
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = DEFAULT_DB_PATH
+
+# Auto-sync admin credentials from Streamlit Cloud Secrets or env vars if provided
+try:
+    sec_pwd = None
+    if hasattr(st, "secrets") and "ADMIN_PASSWORD" in st.secrets:
+        sec_pwd = str(st.secrets["ADMIN_PASSWORD"]).strip()
+    elif "DIWIS_ADMIN_PASSWORD" in os.environ:
+        sec_pwd = os.environ["DIWIS_ADMIN_PASSWORD"].strip()
+    
+    if sec_pwd:
+        sec_user = "admin"
+        if hasattr(st, "secrets") and "ADMIN_USERNAME" in st.secrets:
+            sec_user = str(st.secrets["ADMIN_USERNAME"]).strip()
+        elif "DIWIS_ADMIN_USERNAME" in os.environ:
+            sec_user = os.environ["DIWIS_ADMIN_USERNAME"].strip()
+        sync_admin_from_secrets(sec_pwd, sec_user, db_path=DB_PATH)
+except Exception:
+    pass
 
 # CSS Styling to hide sidebar and style modern cards
 st.markdown("""
@@ -331,6 +350,46 @@ user_role = current_user.get("role", "staff")
 user_name = current_user.get("full_name") or current_user.get("username") or "Operator"
 user_username = current_user.get("username", "")
 user_assigned_dist = current_user.get("district", "ALL")
+
+# Mandatory initial password change gate
+if current_user.get("must_change_password") == 1:
+    st.markdown("""
+    <div style="max-width: 650px; margin: 40px auto 20px auto; background: rgba(220, 38, 38, 0.08); border: 1px solid #DC2626; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="font-size: 1.8rem;">🛡️</div>
+            <div>
+                <h3 style="color: #F87171; margin: 0; font-size: 1.25rem;">Mandatory Security Action: Update Initial Password</h3>
+                <p style="color: #94A3B8; margin: 2px 0 0 0; font-size: 0.85rem;">Emergency Operations & Disaster Management Security Protocol</p>
+            </div>
+        </div>
+        <p style="color: #E2E8F0; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0;">
+            Your account is currently using default bootstrap credentials. To protect public safety data and prevent unauthorized district access, you must establish a new private password before proceeding.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    f_col1, f_col2, f_col3 = st.columns([1, 2, 1])
+    with f_col2:
+        with st.form("forced_password_reset_form"):
+            f_curr = st.text_input("🔑 Current Password:", type="password")
+            f_new = st.text_input("🔒 New Secure Password (minimum 6 characters):", type="password")
+            f_conf = st.text_input("🔒 Confirm New Password:", type="password")
+            f_submit = st.form_submit_button("💾 Save New Password & Access System", type="primary", use_container_width=True)
+            if f_submit:
+                if not f_curr or not f_new:
+                    st.error("Please fill in all password fields.")
+                elif f_new != f_conf:
+                    st.error("New password and confirmation do not match.")
+                elif len(f_new.strip()) < 6:
+                    st.error("New password must be at least 6 characters.")
+                else:
+                    r_ok, r_msg = update_user_password(user_username, f_new, current_password=f_curr, db_path=DB_PATH)
+                    if r_ok:
+                        st.session_state.user["must_change_password"] = 0
+                        st.success("Security credentials updated! Loading dashboard...")
+                        st.rerun()
+                    else:
+                        st.error(r_msg)
+    st.stop()
 
 # Enforce Primary District Lock: Non-superadmins CANNOT change their assigned district
 if user_role == "superadmin":
