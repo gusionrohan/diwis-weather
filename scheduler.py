@@ -42,7 +42,8 @@ DEFAULT_TARGET_DISTRICTS = [
     "Cachar",
     "Karimganj",
     "Kamrup Metropolitan",
-    "Dibrugarh"
+    "Dibrugarh",
+    "Biswanath"
 ]
 
 

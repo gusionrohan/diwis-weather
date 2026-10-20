@@ -344,7 +344,6 @@ if not st.session_state.authenticated:
                     st.session_state.selected_secondary_items = sec_items
                     st.session_state.page = "dashboard"
                     st.session_state.app_view = "dashboard"
-                    st.success(f"{msg} Welcome, {user_dict.get('full_name')}!")
                     st.rerun()
                 else:
                     st.error(msg)
@@ -788,6 +787,34 @@ if st.session_state.app_view == "password":
 # ==========================================
 # VIEW 3: MAIN CLEAN WEATHER DASHBOARD VIEW
 # ==========================================
+
+# Check local data availability before rendering dashboard elements
+raw_data = load_local_data(primary_district)
+needs_sync = False
+if not raw_data:
+    needs_sync = True
+elif raw_data.get("metadata", {}).get("target_location", {}).get("district") != primary_district:
+    needs_sync = True
+
+if needs_sync and secondary_items:
+    st.markdown(f"""
+    <div style="max-width: 650px; margin: 4rem auto 2rem auto; background: #1E293B; border: 1px solid #334155; border-top: 4px solid #0284C7; border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+        <div style="font-size: 3.5rem; margin-bottom: 14px;">🛰️</div>
+        <h2 style="font-size: 1.55rem; font-weight: 800; color: #F8FAFC; margin-bottom: 8px;">Initializing {primary_district} Weather Intelligence</h2>
+        <p style="font-size: 0.90rem; color: #94A3B8; margin-bottom: 24px; line-height: 1.55;">
+            Retrieving real-time observations, IMD 5-day warning bulletins, and IITM-ILDN DAMINI lightning sensors for <b>{primary_district}</b>. Initial provisioning takes ~15–20 seconds.
+        </p>
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.4); padding: 8px 20px; border-radius: 9999px; color: #38BDF8; font-size: 0.85rem; font-weight: 600;">
+            📡 Connecting to IMD Regional Observatories...
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.spinner(f"Compiling meteorological feeds for {primary_district}..."):
+        raw_data = scrape_weather_data(primary_state, primary_district, secondary_items, generate_reports=True, report_generated_by=user_name)
+    st.rerun()
+
+data = raw_data
+
 role_badge_colors = {
     "superadmin": ("#DC2626", "rgba(220, 38, 38, 0.2)", "State Super Administrator"),
     "district_admin": ("#0284C7", "rgba(2, 132, 199, 0.2)", "District Administrator"),
@@ -837,21 +864,6 @@ with top_u_col2:
             st.session_state.page = "portal"
             st.session_state.app_view = "dashboard"
             st.rerun()
-
-
-# Load or synchronize data
-raw_data = load_local_data(primary_district)
-needs_sync = False
-if not raw_data:
-    needs_sync = True
-elif raw_data.get("metadata", {}).get("target_location", {}).get("district") != primary_district:
-    needs_sync = True
-
-if needs_sync and secondary_items:
-    with st.spinner(f"Synchronizing live IMD & DAMINI intelligence for {primary_district}, Assam & chosen predictor catchments..."):
-        raw_data = scrape_weather_data(primary_state, primary_district, secondary_items, generate_reports=True, report_generated_by=user_name)
-
-data = raw_data
 
 # Top Navigation Bar
 nav_col1, nav_col2 = st.columns([3.4, 1.3])
