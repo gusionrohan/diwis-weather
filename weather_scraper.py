@@ -30,7 +30,8 @@ from geo_registry import (
     ASSAM_DISTRICTS_CONFIG,
     DISTRICT_COORDINATES_MAP,
     get_district_meta,
-    get_river_link
+    get_river_link,
+    get_upstream_catchments_for_district
 )
 
 # Ensure UTF-8 output
@@ -817,6 +818,155 @@ def scrape_damini_ildn_lightning(district_name: str, lat: float, lon: float, met
     return ildn_data
 
 
+def dynamize_micro_zone_sectors(base_sectors: list, nowcast: dict, damini_sensor: dict, warnings: dict, district_name: str, river_basin: str = "") -> tuple:
+    """
+    Dynamically binds micro-zone sectors to live RMC Guwahati Nowcast, IITM Damini sensor strikes, 
+    and IMD 5-day severe weather warnings. Eliminates static orange/yellow presets.
+    Returns: (dynamized_sectors_list, overall_lightning_metadata_dict)
+    """
+    if not base_sectors:
+        base_sectors = []
+        
+    has_nowcast = nowcast.get("has_active_nowcast", False)
+    nc_color = nowcast.get("alert_color", "Green")
+    nc_msg = nowcast.get("message", "")
+    nc_level = nowcast.get("alert_level", "")
+    
+    # Active ground strikes from Damini ILDN
+    inside_strikes = damini_sensor.get("strikes_inside_district", [])
+    all_strikes = inside_strikes + damini_sensor.get("strikes", [])
+    
+    # Day 1 warning alert color
+    day1_warning = warnings.get("daily_warnings", [{}])[0] if warnings.get("daily_warnings") else {}
+    day1_color = day1_warning.get("alert_color", "Green")
+    day1_summary = day1_warning.get("warning_summary", "No Warning")
+    
+    dynamized = []
+    highest_severity_rank = 0  # 0: Green, 1: Yellow, 2: Orange, 3: Red
+    severity_order = {"Green": 0, "Yellow": 1, "Orange": 2, "Red": 3}
+    
+    for sector in base_sectors:
+        sec = dict(sector)
+        s_lat = sec.get("latitude")
+        s_lon = sec.get("longitude")
+        if s_lat is None or s_lon is None:
+            coords_str = sec.get("coordinates", "")
+            c_matches = re.findall(r"([0-9]+\.[0-9]+)", coords_str)
+            if len(c_matches) >= 2:
+                s_lat = float(c_matches[0])
+                s_lon = float(c_matches[1])
+        
+        # 1. Spatial proximity to live Damini sensor strikes (<= 60 mins old)
+        min_strike_dist = 999.0
+        active_strikes_near_sector = 0
+        
+        if s_lat is not None and s_lon is not None and all_strikes:
+            for st in all_strikes:
+                st_lat = st.get("lat")
+                st_lon = st.get("lon")
+                age = st.get("age_minutes", 999)
+                if st_lat is not None and st_lon is not None and age <= 60:
+                    dlat = (st_lat - s_lat) * 111.0
+                    dlon = (st_lon - s_lon) * 111.0 * math.cos(math.radians(s_lat))
+                    dist = math.sqrt(dlat * dlat + dlon * dlon)
+                    if dist < min_strike_dist:
+                        min_strike_dist = dist
+                    if dist <= 20.0:
+                        active_strikes_near_sector += 1
+
+        # Determine dynamic sector status based on live telemetry hierarchy
+        if active_strikes_near_sector > 0 or min_strike_dist <= 15.0:
+            sec_color = "Red"
+            sec_level = f"Red Alert ({active_strikes_near_sector} Ground Strike(s) Active <15 km)"
+            sec_hazard = "⚡ Active Cloud-to-Ground Lightning Strikes"
+            sec_winds = "💨 Squalls & Downbursts (55 - 70 km/h)"
+            sec_action = "IMMEDIATE DANGER: Seek shelter inside sturdy buildings immediately. Evacuate open fields and water bodies."
+            sec_status = f"Live ILDN sensor detected active strike {min_strike_dist:.1f} km from sector. High electrical discharge active."
+        elif min_strike_dist <= 30.0:
+            sec_color = "Orange"
+            sec_level = f"Orange Alert (Lightning Perimeter: {min_strike_dist:.1f} km)"
+            sec_hazard = "⚡ Thunderstorm & Imminent Lightning Threat"
+            sec_winds = "💨 Severe Gusts (45 - 55 km/h)"
+            sec_action = "Be prepared to take shelter indoors. Suspend all outdoor and agricultural activities."
+            sec_status = f"Convective cloud cluster actively discharging strikes within {min_strike_dist:.1f} km approaching corridor."
+        elif has_nowcast and nc_color in ("Red", "Orange", "Yellow"):
+            sec_color = nc_color
+            if nc_color == "Red":
+                sec_level = "Red Alert (Severe Convective Nowcast Active)"
+                sec_hazard = "⚡ Severe Thunderstorm, Lightning & Squalls"
+                sec_winds = "💨 Squalls (50 - 65 km/h)"
+                sec_action = "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district."
+                sec_status = f"Radar indicates severe convective cell traversal over {district_name}."
+            elif nc_color == "Orange":
+                sec_level = "Orange Alert (Be Prepared)"
+                sec_hazard = "⚡ Moderate-to-Heavy Thunderstorm & Lightning"
+                sec_winds = "💨 Gusty Winds (40 - 50 km/h)"
+                sec_action = "Avoid open paddy fields, temporary tin sheds, and riverbanks."
+                sec_status = "Active convective cell migration through river corridor."
+            else:
+                sec_level = "Yellow Alert (Be Updated)"
+                sec_hazard = "⚡ Isolated Thunderstorm & Gusty Winds"
+                sec_winds = "💨 Gusts (35 - 45 km/h)"
+                sec_action = "Stay updated with live RMC Guwahati nowcasts."
+                sec_status = "Marginal convective instability; localized convective build-up possible."
+        elif day1_color in ("Orange", "Yellow", "Red"):
+            sec_color = day1_color
+            sec_level = f"{day1_color} Alert ({day1_summary})"
+            sec_hazard = f"⚡ {day1_summary}"
+            sec_winds = "💨 Gusts (35 - 45 km/h)" if day1_color != "Red" else "💨 Squalls (50 - 60 km/h)"
+            sec_action = "Maintain situational readiness in accordance with official IMD warning."
+            sec_status = f"IMD GeoServer 5-day forecast bulletin issued {day1_color} advisory."
+        else:
+            sec_color = "Green"
+            sec_level = "Green Alert (Normal / Clear Weather)"
+            sec_hazard = "☀️ No Severe Convective Activity"
+            sec_winds = "🍃 Normal Breezes (10 - 20 km/h)"
+            sec_action = "Safe for normal outdoor and municipal operations. Routine monitoring."
+            sec_status = "Stable atmospheric conditions; no active convective cells over sector."
+
+        sec["alert_color"] = sec_color
+        sec["alert_level"] = sec_level
+        sec["hazard_phenomenon"] = sec_hazard
+        sec["expected_winds"] = sec_winds
+        sec["action_suggested"] = sec_action
+        sec["convective_status"] = sec_status
+        
+        rank = severity_order.get(sec_color, 0)
+        if rank > highest_severity_rank:
+            highest_severity_rank = rank
+            
+        dynamized.append(sec)
+
+    # Determine overall lightning zones metadata
+    if highest_severity_rank == 3:
+        ov_alert = "🚨 Critical Risk (Immediate Ground Strikes or Severe Nowcast Active)"
+        ov_window = "Immediate (0 to 3 Hours Convective Window)"
+        ov_advice = "Immediate shelter required. Evacuate open fields and suspend all outdoor operations."
+    elif highest_severity_rank == 2:
+        ov_alert = "⚡ High Risk (Thunderstorms & Lightning Likely)"
+        ov_window = "Next 3 to 6 Hours (Convective Storm Window)"
+        ov_advice = "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies."
+    elif highest_severity_rank == 1:
+        ov_alert = "⚠️ Moderate Risk (Isolated Thunderstorm / Gusts Possible)"
+        ov_window = "Next 3 to 6 Hours (Watch Window)"
+        ov_advice = "Stay updated with live IMD bulletins and monitor local sky conditions."
+    else:
+        ov_alert = "🟢 All Clear (Atmospheric Conditions Stable)"
+        ov_window = "Current Window (No Convective Threat Active)"
+        ov_advice = "Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities."
+
+    ov_metadata = {
+        "overall_alert": ov_alert,
+        "storm_track_movement": f"Propagating along {river_basin} corridor across {district_name}." if highest_severity_rank > 0 else f"Calm / stable conditions prevailing across {district_name}.",
+        "active_window": ov_window,
+        "safety_advice": ov_advice,
+        "source": "IMD (India Meteorological Department) & IITM-ILDN",
+        "sectors": dynamized
+    }
+    
+    return dynamized, ov_metadata
+
+
 def scrape_weather_data(primary_state: str = "Assam", primary_district: str = "Hailakandi", secondary_items: list = None, generate_reports: bool = True, report_generated_by: str = "Operator") -> dict:
     """
     Main function to scrape and orchestrate all weather & inflow intelligence dynamically.
@@ -829,16 +979,7 @@ def scrape_weather_data(primary_state: str = "Assam", primary_district: str = "H
     paths = get_district_paths(primary_district)
     
     if not secondary_items:
-        def_states = meta.get("default_secondary_states", ["Mizoram"])
-        def_dists = meta.get("default_secondary_districts", ["Kolasib", "Mamit", "Aizawl"])
-        secondary_items = []
-        for d in def_dists:
-            st_name = def_states[0] if def_states else "Assam"
-            for st, dlist in NE_STATES_DISTRICTS.items():
-                if d in dlist:
-                    st_name = st
-                    break
-            secondary_items.append({"state": st_name, "district": d})
+        secondary_items = get_upstream_catchments_for_district(primary_district)
 
     temp_data = scrape_temperature_data(primary_district, lat, lon)
     rainfall_forecast = scrape_rainfall_forecast(primary_district, primary_state)
@@ -849,14 +990,15 @@ def scrape_weather_data(primary_state: str = "Assam", primary_district: str = "H
     synoptic_bulletin = scrape_synoptic_excerpts_and_bulletin(primary_district, meta, pdf_dest_dir=paths["pdf_dir"])
     damini_sensor = scrape_damini_ildn_lightning(primary_district, lat, lon, meta)
     
-    lightning_zones_data = {
-        "overall_alert": "⚡ High Risk (Thunderstorms & Lightning Likely)",
-        "storm_track_movement": f"Upstream-to-Downstream: Propagating along {meta.get('river_basin', 'river corridor')} across {primary_district}.",
-        "active_window": "Next 3 to 6 Hours (Convective Storm Window)",
-        "safety_advice": "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.",
-        "source": "IMD (India Meteorological Department) & IITM-ILDN",
-        "sectors": meta.get("sectors", [])
-    }
+    # Dynamically bind micro-zone sectors to live Nowcast, Damini Strikes & IMD Warnings
+    dynamized_sectors, lightning_zones_data = dynamize_micro_zone_sectors(
+        meta.get("sectors", []),
+        nowcast=nowcast,
+        damini_sensor=damini_sensor,
+        warnings=warnings,
+        district_name=primary_district,
+        river_basin=meta.get("river_basin", "River Basin")
+    )
     
     combined_data = {
         "metadata": {
@@ -917,7 +1059,7 @@ def scrape_weather_data(primary_state: str = "Assam", primary_district: str = "H
     with open(paths["lightning_csv"], "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Sector Name", "Coordinates", "Latitude", "Longitude", "Key Localities", "IMD Alert Level", "Hazard Phenomenon", "Expected Wind Gusts", "Data Source"])
-        for sec in meta.get("sectors", []):
+        for sec in lightning_zones_data.get("sectors", []):
             writer.writerow([
                 sec.get("zone_name"),
                 sec.get("coordinates"),

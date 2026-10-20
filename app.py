@@ -10,9 +10,15 @@ from geo_registry import (
     ASSAM_DISTRICTS_CONFIG,
     DISTRICT_COORDINATES_MAP,
     get_district_meta,
-    get_river_link
+    get_river_link,
+    get_upstream_catchments_for_district
 )
-from weather_scraper import scrape_weather_data, format_strike_age, get_district_paths
+from weather_scraper import (
+    scrape_weather_data,
+    format_strike_age,
+    get_district_paths,
+    dynamize_micro_zone_sectors
+)
 from db_manager import (
     get_all_tables_stats,
     get_district_tables_stats,
@@ -493,19 +499,10 @@ if not st.session_state.authenticated:
                     st.session_state.selected_primary_state = "Assam"
                     st.session_state.selected_primary_district = login_district
                     
-                    # Setup default secondary catchment predictors for this district
-                    curr_meta = get_district_meta(login_district)
-                    sec_states = curr_meta.get("default_secondary_states", ["Mizoram"])
-                    sec_districts = curr_meta.get("default_secondary_districts", ["Kolasib", "Mamit", "Aizawl"])
-                    sec_items = []
-                    for d in sec_districts:
-                        for s in sec_states:
-                            if d in NE_STATES_DISTRICTS.get(s, []):
-                                sec_items.append({"state": s, "district": d})
-                                break
-                        else:
-                            sec_items.append({"state": sec_states[0] if sec_states else "Mizoram", "district": d})
+                    # Dynamically auto-detect upstream secondary river catchment predictors
+                    sec_items = get_upstream_catchments_for_district(login_district)
                     st.session_state.selected_secondary_items = sec_items
+                    st.session_state.last_synced_district = login_district
                     st.session_state.page = "dashboard"
                     st.session_state.app_view = "dashboard"
                     st.rerun()
@@ -581,20 +578,10 @@ else:
 primary_state = "Assam"
 st.session_state.selected_primary_state = primary_state
 secondary_items = st.session_state.get("selected_secondary_items", [])
-if not secondary_items:
-    curr_meta = get_district_meta(primary_district)
-    sec_states = curr_meta.get("default_secondary_states", ["Mizoram"])
-    sec_districts = curr_meta.get("default_secondary_districts", ["Kolasib", "Mamit", "Aizawl"])
-    sec_items = []
-    for d in sec_districts:
-        for s in sec_states:
-            if d in NE_STATES_DISTRICTS.get(s, []):
-                sec_items.append({"state": s, "district": d})
-                break
-        else:
-            sec_items.append({"state": sec_states[0] if sec_states else "Mizoram", "district": d})
-    st.session_state.selected_secondary_items = sec_items
-    secondary_items = sec_items
+if not secondary_items or st.session_state.get("last_synced_district") != primary_district:
+    secondary_items = get_upstream_catchments_for_district(primary_district)
+    st.session_state.selected_secondary_items = secondary_items
+    st.session_state.last_synced_district = primary_district
 
 current_meta = get_district_meta(primary_district)
 
@@ -979,12 +966,29 @@ if needs_sync and secondary_items:
 
 data = raw_data
 
+if data:
+    # Dynamize micro-zone sectors and overall alert in memory so dashboard immediately reflects live telemetry
+    nowcast_obj = data.get("current_nowcast_warning", {})
+    damini_obj = data.get("damini_sensor_lightning", {})
+    warn_obj = data.get("severe_weather_warnings_5days", {})
+    base_sec = current_meta.get("sectors", [])
+    dyn_sec, dyn_ov = dynamize_micro_zone_sectors(
+        base_sec,
+        nowcast=nowcast_obj,
+        damini_sensor=damini_obj,
+        warnings=warn_obj,
+        district_name=primary_district,
+        river_basin=current_meta.get("river_basin", "River Basin")
+    )
+    data["lightning_zones_data"] = dyn_ov
+
 role_badge_colors = {
     "superadmin": ("#DC2626", "rgba(220, 38, 38, 0.2)", "State Super Administrator"),
     "district_admin": ("#0284C7", "rgba(2, 132, 199, 0.2)", "District Administrator"),
     "staff": ("#059669", "rgba(5, 150, 105, 0.2)", "District Staff / Operator")
 }
 r_col, r_bg, r_label = role_badge_colors.get(user_role, ("#64748B", "rgba(100, 116, 139, 0.2)", "User"))
+dist_badge_text = f"🔒 Locked District: {primary_district}" if user_role != "superadmin" else f"🌐 State Deck: {primary_district} (Superadmin Access)"
 
 top_u_col1, top_u_col2 = st.columns([2.6, 1.8])
 with top_u_col1:
@@ -1000,7 +1004,7 @@ with top_u_col1:
                     🛡️ {r_label}
                 </span>
                 <span style="background: rgba(14, 165, 233, 0.15); color: #38BDF8; border: 1px solid rgba(14, 165, 233, 0.4); font-size: 0.70rem; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">
-                    🔒 Locked District: {primary_district}
+                    {dist_badge_text}
                 </span>
             </div>
         </div>
@@ -1029,6 +1033,51 @@ with top_u_col2:
             st.session_state.app_view = "dashboard"
             st.rerun()
 
+# Superadmin District Switch Modal Dialog
+@st.dialog("🏛️ Switch Operational District (Superadmin)")
+def show_district_switch_dialog():
+    st.markdown("""
+    <div style="font-size: 0.88rem; color: #94A3B8; margin-bottom: 12px; line-height: 1.5;">
+        Select any of the <b>35 Assam districts</b> to re-target the DIWIS Command Deck. 
+        Upstream river basin catchments and hydrological telemetry will automatically re-align.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    current_dist = st.session_state.get("selected_primary_district", "Hailakandi")
+    dist_idx = assam_districts_list.index(current_dist) if current_dist in assam_districts_list else 0
+    
+    target_choice = st.selectbox(
+        "📍 Select Operational Target District:",
+        options=assam_districts_list,
+        index=dist_idx,
+        key="superadmin_dialog_district_picker"
+    )
+    
+    target_meta = get_district_meta(target_choice)
+    auto_catchments = get_upstream_catchments_for_district(target_choice)
+    
+    st.markdown(f"""
+    <div style="background: #0F172A; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin: 12px 0 16px 0; font-size: 0.84rem;">
+        <div style="color: #38BDF8; font-weight: 700; margin-bottom: 4px;">🌊 River Basin: {target_meta.get('river_basin', 'Assam Basin')}</div>
+        <div style="color: #94A3B8; margin-bottom: 6px;"><b>Coordinates:</b> {target_meta['lat']}°N, {target_meta['lon']}°E &nbsp;|&nbsp; <b>Subdivision:</b> {target_meta.get('subdivision', 'Assam')}</div>
+        <div style="color: #4ADE80; font-weight: 600;"><b>Auto-Detected Upstream Catchments:</b></div>
+        <div style="color: #CBD5E1; margin-top: 2px;">{', '.join([c['district'] + ' (' + c['state'] + ')' for c in auto_catchments])}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    dlg_c1, dlg_c2 = st.columns(2)
+    with dlg_c1:
+        if st.button("🚀 Load District Command Deck", type="primary", use_container_width=True):
+            st.session_state.selected_primary_district = target_choice
+            st.session_state.selected_primary_state = "Assam"
+            st.session_state.selected_secondary_items = auto_catchments
+            st.session_state.last_synced_district = target_choice
+            st.session_state.app_view = "dashboard"
+            st.rerun()
+    with dlg_c2:
+        if st.button("Cancel", use_container_width=True):
+            st.rerun()
+
 # Top Navigation Bar
 nav_col1, nav_col2 = st.columns([3.4, 1.3])
 with nav_col1:
@@ -1040,8 +1089,7 @@ with nav_col1:
 with nav_col2:
     if user_role == "superadmin":
         if st.button("⚙️ Superadmin: Switch District", use_container_width=True):
-            st.session_state.page = "portal"
-            st.rerun()
+            show_district_switch_dialog()
     else:
         st.markdown(f"""
         <div style="text-align: right; padding-top: 6px;">

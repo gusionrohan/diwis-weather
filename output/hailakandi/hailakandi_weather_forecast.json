@@ -14,74 +14,74 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-20T16:37:10.106665",
-    "output_directory": "output/hailakandi"
+    "scraped_at_local": "2026-10-21T01:08:02.083810",
+    "output_directory": "output\\hailakandi"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 25.2,
+      "temperature_c": 24.0,
       "relative_humidity_pct": 88,
-      "wind_speed_kmh": 4.5,
-      "surface_pressure_hpa": 1011.1,
-      "today_max_c": 31.5,
-      "today_min_c": 22.9,
+      "wind_speed_kmh": 3.7,
+      "surface_pressure_hpa": 1010.8,
+      "today_max_c": 32.0,
+      "today_min_c": 22.7,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-20 16:35 IST"
+      "recorded_at_ist": "2026-10-21 01:07 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
-        "date": "2026-10-20",
-        "max_temp_c": 31.5,
-        "min_temp_c": 22.9,
+        "date": "2026-10-21",
+        "max_temp_c": 32.0,
+        "min_temp_c": 22.7,
         "normal_max_c": 31.0,
         "normal_min_c": 23.5,
-        "departure_c": 0.5
+        "departure_c": 1.0
       },
       {
         "day_index": 2,
-        "date": "2026-10-21",
-        "max_temp_c": 32.3,
-        "min_temp_c": 23.0,
+        "date": "2026-10-22",
+        "max_temp_c": 31.4,
+        "min_temp_c": 24.1,
         "normal_max_c": 31.0,
         "normal_min_c": 23.5,
-        "departure_c": 1.3
+        "departure_c": 0.4
       },
       {
         "day_index": 3,
-        "date": "2026-10-22",
-        "max_temp_c": 31.9,
-        "min_temp_c": 24.7,
-        "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 0.9
-      },
-      {
-        "day_index": 4,
         "date": "2026-10-23",
         "max_temp_c": 31.6,
-        "min_temp_c": 24.0,
+        "min_temp_c": 23.6,
         "normal_max_c": 31.0,
         "normal_min_c": 23.5,
         "departure_c": 0.6
       },
       {
-        "day_index": 5,
+        "day_index": 4,
         "date": "2026-10-24",
-        "max_temp_c": 31.5,
-        "min_temp_c": 22.6,
+        "max_temp_c": 31.3,
+        "min_temp_c": 22.8,
         "normal_max_c": 31.0,
         "normal_min_c": 23.5,
-        "departure_c": 0.5
+        "departure_c": 0.3
+      },
+      {
+        "day_index": 5,
+        "date": "2026-10-25",
+        "max_temp_c": 32.3,
+        "min_temp_c": 21.9,
+        "normal_max_c": 31.0,
+        "normal_min_c": 23.5,
+        "departure_c": 1.3
       }
     ]
   },
   "lightning_zones_data": {
-    "overall_alert": "⚡ High Risk (Thunderstorms & Lightning Likely)",
-    "storm_track_movement": "Upstream-to-Downstream: Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) across Hailakandi.",
-    "active_window": "Next 3 to 6 Hours (Convective Storm Window)",
-    "safety_advice": "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.",
+    "overall_alert": "🚨 Critical Risk (Immediate Ground Strikes or Severe Nowcast Active)",
+    "storm_track_movement": "Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) corridor across Hailakandi.",
+    "active_window": "Immediate (0 to 3 Hours Convective Window)",
+    "safety_advice": "Immediate shelter required. Evacuate open fields and suspend all outdoor operations.",
     "source": "IMD (India Meteorological Department) & IITM-ILDN",
     "sectors": [
       {
@@ -90,12 +90,12 @@
         "latitude": 24.42,
         "longitude": 92.58,
         "localities": "Katlicherra, Jamira, South Hailakandi, Bilaipur",
-        "alert_level": "Orange Alert (Be Prepared)",
-        "alert_color": "Orange",
-        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Heavy Rain",
-        "expected_winds": "💨 Squalls (45 - 55 km/h)",
-        "action_suggested": "Take shelter in sturdy structures; avoid open paddy fields and riverbanks.",
-        "convective_status": "Severe orographic storm trigger from Mizoram border ridges."
+        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
+        "alert_color": "Red",
+        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
+        "expected_winds": "💨 Squalls (50 - 65 km/h)",
+        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
+        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
       },
       {
         "zone_name": "Central Sector (Hailakandi HQ & Lala Valley)",
@@ -103,12 +103,12 @@
         "latitude": 24.68,
         "longitude": 92.56,
         "localities": "Hailakandi Town, Lala, Monacherra, DC Office",
-        "alert_level": "Orange Alert (Be Prepared)",
-        "alert_color": "Orange",
-        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Gusty Winds",
-        "expected_winds": "💨 Gusty winds (40 - 50 km/h)",
-        "action_suggested": "Avoid tin sheds and weak structures during active lightning window.",
-        "convective_status": "Active convective cell migration through central river corridor."
+        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
+        "alert_color": "Red",
+        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
+        "expected_winds": "💨 Squalls (50 - 65 km/h)",
+        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
+        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
       },
       {
         "zone_name": "Northern Sector (Algapur Barak Floodplain)",
@@ -116,12 +116,12 @@
         "latitude": 24.78,
         "longitude": 92.55,
         "localities": "Algapur, Mohanpur, Kalinagar, Barak Bank",
-        "alert_level": "Yellow Alert (Be Updated)",
-        "alert_color": "Yellow",
-        "hazard_phenomenon": "⚡ Moderate Thunderstorm & Lightning",
-        "expected_winds": "💨 Gusts (35 - 45 km/h)",
-        "action_suggested": "Stay alert for sudden squalls across open floodplains.",
-        "convective_status": "Convective spread across open paddy floodplains."
+        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
+        "alert_color": "Red",
+        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
+        "expected_winds": "💨 Squalls (50 - 65 km/h)",
+        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
+        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
       }
     ]
   },
@@ -279,15 +279,15 @@
     "district": "Hailakandi",
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
-    "date": "2026-10-20",
-    "time_of_issue_ist": "22:00 Hrs",
-    "valid_upto_ist": "01:00 Hrs",
+    "date": "2026-10-21",
+    "time_of_issue_ist": "01:00 Hrs",
+    "valid_upto_ist": "04:00 Hrs",
     "alert_color": "Red",
     "alert_level": "Warning (Take Action)",
     "message": "Convective weather warning active over Hailakandi district.",
     "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
     "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
-    "last_updated_utc": "2026-10-20T22:00:23Z",
+    "last_updated_utc": "2026-10-21T00:49:19Z",
     "has_active_nowcast": true
   },
   "upstream_mizoram_rainfall": [
@@ -331,9 +331,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -471,9 +471,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -572,7 +572,7 @@
   ],
   "synoptic_bulletin": {
     "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
-    "local_pdf_path": "output/hailakandi/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "local_pdf_path": "output\\hailakandi\\pdfs\\IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {

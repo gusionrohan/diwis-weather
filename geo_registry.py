@@ -459,8 +459,10 @@ CUSTOM_RIVER_LINKS = {
     ("Mizoram", "Aizawl", "Hailakandi"): "Headwaters of Dhaleswari River catchment draining north",
     ("Mizoram", "Kolasib", "Cachar"): "Southern Barak tributary drainage through Sonai & Dholai",
     ("Mizoram", "Mamit", "Karimganj"): "Longai river headwaters flowing into Karimganj lowlands",
-    
-    # Arunachal to Dibrugarh / Upper Assam
+    ("Tripura", "North Tripura", "Karimganj"): "Juri and Longai river interstate tributary corridor into Karimganj",
+    ("Tripura", "Unakoti", "Karimganj"): "Manu-Singla watershed drainage corridor into southern Karimganj",
+
+    # Arunachal to Upper Assam North/South Bank
     ("Arunachal Pradesh", "Changlang", "Dibrugarh"): "Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh",
     ("Arunachal Pradesh", "Tirap", "Dibrugarh"): "Patkai mountain runoff & Disang/Burhi Dihing tributary network",
     ("Arunachal Pradesh", "East Siang", "Dibrugarh"): "Siang (Brahmaputra main stem) massive upstream discharge corridor",
@@ -468,60 +470,458 @@ CUSTOM_RIVER_LINKS = {
     ("Arunachal Pradesh", "Lower Siang", "Dhemaji"): "Gai & Simen river catchment draining from Siang foothills",
     ("Arunachal Pradesh", "Upper Subansiri", "Dhemaji"): "Subansiri mega-river upstream catchment draining into Dhemaji/Lakhimpur",
     ("Arunachal Pradesh", "Papum Pare", "Lakhimpur"): "Ranganadi and Dikrong river catchments directly entering North Lakhimpur",
+    ("Arunachal Pradesh", "Lower Subansiri", "Lakhimpur"): "Subansiri tributary drainage and Gerukamukh foothill discharge",
+    ("Arunachal Pradesh", "Lohit", "Tinsukia"): "Lohit river turbulent mountain exit into eastern Tinsukia floodplains",
+    ("Arunachal Pradesh", "Namsai", "Tinsukia"): "Noa Dihing river alluvial corridor flowing west into Tinsukia",
+    ("Arunachal Pradesh", "Changlang", "Tinsukia"): "Tirap and Burhi Dihing upper watershed mountain runoff",
+    ("Arunachal Pradesh", "Tirap", "Charaideo"): "Disang river gorge entry and Patkai range headwaters",
     ("Arunachal Pradesh", "West Kameng", "Sonitpur"): "Kameng/Jia Bhareli river gorge discharging into Tezpur/Sonitpur",
-    
-    # Meghalaya to Kamrup / Goalpara / Barak
+    ("Arunachal Pradesh", "Pakke Kessang", "Sonitpur"): "Pakke and Gabharu foothill catchment entering Sonitpur",
+    ("Arunachal Pradesh", "East Kameng", "Biswanath"): "Borgang and Buroi river mountain catchments discharging into Biswanath",
+    ("Arunachal Pradesh", "Pakke Kessang", "Biswanath"): "Buroi river headwaters draining southwards into Biswanath plains",
+    ("Arunachal Pradesh", "West Kameng", "Darrang"): "Nonai and Mangaldai river foothill drainage basin",
+    ("Arunachal Pradesh", "West Kameng", "Udalguri"): "Dhansiri (North) and Bornadi river interstate border catchment",
+    ("Arunachal Pradesh", "East Siang", "Majuli"): "Brahmaputra upper trunk channel delivering upstream flood volume into Majuli island",
+    ("Arunachal Pradesh", "Lower Subansiri", "Majuli"): "Subansiri channel outfall bounding the northern banks of Majuli",
+
+    # Meghalaya to Central / Lower Assam
     ("Meghalaya", "Ri Bhoi", "Kamrup Metropolitan"): "Umtrew / Digaru River catchment directly feeding Guwahati south basin",
     ("Meghalaya", "East Khasi Hills", "Kamrup Metropolitan"): "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
-    ("Meghalaya", "East Jaintia Hills", "Cachar"): "Lubha and Jatinga river headwaters discharging into Cachar",
+    ("Meghalaya", "Ri Bhoi", "Kamrup"): "Kulsi river headwaters and southern highland moisture funneling",
+    ("Meghalaya", "West Khasi Hills", "Kamrup"): "Boko and Singra river catchment draining north from Khasi hills",
     ("Meghalaya", "West Garo Hills", "Goalpara"): "Krishnai and Dudhnoi river catchments draining north into Goalpara",
-    
-    # Nagaland to Jorhat / Golaghat / Sivasagar
+    ("Meghalaya", "East Garo Hills", "Goalpara"): "Dudhnoi river upstream forest catchment discharging into Goalpara",
+    ("Meghalaya", "South West Garo Hills", "South Salmara-Mankachar"): "Jinjiram river flood basin and border corridor",
+    ("Meghalaya", "West Garo Hills", "South Salmara-Mankachar"): "Brahmaputra left bank foothill moisture advection corridor",
+    ("Meghalaya", "West Garo Hills", "Dhubri"): "South bank confluence and interstate moisture channel into Dhubri",
+    ("Meghalaya", "Ri Bhoi", "Morigaon"): "Killing and Kolong river southern hill drainage into Morigaon",
+    ("Meghalaya", "East Khasi Hills", "Morigaon"): "Khasi ridge runoff discharging into southern Morigaon flood basins",
+    ("Meghalaya", "Ri Bhoi", "Nagaon"): "Upper Kolong and Barapani river drainage into western Nagaon",
+    ("Meghalaya", "West Jaintia Hills", "Hojai"): "Kopili river hydroelectric basin runoff discharging into Hojai valley",
+    ("Meghalaya", "West Jaintia Hills", "Dima Hasao"): "Kopili gorge and Kupli river mountain headwaters",
+    ("Meghalaya", "East Jaintia Hills", "Cachar"): "Lubha and Jatinga river headwaters discharging into Cachar",
+    ("Meghalaya", "Ri Bhoi", "Tamulpur"): "North bank Brahmaputra moisture transfer and southern drainage",
+    ("Meghalaya", "Ri Bhoi", "Nalbari"): "Pagladiya and Nona basin regional atmospheric moisture corridor",
+
+    # Nagaland to Upper / Central Assam
     ("Nagaland", "Mokokchung", "Jorhat"): "Bhogdoi and Jhanji river mountainous headwaters",
+    ("Nagaland", "Wokha", "Jorhat"): "Doyang river downstream watershed influencing southern Jorhat",
     ("Nagaland", "Wokha", "Golaghat"): "Doyang river hydroelectric catchment draining into Dhansiri/Golaghat",
+    ("Nagaland", "Dimapur", "Golaghat"): "Dhansiri river interstate alluvial floodplain corridor",
     ("Nagaland", "Mon", "Sivasagar"): "Dikhow river upper catchment in Nagaland draining into Sivasagar plains",
+    ("Nagaland", "Mokokchung", "Sivasagar"): "Jhanji river steep mountain runoff into southwestern Sivasagar",
+    ("Nagaland", "Mon", "Charaideo"): "Suffry and Tiru river mountain headwaters entering Charaideo",
     ("Nagaland", "Dimapur", "Karbi Anglong"): "Dhansiri river valley sharing contiguous interstate flood corridor",
-    
-    # Manipur to Cachar / Barak
+    ("Nagaland", "Peren", "Karbi Anglong"): "Diphu and Jamuna river headwaters draining north into Karbi hills",
+    ("Nagaland", "Peren", "Dima Hasao"): "Barail range mountain drainage and Jatinga watershed",
+    ("Nagaland", "Wokha", "Nagaon"): "Dhansiri-Kolong inter-basin flood transition corridor",
+    ("Nagaland", "Peren", "Hojai"): "Jamuna river mountain source discharging into Hojai agricultural valley",
+
+    # Manipur to Cachar / Dima Hasao
     ("Manipur", "Jiribam", "Cachar"): "Jiri river boundary confluence joining Barak river at Jirimukh",
     ("Manipur", "Pherzawl", "Cachar"): "Upper Tuivai & Barak main stream headwaters in southern Manipur",
-    ("Manipur", "Tamenglong", "Dima Hasao"): "Irang and Barak mountain gorge drainage into Dima Hasao"
+    ("Manipur", "Tamenglong", "Dima Hasao"): "Irang and Barak mountain gorge drainage into Dima Hasao",
+
+    # West Bengal & Bhutan foothills to Bodoland / Lower Assam
+    ("West Bengal", "Alipurduar", "Kokrajhar"): "Sankosh and Saralbhanga river interstate flood plain corridor",
+    ("West Bengal", "Cooch Behar", "Kokrajhar"): "Gangadhar and Raidak river lower drainage into western Kokrajhar",
+    ("West Bengal", "Cooch Behar", "Dhubri"): "Gangadhar and Brahmaputra entry point from northern Bengal",
+    ("West Bengal", "Alipurduar", "Chirang"): "Champamati and Aie river sub-Himalayan foothill drainage",
+    ("West Bengal", "Alipurduar", "Barpeta"): "Beki and Manas river downstream braided channel network",
+    ("West Bengal", "Alipurduar", "Bajali"): "Pahumara and Kaldia river sub-Himalayan drainage",
+    ("West Bengal", "Alipurduar", "Baksa"): "Borolia, Puthimari and Manas tributary runoff corridor"
+}
+
+# Complete Hydrological Profiles for all 35 Assam Districts
+DISTRICT_HYDROLOGICAL_PROFILE = {
+    # 1. Barak River Valley (Southern Assam)
+    "Hailakandi": {
+        "river_basin": "Barak Sub-Basin (Dhaleswari & Katakhal Corridor)",
+        "subdivision": "Barak Valley",
+        "catchments": [
+            {"state": "Mizoram", "district": "Kolasib"},
+            {"state": "Mizoram", "district": "Mamit"},
+            {"state": "Mizoram", "district": "Aizawl"}
+        ]
+    },
+    "Cachar": {
+        "river_basin": "Central Barak River Basin",
+        "subdivision": "Barak Valley",
+        "catchments": [
+            {"state": "Manipur", "district": "Pherzawl"},
+            {"state": "Mizoram", "district": "Kolasib"},
+            {"state": "Meghalaya", "district": "East Jaintia Hills"},
+            {"state": "Manipur", "district": "Jiribam"}
+        ]
+    },
+    "Karimganj": {
+        "river_basin": "Kushiara & Longai River Basin",
+        "subdivision": "Barak Valley",
+        "catchments": [
+            {"state": "Tripura", "district": "North Tripura"},
+            {"state": "Mizoram", "district": "Mamit"},
+            {"state": "Tripura", "district": "Unakoti"}
+        ]
+    },
+
+    # 2. Hill Districts
+    "Dima Hasao": {
+        "river_basin": "Kopili & Diyung Mountain River Basin",
+        "subdivision": "Central Assam Hills",
+        "catchments": [
+            {"state": "Meghalaya", "district": "West Jaintia Hills"},
+            {"state": "Manipur", "district": "Tamenglong"},
+            {"state": "Nagaland", "district": "Peren"}
+        ]
+    },
+    "Karbi Anglong": {
+        "river_basin": "Dhansiri & Kopili Basin",
+        "subdivision": "Central Assam Hills",
+        "catchments": [
+            {"state": "Nagaland", "district": "Dimapur"},
+            {"state": "Nagaland", "district": "Peren"},
+            {"state": "Meghalaya", "district": "Ri Bhoi"}
+        ]
+    },
+    "West Karbi Anglong": {
+        "river_basin": "Upper Kopili & Umkhen River Basin",
+        "subdivision": "Central Assam Hills",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Meghalaya", "district": "West Jaintia Hills"}
+        ]
+    },
+
+    # 3. Upper Assam North Bank
+    "Dhemaji": {
+        "river_basin": "Northern Brahmaputra & Subansiri-Jiadhal Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "East Siang"},
+            {"state": "Arunachal Pradesh", "district": "Lower Siang"},
+            {"state": "Arunachal Pradesh", "district": "Upper Subansiri"}
+        ]
+    },
+    "Lakhimpur": {
+        "river_basin": "Subansiri, Ranganadi & Dikrong Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "Papum Pare"},
+            {"state": "Arunachal Pradesh", "district": "Lower Subansiri"},
+            {"state": "Arunachal Pradesh", "district": "Upper Subansiri"}
+        ]
+    },
+
+    # 4. Upper Assam South Bank
+    "Dibrugarh": {
+        "river_basin": "Upper Brahmaputra & Burhi Dihing Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "East Siang"},
+            {"state": "Arunachal Pradesh", "district": "Changlang"},
+            {"state": "Arunachal Pradesh", "district": "Tirap"}
+        ]
+    },
+    "Tinsukia": {
+        "river_basin": "Lohit, Dibru & Noa Dihing Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "Lohit"},
+            {"state": "Arunachal Pradesh", "district": "Namsai"},
+            {"state": "Arunachal Pradesh", "district": "Changlang"}
+        ]
+    },
+    "Charaideo": {
+        "river_basin": "Disang & Suffry River Corridor",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "Tirap"},
+            {"state": "Nagaland", "district": "Mon"}
+        ]
+    },
+    "Sivasagar": {
+        "river_basin": "Dikhow & Jhanji River Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Nagaland", "district": "Mon"},
+            {"state": "Nagaland", "district": "Mokokchung"}
+        ]
+    },
+    "Jorhat": {
+        "river_basin": "Bhogdoi & Jhanji River Catchment",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Nagaland", "district": "Mokokchung"},
+            {"state": "Nagaland", "district": "Wokha"}
+        ]
+    },
+    "Golaghat": {
+        "river_basin": "Dhansiri & Doyang Basin",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Nagaland", "district": "Wokha"},
+            {"state": "Nagaland", "district": "Dimapur"}
+        ]
+    },
+    "Majuli": {
+        "river_basin": "Brahmaputra-Subansiri River Island Confluence",
+        "subdivision": "Upper Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "East Siang"},
+            {"state": "Arunachal Pradesh", "district": "Lower Subansiri"}
+        ]
+    },
+
+    # 5. Central Assam
+    "Nagaon": {
+        "river_basin": "Kolong-Kopili Flood Basin",
+        "subdivision": "Central Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Nagaland", "district": "Wokha"}
+        ]
+    },
+    "Morigaon": {
+        "river_basin": "Killing & Kolong-Brahmaputra Basin",
+        "subdivision": "Central Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Meghalaya", "district": "East Khasi Hills"}
+        ]
+    },
+    "Hojai": {
+        "river_basin": "Kopili & Jamuna Valley",
+        "subdivision": "Central Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "West Jaintia Hills"},
+            {"state": "Nagaland", "district": "Peren"}
+        ]
+    },
+    "Sonitpur": {
+        "river_basin": "Jia Bhareli (Kameng) & Brahmaputra North Bank",
+        "subdivision": "North Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "West Kameng"},
+            {"state": "Arunachal Pradesh", "district": "Pakke Kessang"}
+        ]
+    },
+    "Biswanath": {
+        "river_basin": "Borgang & Buroi Sub-Basin",
+        "subdivision": "North Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "East Kameng"},
+            {"state": "Arunachal Pradesh", "district": "Pakke Kessang"}
+        ]
+    },
+    "Darrang": {
+        "river_basin": "Mangaldai & Nonai North Bank Basin",
+        "subdivision": "North Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "West Kameng"},
+            {"state": "Arunachal Pradesh", "district": "Pakke Kessang"}
+        ]
+    },
+    "Udalguri": {
+        "river_basin": "Dhansiri (North) & Bornadi Basin",
+        "subdivision": "North Assam",
+        "catchments": [
+            {"state": "Arunachal Pradesh", "district": "West Kameng"}
+        ]
+    },
+
+    # 6. Lower Assam South Bank
+    "Kamrup Metropolitan": {
+        "river_basin": "Middle Brahmaputra & Meghalaya Plateau Catchment",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Meghalaya", "district": "East Khasi Hills"}
+        ]
+    },
+    "Kamrup": {
+        "river_basin": "Kulsi & Brahmaputra South Bank Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Meghalaya", "district": "West Khasi Hills"}
+        ]
+    },
+    "Goalpara": {
+        "river_basin": "Krishnai, Dudhnoi & Jinjiram Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "West Garo Hills"},
+            {"state": "Meghalaya", "district": "East Garo Hills"}
+        ]
+    },
+    "South Salmara-Mankachar": {
+        "river_basin": "Jinjiram & Brahmaputra Inflow Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "South West Garo Hills"},
+            {"state": "Meghalaya", "district": "West Garo Hills"}
+        ]
+    },
+
+    # 7. Lower Assam North Bank & Bodoland
+    "Nalbari": {
+        "river_basin": "Pagladiya & Nona Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"}
+        ]
+    },
+    "Barpeta": {
+        "river_basin": "Beki & Manas River Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    },
+    "Bajali": {
+        "river_basin": "Pahumara & Kaldia Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    },
+    "Baksa": {
+        "river_basin": "Borolia & Puthimari Basin",
+        "subdivision": "Bodoland / Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    },
+    "Tamulpur": {
+        "river_basin": "Pagladiya & Borolia Foothills",
+        "subdivision": "Bodoland / Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "Ri Bhoi"}
+        ]
+    },
+    "Bongaigaon": {
+        "river_basin": "Manas & Tunia River Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "Meghalaya", "district": "West Garo Hills"}
+        ]
+    },
+    "Chirang": {
+        "river_basin": "Aie & Champamati Foothill Basin",
+        "subdivision": "Bodoland / Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    },
+    "Kokrajhar": {
+        "river_basin": "Sankosh & Saralbhanga Basin",
+        "subdivision": "Bodoland / Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"},
+            {"state": "West Bengal", "district": "Cooch Behar"}
+        ]
+    },
+    "Dhubri": {
+        "river_basin": "Gangadhar, Sankosh & Brahmaputra Entry Basin",
+        "subdivision": "Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Cooch Behar"},
+            {"state": "Meghalaya", "district": "West Garo Hills"}
+        ]
+    }
 }
 
 
+def get_upstream_catchments_for_district(district_name: str) -> list:
+    """
+    Dynamically auto-detects and returns the upstream secondary river catchment 
+    districts and states for any given Assam district.
+    Returns: list of dicts [{'state': 'Mizoram', 'district': 'Kolasib'}, ...]
+    """
+    if district_name in DISTRICT_HYDROLOGICAL_PROFILE:
+        return list(DISTRICT_HYDROLOGICAL_PROFILE[district_name]["catchments"])
+        
+    # Check ASSAM_DISTRICTS_CONFIG default
+    if district_name in ASSAM_DISTRICTS_CONFIG:
+        cfg = ASSAM_DISTRICTS_CONFIG[district_name]
+        d_states = cfg.get("default_secondary_states", ["Mizoram"])
+        d_dists = cfg.get("default_secondary_districts", [])
+        res = []
+        for d in d_dists:
+            st = d_states[0] if d_states else "Assam"
+            for s_name, dlist in NE_STATES_DISTRICTS.items():
+                if d in dlist:
+                    st = s_name
+                    break
+            res.append({"state": st, "district": d})
+        if res:
+            return res
+
+    # General fallback based on coordinate quadrant
+    coords = DISTRICT_COORDINATES_MAP.get(district_name, (26.20, 92.50))
+    lat, lon = coords
+    if lat < 25.5:
+        return [
+            {"state": "Mizoram", "district": "Kolasib"},
+            {"state": "Mizoram", "district": "Mamit"},
+            {"state": "Mizoram", "district": "Aizawl"}
+        ]
+    elif lon > 94.5:
+        return [
+            {"state": "Arunachal Pradesh", "district": "East Siang"},
+            {"state": "Arunachal Pradesh", "district": "Changlang"},
+            {"state": "Arunachal Pradesh", "district": "Tirap"}
+        ]
+    elif lon < 91.5:
+        return [
+            {"state": "Meghalaya", "district": "West Garo Hills"},
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    else:
+        return [
+            {"state": "Meghalaya", "district": "Ri Bhoi"},
+            {"state": "Meghalaya", "district": "East Khasi Hills"}
+        ]
+
+
 def get_district_meta(district_name: str) -> dict:
-    """Returns metadata, coordinates, and default configuration for an Assam district."""
+    """Returns metadata, coordinates, river basin, and default configuration for an Assam district."""
     if district_name in ASSAM_DISTRICTS_CONFIG:
         return ASSAM_DISTRICTS_CONFIG[district_name]
         
     coords = DISTRICT_COORDINATES_MAP.get(district_name, (26.20, 92.50))
     lat, lon = coords
     
-    # Auto-generate intelligent default sectors and predictors
-    default_states = ["Assam"]
-    default_districts = []
-    
-    # Assign neighboring defaults based on geographic region
-    if lat < 25.5:  # Barak Valley / South Assam
-        default_states = ["Mizoram", "Meghalaya"]
-        default_districts = ["Kolasib", "Mamit", "East Jaintia Hills"]
-        basin = "Barak River Basin"
-        subdiv = "Barak Valley"
-    elif lon > 94.5:  # Upper Assam / North-East
-        default_states = ["Arunachal Pradesh", "Assam"]
-        default_districts = ["Changlang", "East Siang", "Tirap"]
-        basin = "Upper Brahmaputra Basin"
-        subdiv = "Upper Assam"
-    elif lon < 91.5:  # Lower Assam / West
-        default_states = ["Meghalaya", "West Bengal"]
-        default_districts = ["West Garo Hills", "Ri Bhoi", "Alipurduar"]
-        basin = "Lower Brahmaputra Basin"
-        subdiv = "Lower Assam"
-    else:  # Central Assam
-        default_states = ["Meghalaya", "Nagaland"]
-        default_districts = ["Ri Bhoi", "Wokha"]
-        basin = "Central Brahmaputra Basin"
-        subdiv = "Central Assam"
+    # Extract accurate hydrological profile if registered
+    if district_name in DISTRICT_HYDROLOGICAL_PROFILE:
+        h_prof = DISTRICT_HYDROLOGICAL_PROFILE[district_name]
+        basin = h_prof["river_basin"]
+        subdiv = h_prof["subdivision"]
+        auto_catch = h_prof["catchments"]
+        default_states = list({c["state"] for c in auto_catch})
+        default_districts = [c["district"] for c in auto_catch]
+    else:
+        # Fallback based on coordinates
+        if lat < 25.5:  # Barak Valley / South Assam
+            default_states = ["Mizoram", "Meghalaya"]
+            default_districts = ["Kolasib", "Mamit", "East Jaintia Hills"]
+            basin = "Barak River Basin"
+            subdiv = "Barak Valley"
+        elif lon > 94.5:  # Upper Assam / North-East
+            default_states = ["Arunachal Pradesh", "Assam"]
+            default_districts = ["Changlang", "East Siang", "Tirap"]
+            basin = "Upper Brahmaputra Basin"
+            subdiv = "Upper Assam"
+        elif lon < 91.5:  # Lower Assam / West
+            default_states = ["Meghalaya", "West Bengal"]
+            default_districts = ["West Garo Hills", "Ri Bhoi", "Alipurduar"]
+            basin = "Lower Brahmaputra Basin"
+            subdiv = "Lower Assam"
+        else:  # Central Assam
+            default_states = ["Meghalaya", "Nagaland"]
+            default_districts = ["Ri Bhoi", "Wokha"]
+            basin = "Central Brahmaputra Basin"
+            subdiv = "Central Assam"
 
     return {
         "lat": lat,
