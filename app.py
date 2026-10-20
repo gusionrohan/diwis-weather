@@ -422,6 +422,14 @@ st.markdown("""
         border: 1px solid #10B981;
         border-left: 6px solid #10B981;
     }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.75; transform: scale(1.04); }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -456,66 +464,94 @@ if "show_pwd_modal" not in st.session_state:
 
 assam_districts_list = sorted(NE_STATES_DISTRICTS["Assam"])
 
+auth_container = st.empty()
+
 # If user is not authenticated, display the Login Screen
 if not st.session_state.authenticated:
-    st.markdown("<div style='padding-top: 1.5rem;'></div>", unsafe_allow_html=True)
-    
-    login_col1, login_col2, login_col3 = st.columns([1, 1.3, 1])
-    with login_col2:
-        st.markdown("""
-        <div class="login-brand-box">
-            <div class="login-icon-badge"></div>
-            <div class="login-title">DIWIS Portal Sign In</div>
-            <div class="login-subtitle">
-                District Integrated Weather Information System<br>
+    with auth_container.container():
+        st.markdown("<div class='diwis-login-page'>", unsafe_allow_html=True)
+        st.markdown("<div style='padding-top: 1.5rem;'></div>", unsafe_allow_html=True)
+        
+        login_col1, login_col2, login_col3 = st.columns([1, 1.3, 1])
+        with login_col2:
+            st.markdown("""
+            <div class="login-brand-box">
+                <div class="login-icon-badge">🏛️</div>
+                <div class="login-title">DIWIS Portal Sign In</div>
+                <div class="login-subtitle">
+                    District Integrated Weather Information System<br>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-        with st.form("diwis_login_form"):
-            login_district = st.selectbox(
-                "📍 Select Operational District:",
-                options=assam_districts_list,
-                index=assam_districts_list.index("Hailakandi") if "Hailakandi" in assam_districts_list else 0,
-            )
-            login_username = st.text_input(
-                "👤 Username / ID:",
-            )
-            login_password = st.text_input(
-                "🔑 Password:",
-                type="password",
-            )
-            
-            submit_login = st.form_submit_button("🚀 Sign In to District Portal", use_container_width=True, type="primary")
+            with st.form("diwis_login_form"):
+                login_district = st.selectbox(
+                    "📍 Select Operational District:",
+                    options=assam_districts_list,
+                    index=assam_districts_list.index("Hailakandi") if "Hailakandi" in assam_districts_list else 0,
+                )
+                login_username = st.text_input(
+                    "👤 Username / ID:",
+                )
+                login_password = st.text_input(
+                    "🔑 Password:",
+                    type="password",
+                )
+                
+                submit_login = st.form_submit_button("🚀 Sign In to District Portal", use_container_width=True, type="primary")
 
-        if submit_login:
-            if not login_username or not login_password:
-                st.error("Please provide both username and password.")
-            else:
-                success, msg, user_dict = authenticate_user(login_username, login_password, login_district, db_path=DB_PATH)
-                if success and user_dict:
-                    st.session_state.authenticated = True
-                    st.session_state.user = user_dict
-                    st.session_state.selected_primary_state = "Assam"
-                    st.session_state.selected_primary_district = login_district
-                    
-                    # Dynamically auto-detect upstream secondary river catchment predictors
-                    sec_items = get_upstream_catchments_for_district(login_district)
-                    st.session_state.selected_secondary_items = sec_items
-                    st.session_state.last_synced_district = login_district
-                    st.session_state.page = "dashboard"
-                    st.session_state.app_view = "dashboard"
-                    st.rerun()
+            if submit_login:
+                if not login_username or not login_password:
+                    st.error("Please provide both username and password.")
                 else:
-                    st.error(msg)
+                    success, msg, user_dict = authenticate_user(login_username, login_password, login_district, db_path=DB_PATH)
+                    if success and user_dict:
+                        st.session_state.authenticated = True
+                        st.session_state.user = user_dict
+                        st.session_state.selected_primary_state = "Assam"
+                        st.session_state.selected_primary_district = login_district
+                        
+                        # Dynamically auto-detect upstream secondary river catchment predictors
+                        sec_items = get_upstream_catchments_for_district(login_district)
+                        st.session_state.selected_secondary_items = sec_items
+                        st.session_state.last_synced_district = login_district
+                        st.session_state.page = "dashboard"
+                        st.session_state.app_view = "dashboard"
+                        auth_container.empty()
+                        st.rerun()
+                    else:
+                        st.error(msg)
 
-        st.markdown("""
-        <div style="text-align: center; font-size: 0.75rem; color: #64748B; margin-top: 14px;">
-            🔒 Authorized District Operations Portal &bull; Role-Based Access Control
-        </div>
-        """, unsafe_allow_html=True)
+            st.markdown("""
+            <div style="text-align: center; font-size: 0.75rem; color: #64748B; margin-top: 14px;">
+                🔒 Authorized District Operations Portal &bull; Role-Based Access Control
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.stop()
+else:
+    auth_container.empty()
+    st.markdown("""
+    <style>
+    /* Complete elimination of login UI elements during post-authentication transitions */
+    .diwis-login-page,
+    .login-brand-box,
+    form[aria-label="diwis_login_form"],
+    div[data-testid="stForm"]:has(input[aria-label*="Username"]) {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        overflow: hidden !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 
@@ -948,20 +984,26 @@ elif raw_data.get("metadata", {}).get("target_location", {}).get("district") != 
     needs_sync = True
 
 if needs_sync and secondary_items:
-    st.markdown(f"""
-    <div style="max-width: 650px; margin: 4rem auto 2rem auto; background: #1E293B; border: 1px solid #334155; border-top: 4px solid #0284C7; border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
-        <div style="font-size: 3.5rem; margin-bottom: 14px;">🛰️</div>
-        <h2 style="font-size: 1.55rem; font-weight: 800; color: #F8FAFC; margin-bottom: 8px;">Initializing {primary_district} Weather Intelligence</h2>
-        <p style="font-size: 0.90rem; color: #94A3B8; margin-bottom: 24px; line-height: 1.55;">
-            Retrieving real-time observations, IMD 5-day warning bulletins, and IITM-ILDN DAMINI lightning sensors for <b>{primary_district}</b>. Initial provisioning takes ~15–20 seconds.
-        </p>
-        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.4); padding: 8px 20px; border-radius: 9999px; color: #38BDF8; font-size: 0.85rem; font-weight: 600;">
-            📡 Connecting to IMD Regional Observatories...
+    init_placeholder = st.empty()
+    with init_placeholder.container():
+        st.markdown(f"""
+        <div style="max-width: 650px; margin: 4rem auto 2rem auto; background: #1E293B; border: 1px solid #334155; border-top: 4px solid #0284C7; border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+            <div style="font-size: 3.5rem; margin-bottom: 14px; animation: pulse-subtle 2s infinite;">🛰️</div>
+            <h2 style="font-size: 1.55rem; font-weight: 800; color: #F8FAFC; margin-bottom: 8px;">Initializing {primary_district} Weather Intelligence</h2>
+            <p style="font-size: 0.90rem; color: #94A3B8; margin-bottom: 22px; line-height: 1.55;">
+                Retrieving real-time observations, IMD 5-day warning bulletins, and IITM-ILDN DAMINI lightning sensors for <b>{primary_district}</b>. Initial provisioning takes ~15–20 seconds.
+            </p>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.4); padding: 8px 20px; border-radius: 9999px; color: #38BDF8; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;">
+                📡 Connecting to IMD Regional Observatories & IITM Sensors...
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; color: #94A3B8; font-size: 0.88rem;">
+                <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #38BDF8; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                <span>Compiling meteorological feeds for <b>{primary_district}</b>...</span>
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    with st.spinner(f"Compiling meteorological feeds for {primary_district}..."):
+        """, unsafe_allow_html=True)
         raw_data = scrape_weather_data(primary_state, primary_district, secondary_items, generate_reports=True, report_generated_by=user_name)
+        init_placeholder.empty()
     st.rerun()
 
 data = raw_data
