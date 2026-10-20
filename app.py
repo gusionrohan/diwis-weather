@@ -262,6 +262,16 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
         color: #FFFFFF !important;
     }
+    .badge-red {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #FCA5A5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+    }
     .badge-yellow {
         background-color: rgba(234, 179, 8, 0.2);
         color: #FACC15;
@@ -1314,7 +1324,7 @@ with tab_tactical:
                 </div>
                 <div>
                     <div style="font-size: 0.72rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '-98%')}</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '0%')}</div>
                 </div>
             </div>
         </div>
@@ -1322,6 +1332,8 @@ with tab_tactical:
     with q2:
         alarm_lvl = damini.get("alarm_level", "🟢 All Clear (No Active Strikes)")
         c_in = damini.get("total_strikes_inside_boundary", 0)
+        now_col = nowcast_info.get("alert_color", "Green")
+        now_text_color = '#EF4444' if now_col == 'Red' else ('#FB923C' if now_col == 'Orange' else ('#FACC15' if now_col == 'Yellow' else '#4ADE80'))
         st.markdown(f"""
         <div class="obs-card">
             <div style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; text-transform: uppercase; margin-bottom: 4px;">
@@ -1334,7 +1346,7 @@ with tab_tactical:
                 </div>
                 <div>
                     <div style="font-size: 0.72rem; color: #94A3B8;">RMC Nowcast Alert</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: #F59E0B;">{nowcast_info.get('alert_color', 'Green')} Alert</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: {now_text_color};">{now_col} Alert</div>
                 </div>
                 <div>
                     <div style="font-size: 0.72rem; color: #94A3B8;">Sensor Alarm Level</div>
@@ -1351,7 +1363,7 @@ with tab_tactical:
         w = warnings[idx] if idx < len(warnings) else {}
         t = temp_fc[idx] if idx < len(temp_fc) else {}
         alert_color = w.get("alert_color", "Green")
-        badge_cls = "badge-yellow" if alert_color == "Yellow" else ("badge-orange" if alert_color == "Orange" else "badge-green")
+        badge_cls = "badge-red" if alert_color == "Red" else ("badge-orange" if alert_color == "Orange" else ("badge-yellow" if alert_color == "Yellow" else "badge-green"))
         
         with col:
             st.markdown(f"""
@@ -1417,11 +1429,11 @@ with tab_hydro:
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; color: #94A3B8;">Normal Benchmark</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #CBD5E1;">{obs_rf.get('normal_rainfall_mm', '6.0 mm')}</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; color: #CBD5E1;">{obs_rf.get('normal_rainfall_mm', '0.0 mm')}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.15rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '-98%')}</div>
+                    <div style="font-size: 1.15rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage', '0%')}</div>
                 </div>
             </div>
         </div>
@@ -1649,10 +1661,26 @@ with tab_convective:
         """, unsafe_allow_html=True)
 
         alert_color = nowcast_info.get("alert_color", "Orange")
-        badge_bg = "rgba(234, 88, 12, 0.2)" if alert_color == "Orange" else ("rgba(234, 179, 8, 0.2)" if alert_color == "Yellow" else "rgba(34, 197, 94, 0.2)")
-        badge_fg = "#FB923C" if alert_color == "Orange" else ("#FACC15" if alert_color == "Yellow" else "#4ADE80")
-        badge_border = "rgba(234, 88, 12, 0.4)" if alert_color == "Orange" else ("rgba(234, 179, 8, 0.4)" if alert_color == "Yellow" else "rgba(34, 197, 94, 0.4)")
-        border_left_color = "#EA580C" if alert_color == "Orange" else ("#CA8A04" if alert_color == "Yellow" else "#16A34A")
+        if alert_color == "Red":
+            badge_bg = "rgba(239, 68, 68, 0.2)"
+            badge_fg = "#FCA5A5"
+            badge_border = "rgba(239, 68, 68, 0.4)"
+            border_left_color = "#EF4444"
+        elif alert_color == "Orange":
+            badge_bg = "rgba(234, 88, 12, 0.2)"
+            badge_fg = "#FB923C"
+            badge_border = "rgba(234, 88, 12, 0.4)"
+            border_left_color = "#EA580C"
+        elif alert_color == "Yellow":
+            badge_bg = "rgba(234, 179, 8, 0.2)"
+            badge_fg = "#FACC15"
+            badge_border = "rgba(234, 179, 8, 0.4)"
+            border_left_color = "#CA8A04"
+        else:
+            badge_bg = "rgba(34, 197, 94, 0.2)"
+            badge_fg = "#4ADE80"
+            badge_border = "rgba(34, 197, 94, 0.4)"
+            border_left_color = "#16A34A"
 
         st.markdown(f"""
         <div style="background: #1E293B; border: 1px solid #334155; border-left: 4px solid {border_left_color}; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; color: #F8FAFC;">
@@ -1712,10 +1740,26 @@ with tab_convective:
             z_cols = st.columns(len(active_sectors))
             for s, z_col in zip(active_sectors, z_cols):
                 s_color = s.get("alert_color", "Orange")
-                border_col = "#EA580C" if s_color == "Orange" else "#CA8A04"
-                badge_bg = "rgba(234, 88, 12, 0.2)" if s_color == "Orange" else "rgba(234, 179, 8, 0.2)"
-                badge_fg = "#FB923C" if s_color == "Orange" else "#FACC15"
-                badge_border = "rgba(234, 88, 12, 0.4)" if s_color == "Orange" else "rgba(234, 179, 8, 0.4)"
+                if s_color == "Red":
+                    border_col = "#EF4444"
+                    badge_bg = "rgba(239, 68, 68, 0.2)"
+                    badge_fg = "#FCA5A5"
+                    badge_border = "rgba(239, 68, 68, 0.4)"
+                elif s_color == "Orange":
+                    border_col = "#EA580C"
+                    badge_bg = "rgba(234, 88, 12, 0.2)"
+                    badge_fg = "#FB923C"
+                    badge_border = "rgba(234, 88, 12, 0.4)"
+                elif s_color == "Yellow":
+                    border_col = "#CA8A04"
+                    badge_bg = "rgba(234, 179, 8, 0.2)"
+                    badge_fg = "#FACC15"
+                    badge_border = "rgba(234, 179, 8, 0.4)"
+                else:
+                    border_col = "#10B981"
+                    badge_bg = "rgba(16, 185, 129, 0.2)"
+                    badge_fg = "#6EE7B7"
+                    badge_border = "rgba(16, 185, 129, 0.4)"
 
                 with z_col:
                     st.markdown(f"""
@@ -2005,7 +2049,7 @@ with tab_provenance:
             "status": "LIVE SYNC 200 OK",
             "protocol": "IMD Forecast Portal",
             "description": "Official interactive district rainfall forecast maps, coverage classifications, and quantitative precipitation forecasts.",
-            "url": f"https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php?id=Assam&day=Day_1"
+            "url": f"https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php?id={primary_state}&day=Day_1"
         },
         {
             "stream": "📊 Hydrological Services & Basin Rainfall",
