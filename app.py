@@ -498,29 +498,41 @@ if st.session_state.app_view == "admin" and user_role in ("district_admin", "sup
 
         # 2. Superadmin: Create District Admin
         with tab_create:
-            st.markdown("#### ➕ Create New **District Administrator** Account")
-            st.caption("Super Administrators provision District Administrators who manage local staff and district weather operations.")
+            st.markdown("#### ➕ Create New Account (Admin, Staff, or Superadmin)")
+            st.caption("Provision authorized user credentials with role-based access control and district locking.")
             with st.form("create_district_admin_form"):
                 ca_col1, ca_col2 = st.columns(2)
                 with ca_col1:
-                    target_dist_for_admin = st.selectbox("Assign to District (Assam):", options=assam_districts_list)
-                    new_username = st.text_input("District Admin Username (Unique ID):")
+                    new_role = st.selectbox(
+                        "Account Role:",
+                        options=["district_admin", "staff", "superadmin"],
+                        format_func=lambda x: {
+                            "district_admin": "District Administrator (Manages District & Staff)",
+                            "staff": "District Staff / Field Operator (Dashboard & Reports)",
+                            "superadmin": "State Super Administrator (Full State-Wide Access)"
+                        }.get(x, x)
+                    )
+                    target_dist_for_admin = st.selectbox("Assign to District (Assam):", options=["ALL"] + assam_districts_list if new_role == "superadmin" else assam_districts_list)
+                    new_username = st.text_input("Username (Unique Login ID):")
                 with ca_col2:
-                    new_fullname = st.text_input("District Admin Full Name / Title:")
-                    new_password = st.text_input("Initial Password:", type="password")
+                    new_fullname = st.text_input("Full Name / Official Designation:")
+                    new_password = st.text_input("Initial Password (min 6 characters):", type="password")
                 
-                btn_create_admin = st.form_submit_button("🚀 Create District Admin Account", type="primary", use_container_width=True)
+                btn_create_admin = st.form_submit_button("🚀 Create Account with Salted Scrypt", type="primary", use_container_width=True)
                 
                 if btn_create_admin:
                     if not new_username or not new_password or not new_fullname:
                         st.error("Please fill in username, full name, and initial password.")
+                    elif len(new_password.strip()) < 6:
+                        st.error("Password must be at least 6 characters long.")
                     else:
+                        c_dist = "ALL" if new_role == "superadmin" else target_dist_for_admin
                         c_ok, c_msg = create_user(
                             username=new_username,
                             password=new_password,
                             full_name=new_fullname,
-                            role="district_admin",
-                            district=target_dist_for_admin,
+                            role=new_role,
+                            district=c_dist,
                             created_by=user_username,
                             db_path=DB_PATH
                         )
