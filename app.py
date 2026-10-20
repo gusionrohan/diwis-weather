@@ -1771,48 +1771,48 @@ sources_list = [
         "stream": f"🌧️ 5-Day Rainfall Model ({active_district})",
         "agency": "IMD New Delhi / NWFC",
         "status": "LIVE SYNC 200 OK",
-        "protocol": "REST API / JSON",
-        "description": "District-wise spatial rainfall forecast categories (Isolated, Scattered, Fairly Widespread, Widespread) for disaster preparedness.",
+        "protocol": "IMD Forecast Portal",
+        "description": "Official interactive district rainfall forecast maps, coverage classifications, and quantitative precipitation forecasts.",
         "url": f"https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php?id=Assam&day=Day_1"
     },
     {
-        "stream": "📊 Past 24h Recorded Rainfall",
+        "stream": "📊 Hydrological Services & Basin Rainfall",
         "agency": "IMD Hydro-Meteorology",
         "status": "LIVE SYNC 200 OK",
-        "protocol": "Daily Hydromet Feed",
-        "description": "Official 08:30 IST actual recorded precipitation in mm, normal standard baseline, and percentage departure.",
-        "url": "https://mausam.imd.gov.in/responsive/rainfallinformation.php"
+        "protocol": "Hydromet Services",
+        "description": "Official hydro-meteorological river basin precipitation, daily departure stats, and reservoir catchment monitoring.",
+        "url": "https://mausam.imd.gov.in/responsive/servicesHydrological.php"
     },
     {
-        "stream": "⚠️ GeoServer 5-Day Alert Layer",
-        "agency": "IMD Central GeoServer",
+        "stream": "⚠️ 5-Day Severe Weather Warning GIS",
+        "agency": "IMD Central GIS Division",
         "status": "LIVE SYNC 200 OK",
-        "protocol": "OGC WFS 1.1.0",
-        "description": "Geospatial vector warning layer publishing official color-coded alert polygons (Green, Yellow, Orange, Red) and severe hazards.",
-        "url": "https://reactjs.imd.gov.in/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typename=imd:district_warnings_india&srsname=EPSG:4326&outputFormat=application/json"
+        "protocol": "National GIS Map",
+        "description": "Official interactive GIS geospatial portal rendering color-coded severe weather warnings, thunderstorm alerts, and hazard maps.",
+        "url": "https://mausam.imd.gov.in/responsive/districtWiseWarningGIS.php"
     },
     {
-        "stream": "⚡ 3-Hour Nowcast Warnings",
-        "agency": "RMC Guwahati",
+        "stream": "⚡ Real-Time 3-Hour Nowcast GIS",
+        "agency": "RMC Guwahati / IMD",
         "status": "LIVE SYNC 200 OK",
-        "protocol": "OGC WFS Vector",
-        "description": "Real-time radar & satellite convective storm warnings, thunderstorm cells, and lightning alert polygons for Northeast districts.",
-        "url": "https://reactjs.imd.gov.in/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typename=imd:NowcastWarningDistrict&srsname=EPSG:4326&outputFormat=application/json"
+        "protocol": "Radar Nowcast GIS",
+        "description": "Interactive live convective thunderstorm radar tracking, squall warnings, and real-time short-range district alerts.",
+        "url": "https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php"
     },
     {
-        "stream": "🌊 Upstream Catchment Inflow Tracking",
-        "agency": "IMD NE Regional Division",
-        "status": "LIVE SYNC 200 OK",
-        "protocol": "Catchment Hydrology",
-        "description": f"Precipitation tracking across upstream river catchments draining into {active_district} (Barak/Brahmaputra basins).",
-        "url": "https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php?id=Mizoram&day=Day_1"
+        "stream": "⚡ DAMINI Lightning Sensor Network",
+        "agency": "IITM Pune (MoES)",
+        "status": "LIVE SENSOR 200 OK",
+        "protocol": "IITM-ILDN Network",
+        "description": "Official Indian Lightning Detection Network (ILDN) interactive sensor portal mapping real-time cloud-to-ground strike locations.",
+        "url": "https://ildn.in/imap.php"
     },
     {
         "stream": "📄 National Synoptic Bulletin (AIWFB)",
         "agency": "NWFC New Delhi",
-        "status": "LIVE SYNC 200 OK",
-        "protocol": "Gazetted Synoptic PDF",
-        "description": "Daily executive synoptic weather bulletin with depression, cyclonic circulation, wind shear, and monsoon trough analysis.",
+        "status": "LIVE BULLETIN 200 OK",
+        "protocol": "Official Synoptic Portal",
+        "description": "Daily official executive meteorological briefing covering synoptic systems, depressions, and monsoon trough movements.",
         "url": "https://mausam.imd.gov.in/responsive/all_india_forcast_bulletin.php"
     }
 ]
@@ -1833,7 +1833,7 @@ for idx, s in enumerate(sources_list):
             </div>
             <div class="prov-footer">
                 <span class="prov-protocol">{s['protocol']}</span>
-                <a href="{s['url']}" target="_blank" class="prov-btn">
+                <a href="{s['url']}" target="_blank" rel="noopener noreferrer" class="prov-btn">
                     <span>↗ Verify Official Feed</span>
                 </a>
             </div>
