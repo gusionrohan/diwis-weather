@@ -1324,33 +1324,6 @@ with tab_tactical:
             </div>
             """, unsafe_allow_html=True)
 
-    # 5. Interactive District Tactical Geographic Situation Map
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader(f"🗺️ {active_district} Tactical Geographic Situation Map")
-    st.caption("Live geolocation of target district headquarters, active lightning strikes, and monitoring catchments.")
-    
-    map_points = [{"lat": float(current_meta.get("lat", 24.68)), "lon": float(current_meta.get("lon", 92.56)), "Location": f"{active_district} HQ"}]
-    if damini and damini.get("strikes_inside_district"):
-        for s in damini.get("strikes_inside_district", []):
-            if s.get("latitude") and s.get("longitude"):
-                try:
-                    map_points.append({"lat": float(s["latitude"]), "lon": float(s["longitude"]), "Location": s.get("nearest_locality", "Sensor Strike")})
-                except Exception:
-                    pass
-    for u in upstream_data:
-        u_dist = u.get("upstream_district")
-        u_meta = get_district_meta(u_dist)
-        if u_meta and u_meta.get("lat") and u_meta.get("lon"):
-            try:
-                map_points.append({"lat": float(u_meta["lat"]), "lon": float(u_meta["lon"]), "Location": f"Catchment: {u_dist}"})
-            except Exception:
-                pass
-    
-    try:
-        st.map(pd.DataFrame(map_points), latitude="lat", longitude="lon", zoom=8)
-    except Exception:
-        pass
-
 
 # -------------------------------------------------------------
 # TAB 2: HYDROMETEOROLOGY & INFLOWS
@@ -1766,59 +1739,6 @@ with tab_convective:
 # TAB 4: OFFICIAL REPORTS & SQL ARCHIVE
 # -------------------------------------------------------------
 with tab_reports_sql:
-    st.subheader(f"📑 Official DDMA Weather Dossier & Briefing Generator ({active_district})")
-    st.caption("Ministerial-grade PDF weather dossiers and markdown briefs compiled from verified IMD feeds, synoptic bulletins, and sensor logs.")
-
-    rep_col1, rep_col2 = st.columns(2)
-    with rep_col1:
-        st.markdown("""
-        <div class="card" style="margin-bottom: 12px;">
-            <div style="font-size: 1.05rem; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">
-                📥 Daily Weather PDF Dossier
-            </div>
-            <div style="font-size: 0.83rem; color: #CBD5E1; margin-bottom: 12px; line-height: 1.4;">
-                Full comprehensive daily meteorological dossier for district disaster management authorities, including multi-station rainfall, convective alerts, and catchment runoff tables.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if os.path.exists(PDF_REPORT_PATH):
-            with open(PDF_REPORT_PATH, "rb") as pdf_file:
-                st.download_button(
-                    label=f"📥 Download {active_district} Daily PDF Dossier",
-                    data=pdf_file,
-                    file_name=f"DDMA_{active_district}_Daily_Weather_Report.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="tab4_pdf_dl"
-                )
-        else:
-            st.button("📥 Daily PDF (Click Sync to Generate)", disabled=True, use_container_width=True, key="tab4_pdf_pending")
-
-    with rep_col2:
-        st.markdown("""
-        <div class="card" style="margin-bottom: 12px;">
-            <div style="font-size: 1.05rem; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">
-                📄 Daily Report Brief (Markdown)
-            </div>
-            <div style="font-size: 0.83rem; color: #CBD5E1; margin-bottom: 12px; line-height: 1.4;">
-                Structured text briefing suitable for rapid inter-agency dissemination, SITREP updates, and executive mobile messaging.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if os.path.exists(MD_REPORT_PATH):
-            with open(MD_REPORT_PATH, "rb") as md_file:
-                st.download_button(
-                    label=f"📄 Download {active_district} Report Brief (MD)",
-                    data=md_file,
-                    file_name=f"DDMA_{active_district}_Daily_Report.md",
-                    mime="text/markdown",
-                    use_container_width=True,
-                    key="tab4_md_dl"
-                )
-        else:
-            st.button("📄 Report Brief (Pending)", disabled=True, use_container_width=True, key="tab4_md_pending")
-
-    st.markdown("<br>", unsafe_allow_html=True)
     st.subheader(f"Key Synoptical Excerpts Affecting {active_district} & Northeast (Source: IMD)")
     st.caption("Extracted and analyzed from the official National All-India Weather Forecast Bulletin (Source: IMD)")
 
