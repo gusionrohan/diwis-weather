@@ -389,6 +389,12 @@ def scrape_nowcast(district_name: str) -> dict:
     clean_target = district_name.upper().replace("METROPOLITAN", "").replace("RURAL", "").strip()
     now_dt = datetime.now()
     
+    def safe_int(v):
+        try:
+            return int(v)
+        except Exception:
+            return 0
+
     try:
         r = requests.get(nowcast_url, headers=HEADERS, verify=True, timeout=12)
         if r.status_code == 200:
@@ -397,12 +403,59 @@ def scrape_nowcast(district_name: str) -> dict:
             for feat in features:
                 props = feat.get("properties", {})
                 dist = str(props.get("District") or props.get("State_District", "")).strip().upper()
+                st = str(props.get("State", "")).strip().upper()
+                
+                # Match district and verify state is Assam / relevant
                 if clean_target in dist or dist in clean_target:
+                    if st and st not in ("ASSAM", ""):
+                        continue
+                        
+                    cat1 = safe_int(props.get("cat1", 1))
+                    hazard_cats = [i for i in range(2, 20) if safe_int(props.get(f"cat{i}", 0)) > 0]
+                    msg = str(props.get("message") or "").strip()
+                    
+                    # IMD Nowcast Standard: cat1 == 1 indicates "No Warning" active.
+                    # A nowcast warning is active ONLY if cat1 != 1 AND active hazard categories exist or message is non-empty.
+                    has_active = (cat1 != 1) and (len(hazard_cats) > 0 or len(msg) > 0)
+                    
+                    if not has_active:
+                        # District is clear / no active nowcast in official IMD feed
+                        return {
+                            "district": district_name,
+                            "state": "Assam",
+                            "issuing_center": "RMC Guwahati",
+                            "date": props.get("Date", now_dt.strftime("%Y-%m-%d")),
+                            "time_of_issue_ist": now_dt.strftime("%H:%M Hrs"),
+                            "valid_upto_ist": (now_dt + timedelta(hours=3)).strftime("%H:%M Hrs"),
+                            "alert_color": "Green",
+                            "alert_level": "No Warning (All Clear)",
+                            "message": f"No active convective nowcast warning issued for {district_name} district by RMC Guwahati at this time.",
+                            "impact": "Normal conditions; no severe storm hazard reported.",
+                            "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
+                            "last_updated_utc": props.get("update_time", datetime.now(timezone.utc).isoformat()),
+                            "has_active_nowcast": False
+                        }
+                    
+                    # Genuine Active Severe Nowcast Warning
                     toi = props.get("toi", "")
                     vupto = props.get("vupto", "")
-                    color_code = props.get("Color", 0)
-                    alert_info = COLOR_ALERT_MAP.get(color_code, {"color_name": "Orange", "alert_level": "Alert (Be Prepared)"})
+                    col_code = safe_int(props.get("Color", 2))
                     
+                    # IMD Nowcast Web Color Scheme: 1=Green, 2=Yellow, 3=Orange, 4=Red
+                    nowcast_color_map = {
+                        1: ("Green", "No Warning (All Clear)"),
+                        2: ("Yellow", "Watch (Be Updated)"),
+                        3: ("Orange", "Alert (Be Prepared)"),
+                        4: ("Red", "Warning (Take Action)")
+                    }
+                    col_name, alert_lvl = nowcast_color_map.get(col_code, ("Orange", "Alert (Be Prepared)"))
+                    
+                    hazard_descriptions = [WARNING_CATEGORIES.get(i, f"Hazard Code {i}") for i in hazard_cats]
+                    cat_summary = ", ".join(hazard_descriptions) if hazard_descriptions else "Convective storm"
+                    final_msg = msg if msg else f"Active nowcast warning: {cat_summary} expected over {district_name} district."
+                    final_impact = props.get("impact") or "Potential water pooling in low pockets; lightning hazard in open areas."
+                    final_action = props.get("action") or "Take shelter inside sturdy structures during thunderstorm activity."
+
                     return {
                         "district": district_name,
                         "state": "Assam",
@@ -410,11 +463,11 @@ def scrape_nowcast(district_name: str) -> dict:
                         "date": props.get("Date", now_dt.strftime("%Y-%m-%d")),
                         "time_of_issue_ist": f"{toi[:2]}:{toi[2:]} Hrs" if len(toi) == 4 else now_dt.strftime("%H:%M Hrs"),
                         "valid_upto_ist": f"{vupto[:2]}:{vupto[2:]} Hrs" if len(vupto) == 4 else (now_dt + timedelta(hours=3)).strftime("%H:%M Hrs"),
-                        "alert_color": alert_info["color_name"],
-                        "alert_level": alert_info["alert_level"],
-                        "message": props.get("message") or f"Convective weather warning active over {district_name} district.",
-                        "impact": props.get("impact") or "Potential water pooling in low pockets; lightning hazard in open ground.",
-                        "action_suggested": props.get("action") or "Take shelter inside sturdy structures during thunderstorm activity.",
+                        "alert_color": col_name,
+                        "alert_level": alert_lvl,
+                        "message": final_msg,
+                        "impact": final_impact,
+                        "action_suggested": final_action,
                         "last_updated_utc": props.get("update_time", datetime.now(timezone.utc).isoformat()),
                         "has_active_nowcast": True
                     }

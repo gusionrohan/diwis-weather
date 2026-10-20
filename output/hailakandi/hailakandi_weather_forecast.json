@@ -14,20 +14,20 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T01:08:02.083810",
+    "scraped_at_local": "2026-10-21T01:21:56.027879",
     "output_directory": "output\\hailakandi"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 24.0,
-      "relative_humidity_pct": 88,
-      "wind_speed_kmh": 3.7,
+      "temperature_c": 23.9,
+      "relative_humidity_pct": 89,
+      "wind_speed_kmh": 3.5,
       "surface_pressure_hpa": 1010.8,
       "today_max_c": 32.0,
       "today_min_c": 22.7,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-21 01:07 IST"
+      "recorded_at_ist": "2026-10-21 01:21 IST"
     },
     "daily_temperature_forecast_5days": [
       {
@@ -78,10 +78,10 @@
     ]
   },
   "lightning_zones_data": {
-    "overall_alert": "🚨 Critical Risk (Immediate Ground Strikes or Severe Nowcast Active)",
-    "storm_track_movement": "Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) corridor across Hailakandi.",
-    "active_window": "Immediate (0 to 3 Hours Convective Window)",
-    "safety_advice": "Immediate shelter required. Evacuate open fields and suspend all outdoor operations.",
+    "overall_alert": "🟢 All Clear (Atmospheric Conditions Stable)",
+    "storm_track_movement": "Calm / stable conditions prevailing across Hailakandi.",
+    "active_window": "Current Window (No Convective Threat Active)",
+    "safety_advice": "Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.",
     "source": "IMD (India Meteorological Department) & IITM-ILDN",
     "sectors": [
       {
@@ -90,12 +90,12 @@
         "latitude": 24.42,
         "longitude": 92.58,
         "localities": "Katlicherra, Jamira, South Hailakandi, Bilaipur",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
         "zone_name": "Central Sector (Hailakandi HQ & Lala Valley)",
@@ -103,12 +103,12 @@
         "latitude": 24.68,
         "longitude": 92.56,
         "localities": "Hailakandi Town, Lala, Monacherra, DC Office",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
         "zone_name": "Northern Sector (Algapur Barak Floodplain)",
@@ -116,12 +116,12 @@
         "latitude": 24.78,
         "longitude": 92.55,
         "localities": "Algapur, Mohanpur, Kalinagar, Barak Bank",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Hailakandi."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       }
     ]
   },
@@ -151,13 +151,13 @@
   },
   "observed_rainfall_past24h": {
     "district": "Hailakandi",
-    "recorded_date": "2026-10-20",
-    "actual_rainfall_mm": "0.1 mm",
-    "normal_rainfall_mm": "2.7 mm",
-    "departure_percentage": "-95%",
-    "departure_category": "Large Deficient",
-    "map_color_hex": "#FFFF01",
-    "status": "OK"
+    "recorded_date": "2026-10-21",
+    "actual_rainfall_mm": null,
+    "normal_rainfall_mm": null,
+    "departure_percentage": null,
+    "departure_category": "Data Unavailable",
+    "map_color_hex": "#94A3B8",
+    "status": "UNAVAILABLE"
   },
   "rainfall_forecast_5days": [
     {
@@ -280,15 +280,15 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-21",
-    "time_of_issue_ist": "01:00 Hrs",
-    "valid_upto_ist": "04:00 Hrs",
-    "alert_color": "Red",
-    "alert_level": "Warning (Take Action)",
-    "message": "Convective weather warning active over Hailakandi district.",
-    "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
-    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
+    "time_of_issue_ist": "01:21 Hrs",
+    "valid_upto_ist": "04:21 Hrs",
+    "alert_color": "Green",
+    "alert_level": "No Warning (All Clear)",
+    "message": "No active convective nowcast warning issued for Hailakandi district by RMC Guwahati at this time.",
+    "impact": "Normal conditions; no severe storm hazard reported.",
+    "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
     "last_updated_utc": "2026-10-21T00:49:19Z",
-    "has_active_nowcast": true
+    "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
     {
@@ -331,9 +331,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -359,9 +359,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -423,9 +423,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Isolated",
-          "station_coverage": "Stations=1-25%",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     }
@@ -471,9 +471,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -499,9 +499,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -563,9 +563,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Isolated",
-          "station_coverage": "Stations=1-25%",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     }
