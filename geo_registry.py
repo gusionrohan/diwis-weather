@@ -500,8 +500,20 @@ CUSTOM_RIVER_LINKS = {
     ("Meghalaya", "West Jaintia Hills", "Hojai"): "Kopili river hydroelectric basin runoff discharging into Hojai valley",
     ("Meghalaya", "West Jaintia Hills", "Dima Hasao"): "Kopili gorge and Kupli river mountain headwaters",
     ("Meghalaya", "East Jaintia Hills", "Cachar"): "Lubha and Jatinga river headwaters discharging into Cachar",
-    ("Meghalaya", "Ri Bhoi", "Tamulpur"): "North bank Brahmaputra moisture transfer and southern drainage",
-    ("Meghalaya", "Ri Bhoi", "Nalbari"): "Pagladiya and Nona basin regional atmospheric moisture corridor",
+
+    # North Bank Intra-Assam & Sub-Himalayan Bhutan Corridors
+    ("Assam", "Baksa", "Nalbari"): "Pagladiya and Nona river upper reaches draining directly from Bhutan border through Baksa into Nalbari plains",
+    ("Assam", "Tamulpur", "Nalbari"): "Borolia and Pagladiya foothill corridor delivering upstream flash runoff into northern Nalbari",
+    ("West Bengal", "Alipurduar", "Nalbari"): "Sub-Himalayan Dooars & Indo-Bhutan border rainfall index for north-bank river systems",
+    ("Assam", "Baksa", "Barpeta"): "Upper Beki and Pahumara river basin draining southwards into Barpeta",
+    ("Assam", "Chirang", "Barpeta"): "Upper Manas river braided channel corridor discharging into western Barpeta",
+    ("Assam", "Baksa", "Bajali"): "Pahumara and Kaldia river upper catchment discharging south into Bajali",
+    ("Assam", "Chirang", "Bongaigaon"): "Aie and Manas upper river basin flowing directly south from Bhutan border through Chirang into Bongaigaon",
+    ("West Bengal", "Alipurduar", "Bongaigaon"): "Sub-Himalayan Dooars foothill drainage influencing northern tributary inflows into Bongaigaon",
+    ("Assam", "Baksa", "Tamulpur"): "Contiguous Bhutan foothill hydrometeorological corridor",
+    ("Arunachal Pradesh", "West Kameng", "Tamulpur"): "Eastern Himalayan mountain watershed bordering north-eastern Bodoland",
+    ("Arunachal Pradesh", "West Kameng", "Baksa"): "Eastern Himalayan foothills bordering upper Baksa/Bhutan drainage divide",
+    ("Assam", "Kokrajhar", "Chirang"): "Champamati and Saralbhanga contiguous river corridor",
 
     # Nagaland to Upper / Central Assam
     ("Nagaland", "Mokokchung", "Jorhat"): "Bhogdoi and Jhanji river mountainous headwaters",
@@ -763,58 +775,68 @@ DISTRICT_HYDROLOGICAL_PROFILE = {
         ]
     },
 
-    # 7. Lower Assam North Bank & Bodoland
+    # 7. Lower Assam North Bank & Bodoland (Bhutan Himalayan Foothills Catchment)
     "Nalbari": {
-        "river_basin": "Pagladiya & Nona Basin",
-        "subdivision": "Lower Assam",
+        "river_basin": "Pagladiya, Nona & Borolia Basin (Bhutan Foothills)",
+        "subdivision": "Lower Assam North Bank",
         "catchments": [
-            {"state": "Meghalaya", "district": "Ri Bhoi"}
+            {"state": "Assam", "district": "Baksa"},
+            {"state": "Assam", "district": "Tamulpur"},
+            {"state": "West Bengal", "district": "Alipurduar"}
         ]
     },
     "Barpeta": {
-        "river_basin": "Beki & Manas River Basin",
-        "subdivision": "Lower Assam",
+        "river_basin": "Beki & Manas River Basin (Bhutan Catchment)",
+        "subdivision": "Lower Assam North Bank",
         "catchments": [
+            {"state": "Assam", "district": "Baksa"},
+            {"state": "Assam", "district": "Chirang"},
             {"state": "West Bengal", "district": "Alipurduar"}
         ]
     },
     "Bajali": {
-        "river_basin": "Pahumara & Kaldia Basin",
-        "subdivision": "Lower Assam",
+        "river_basin": "Pahumara & Kaldia Basin (Bhutan Foothills)",
+        "subdivision": "Lower Assam North Bank",
         "catchments": [
+            {"state": "Assam", "district": "Baksa"},
             {"state": "West Bengal", "district": "Alipurduar"}
         ]
     },
     "Baksa": {
-        "river_basin": "Borolia & Puthimari Basin",
+        "river_basin": "Borolia, Pagladiya & Puthimari Basin (Indo-Bhutan Border)",
         "subdivision": "Bodoland / Lower Assam",
         "catchments": [
-            {"state": "West Bengal", "district": "Alipurduar"}
+            {"state": "West Bengal", "district": "Alipurduar"},
+            {"state": "Arunachal Pradesh", "district": "West Kameng"}
         ]
     },
     "Tamulpur": {
-        "river_basin": "Pagladiya & Borolia Foothills",
+        "river_basin": "Pagladiya & Borolia Foothills (Indo-Bhutan Border)",
         "subdivision": "Bodoland / Lower Assam",
         "catchments": [
-            {"state": "Meghalaya", "district": "Ri Bhoi"}
-        ]
-    },
-    "Bongaigaon": {
-        "river_basin": "Manas & Tunia River Basin",
-        "subdivision": "Lower Assam",
-        "catchments": [
-            {"state": "Meghalaya", "district": "West Garo Hills"}
-        ]
-    },
-    "Chirang": {
-        "river_basin": "Aie & Champamati Foothill Basin",
-        "subdivision": "Bodoland / Lower Assam",
-        "catchments": [
+            {"state": "Assam", "district": "Baksa"},
+            {"state": "Arunachal Pradesh", "district": "West Kameng"},
             {"state": "West Bengal", "district": "Alipurduar"}
         ]
     },
+    "Bongaigaon": {
+        "river_basin": "Aie, Manas & Tunia River Basin (North Bank)",
+        "subdivision": "Lower Assam North Bank",
+        "catchments": [
+            {"state": "Assam", "district": "Chirang"},
+            {"state": "West Bengal", "district": "Alipurduar"}
+        ]
+    },
+    "Chirang": {
+        "river_basin": "Aie & Champamati Foothill Basin (Indo-Bhutan Border)",
+        "subdivision": "Bodoland / Lower Assam",
+        "catchments": [
+            {"state": "West Bengal", "district": "Alipurduar"},
+            {"state": "Assam", "district": "Kokrajhar"}
+        ]
+    },
     "Kokrajhar": {
-        "river_basin": "Sankosh & Saralbhanga Basin",
+        "river_basin": "Sankosh & Saralbhanga Basin (Indo-Bhutan Border)",
         "subdivision": "Bodoland / Lower Assam",
         "catchments": [
             {"state": "West Bengal", "district": "Alipurduar"},
@@ -826,6 +848,7 @@ DISTRICT_HYDROLOGICAL_PROFILE = {
         "subdivision": "Lower Assam",
         "catchments": [
             {"state": "West Bengal", "district": "Cooch Behar"},
+            {"state": "West Bengal", "district": "Alipurduar"},
             {"state": "Meghalaya", "district": "West Garo Hills"}
         ]
     }
@@ -871,6 +894,11 @@ def get_upstream_catchments_for_district(district_name: str) -> list:
             {"state": "Arunachal Pradesh", "district": "East Siang"},
             {"state": "Arunachal Pradesh", "district": "Changlang"},
             {"state": "Arunachal Pradesh", "district": "Tirap"}
+        ]
+    elif lat > 26.2 and lon < 92.5:  # North Bank Lower Assam / Bodoland
+        return [
+            {"state": "Assam", "district": "Baksa"},
+            {"state": "West Bengal", "district": "Alipurduar"}
         ]
     elif lon < 91.5:
         return [
