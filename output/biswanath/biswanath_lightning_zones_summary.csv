@@ -1,4 +1,4 @@
 Sector Name,Coordinates,Latitude,Longitude,Key Localities,IMD Alert Level,Hazard Phenomenon,Expected Wind Gusts,Data Source
-Southern / Upstream Sector (Biswanath),"26.58° N, 93.15° E",26.58,93.15,"Southern Border Belt, Biswanath South",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Heavy Downpour,💨 Squalls (40 - 50 km/h),Source: IMD
-Central HQ Sector (Biswanath),"26.73° N, 93.15° E",26.73,93.15,"Biswanath Town, DC Office, Central Market",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Gusty Winds,💨 Gusts (35 - 45 km/h),Source: IMD
-Northern / Riverine Sector (Biswanath),"26.88° N, 93.15° E",26.88,93.15,"Northern Embankment, Riverine Floodplain",Yellow Alert (Be Updated),⚡ Moderate Thunderstorm & Squalls,💨 Gusts (30 - 40 km/h),Source: IMD
+Northern Sector (Behali & Borgang Arunachal Foothills),"26.88° N, 93.25° E",26.88,93.25,"Behali, Borgang River Entry, Arunachal Border Ridges",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD
+Central Sector (Biswanath Chariali HQ & Commercial Belt),"26.73° N, 93.15° E",26.73,93.15,"Biswanath Chariali Town, DC Office, Pavoi, NH-15",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD
+Eastern Sector (Gohpur & Biswanath Ghat Brahmaputra Bank),"26.65° N, 93.45° E",26.65,93.45,"Gohpur, Helem, Biswanath Ghat, Buroi Outfall",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD

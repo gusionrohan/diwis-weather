@@ -3,23 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Karimganj (Assam) | **Basin:** Kushiara & Longai River Basin | **HQ Coordinates:** 24.87°N, 92.35°E  
-**Bulletin Issued:** 2026-10-20 16:39:29 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 08:34:40 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
-* **Current Ambient Temperature:** 24.5 °C
-* **Today's Maximum / Minimum Temperature:** 31.6°C / 22.3°C
-* **Relative Humidity:** 90% | **Surface Wind Speed:** 3.6 km/h
-
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | 31.6 °C | 22.3 °C | +0.6°C |
-| Day 2 | 2026-10-21 | 32.2 °C | 22.0 °C | +1.2°C |
-| Day 3 | 2026-10-22 | 32.2 °C | 21.8 °C | +1.2°C |
-| Day 4 | 2026-10-23 | 31.7 °C | 22.8 °C | +0.7°C |
-| Day 5 | 2026-10-24 | 31.4 °C | 22.0 °C | +0.4°C |
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
+* **Current Ambient Temperature:** 32.0 °C
+* **Today's Maximum / Minimum Temperature:** 32.2°C / 22.0°C
+* **Relative Humidity:** 56% | **Surface Wind Speed:** 6.3 km/h
 
 ---
 
@@ -31,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Karimganj)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Kushiara & Longai River Basin across Karimganj.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Karimganj.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Patharkandi & Tripura Entry)** | `24.53° N, 92.33° E` | Patharkandi, Lowairpoa, Bazaricherra, Churaibari | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Gusty Winds | 💨 Squalls (40 - 50 km/h) |
-| **Central Sector (Karimganj Town & Nilambazar)** | `24.87° N, 92.35° E` | Karimganj Town, Nilambazar, Settlement Belt, DC Office | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Moderate Rain | 💨 Gusts (35 - 45 km/h) |
-| **Northern Sector (Badarpur & Barak Junction)** | `24.90° N, 92.58° E` | Badarpur, Bhanga, Deorail, Barak River Confluence | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Squall | 💨 Gusts (30 - 40 km/h) |
+| **Southern Sector (Patharkandi & Tripura Entry)** | `24.53° N, 92.33° E` | Patharkandi, Lowairpoa, Bazaricherra, Churaibari | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Karimganj Town & Nilambazar)** | `24.87° N, 92.35° E` | Karimganj Town, Nilambazar, Settlement Belt, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Badarpur & Barak Junction)** | `24.90° N, 92.58° E` | Badarpur, Bhanga, Deorail, Barak River Confluence | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
@@ -60,9 +52,9 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| North Tripura | Tripura | Upstream mountain catchment & moisture advection corridor from North Tripura (Tripura) into Karimganj | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| North Tripura | Tripura | Juri and Longai river interstate tributary corridor into Karimganj | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Mamit | Mizoram | Longai river headwaters flowing into Karimganj lowlands | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Unakoti | Tripura | Upstream mountain catchment & moisture advection corridor from Unakoti (Tripura) into Karimganj | 0 mm | Data Pending (N/A) | Green Alert (No Warning) |
+| Unakoti | Tripura | Manu-Singla watershed drainage corridor into southern Karimganj | 0 mm | Data Pending (N/A) | Green Alert (No Warning) |
 
 ---
 

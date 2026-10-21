@@ -3,23 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Dibrugarh (Assam) | **Basin:** Upper Brahmaputra & Burhi Dihing Basin | **HQ Coordinates:** 27.47°N, 94.91°E  
-**Bulletin Issued:** 2026-10-20 16:42:02 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 08:37:05 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
-* **Current Ambient Temperature:** 23.7 °C
-* **Today's Maximum / Minimum Temperature:** 29.9°C / 21.4°C
-* **Relative Humidity:** 89% | **Surface Wind Speed:** 1.7 km/h
-
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | 29.9 °C | 21.4 °C | -1.1°C |
-| Day 2 | 2026-10-21 | 30.7 °C | 20.5 °C | -0.3°C |
-| Day 3 | 2026-10-22 | 30.5 °C | 20.4 °C | -0.5°C |
-| Day 4 | 2026-10-23 | 30.3 °C | 20.6 °C | -0.7°C |
-| Day 5 | 2026-10-24 | 30.4 °C | 20.0 °C | -0.6°C |
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
+* **Current Ambient Temperature:** 30.4 °C
+* **Today's Maximum / Minimum Temperature:** 30.4°C / 21.5°C
+* **Relative Humidity:** 52% | **Surface Wind Speed:** 1.5 km/h
 
 ---
 
@@ -31,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Dibrugarh)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Upper Brahmaputra & Burhi Dihing Basin across Dibrugarh.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Dibrugarh.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Naharkatia & Namrup Hills Entry)** | `27.28° N, 95.33° E` | Naharkatia, Namrup, Joypur Rainforest, Burhi Dihing Bank | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Heavy Showers | 💨 Squalls (40 - 50 km/h) |
-| **Central Sector (Dibrugarh City & Moran HQ)** | `27.47° N, 94.91° E` | Dibrugarh Town, Boiragimoth, Moran, Barbaruah, DC Office | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Gusty Winds | 💨 Gusty winds (35 - 45 km/h) |
-| **Northern Sector (Chabua & Brahmaputra Embankment)** | `27.52° N, 95.18° E` | Chabua, Rohmoria, Bogibeel Bridge Approach, River Islands | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Squalls | 💨 Gusts (30 - 40 km/h) |
+| **Southern Sector (Naharkatia & Namrup Hills Entry)** | `27.28° N, 95.33° E` | Naharkatia, Namrup, Joypur Rainforest, Burhi Dihing Bank | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Dibrugarh City & Moran HQ)** | `27.47° N, 94.91° E` | Dibrugarh Town, Boiragimoth, Moran, Barbaruah, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Chabua & Brahmaputra Embankment)** | `27.52° N, 95.18° E` | Chabua, Rohmoria, Bogibeel Bridge Approach, River Islands | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
@@ -60,10 +52,9 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| East Siang | Arunachal Pradesh | Siang (Brahmaputra main stem) massive upstream discharge corridor | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Changlang | Arunachal Pradesh | Upstream eastern watershed & Burhi Dihing River inflow into Dibrugarh | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Tirap | Arunachal Pradesh | Patkai mountain runoff & Disang/Burhi Dihing tributary network | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| East Siang | Arunachal Pradesh | Siang (Brahmaputra main stem) massive upstream discharge corridor | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Tinsukia | Assam | Adjoining district tributary watershed & shared Dibrugarh river corridor | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---
 

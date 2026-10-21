@@ -3,124 +3,124 @@
     "target_location": {
       "district": "Biswanath",
       "state": "Assam",
-      "subdivision": "Central Assam",
-      "river_basin": "Central Brahmaputra Basin",
+      "subdivision": "North Assam",
+      "river_basin": "Borgang & Buroi Sub-Basin",
       "regional_center": "RMC Guwahati",
       "coordinates": "26.73°N, 93.15°E",
       "upstream_monitored_districts": [
-        "Ri Bhoi",
-        "Wokha"
+        "East Kameng",
+        "Pakke Kessang"
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-20T23:11:56.491568",
-    "output_directory": "output\\biswanath"
+    "scraped_at_local": "2026-10-21T08:38:17.413211",
+    "output_directory": "output/biswanath"
   },
   "temperature_data": {
-    "status": "OK",
+    "status": "UNAVAILABLE",
     "current_observation": {
-      "temperature_c": 23.2,
-      "relative_humidity_pct": 90,
-      "wind_speed_kmh": 4.6,
-      "surface_pressure_hpa": 1005.1,
-      "today_max_c": 30.5,
-      "today_min_c": 21.1,
-      "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-20 23:11 IST"
+      "temperature_c": null,
+      "relative_humidity_pct": null,
+      "wind_speed_kmh": null,
+      "surface_pressure_hpa": null,
+      "today_max_c": null,
+      "today_min_c": null,
+      "source": "Open-Meteo / IMD (Offline)",
+      "recorded_at_ist": "2026-10-21 08:37 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
-        "date": "2026-10-20",
-        "max_temp_c": 30.5,
-        "min_temp_c": 21.1,
+        "date": "2026-10-21",
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": -0.5
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 2,
-        "date": "2026-10-21",
-        "max_temp_c": 30.9,
-        "min_temp_c": 20.6,
+        "date": "2026-10-22",
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": -0.1
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 3,
-        "date": "2026-10-22",
-        "max_temp_c": 31.2,
-        "min_temp_c": 19.9,
+        "date": "2026-10-23",
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 0.2
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 4,
-        "date": "2026-10-23",
-        "max_temp_c": 30.6,
-        "min_temp_c": 19.6,
+        "date": "2026-10-24",
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": -0.4
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 5,
-        "date": "2026-10-24",
-        "max_temp_c": 30.6,
-        "min_temp_c": 20.0,
+        "date": "2026-10-25",
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": -0.4
+        "normal_min_c": 21.5,
+        "departure_c": null
       }
     ]
   },
   "lightning_zones_data": {
-    "overall_alert": "⚡ High Risk (Thunderstorms & Lightning Likely)",
-    "storm_track_movement": "Upstream-to-Downstream: Propagating along Central Brahmaputra Basin across Biswanath.",
-    "active_window": "Next 3 to 6 Hours (Convective Storm Window)",
-    "safety_advice": "Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.",
+    "overall_alert": "🟢 All Clear (Atmospheric Conditions Stable)",
+    "storm_track_movement": "Calm / stable conditions prevailing across Biswanath.",
+    "active_window": "Current Window (No Convective Threat Active)",
+    "safety_advice": "Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.",
     "source": "IMD (India Meteorological Department) & IITM-ILDN",
     "sectors": [
       {
-        "zone_name": "Southern / Upstream Sector (Biswanath)",
-        "coordinates": "26.58° N, 93.15° E",
-        "latitude": 26.58,
-        "longitude": 93.15,
-        "localities": "Southern Border Belt, Biswanath South",
-        "alert_level": "Orange Alert (Be Prepared)",
-        "alert_color": "Orange",
-        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Heavy Downpour",
-        "expected_winds": "💨 Squalls (40 - 50 km/h)",
-        "action_suggested": "Avoid venturing into open agricultural fields or river floodplains.",
-        "convective_status": "Upstream convective storm initiation and ridge trigger."
+        "zone_name": "Northern Sector (Behali & Borgang Arunachal Foothills)",
+        "coordinates": "26.88° N, 93.25° E",
+        "latitude": 26.88,
+        "longitude": 93.25,
+        "localities": "Behali, Borgang River Entry, Arunachal Border Ridges",
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
-        "zone_name": "Central HQ Sector (Biswanath)",
+        "zone_name": "Central Sector (Biswanath Chariali HQ & Commercial Belt)",
         "coordinates": "26.73° N, 93.15° E",
         "latitude": 26.73,
         "longitude": 93.15,
-        "localities": "Biswanath Town, DC Office, Central Market",
-        "alert_level": "Orange Alert (Be Prepared)",
-        "alert_color": "Orange",
-        "hazard_phenomenon": "⚡ Thunderstorm & Lightning with Gusty Winds",
-        "expected_winds": "💨 Gusts (35 - 45 km/h)",
-        "action_suggested": "Take shelter inside sturdy structures; avoid temporary sheds.",
-        "convective_status": "Active storm transit corridor over populated administrative belt."
+        "localities": "Biswanath Chariali Town, DC Office, Pavoi, NH-15",
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
-        "zone_name": "Northern / Riverine Sector (Biswanath)",
-        "coordinates": "26.88° N, 93.15° E",
-        "latitude": 26.88,
-        "longitude": 93.15,
-        "localities": "Northern Embankment, Riverine Floodplain",
-        "alert_level": "Yellow Alert (Be Updated)",
-        "alert_color": "Yellow",
-        "hazard_phenomenon": "⚡ Moderate Thunderstorm & Squalls",
-        "expected_winds": "💨 Gusts (30 - 40 km/h)",
-        "action_suggested": "Stay alert for sudden squall lines and localized water pooling.",
-        "convective_status": "Convective spread across open agricultural floodplain."
+        "zone_name": "Eastern Sector (Gohpur & Biswanath Ghat Brahmaputra Bank)",
+        "coordinates": "26.65° N, 93.45° E",
+        "latitude": 26.65,
+        "longitude": 93.45,
+        "localities": "Gohpur, Helem, Biswanath Ghat, Buroi Outfall",
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       }
     ]
   },
@@ -162,7 +162,7 @@
     {
       "day_index": 1,
       "day_code": "Day_1",
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "district": "Biswanath",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -173,7 +173,7 @@
     {
       "day_index": 2,
       "day_code": "Day_2",
-      "date": "2026-10-21",
+      "date": "2026-10-22",
       "district": "Biswanath",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -184,7 +184,7 @@
     {
       "day_index": 3,
       "day_code": "Day_3",
-      "date": "2026-10-22",
+      "date": "2026-10-23",
       "district": "Biswanath",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -195,7 +195,7 @@
     {
       "day_index": 4,
       "day_code": "Day_4",
-      "date": "2026-10-23",
+      "date": "2026-10-24",
       "district": "Biswanath",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -206,7 +206,7 @@
     {
       "day_index": 5,
       "day_code": "Day_5",
-      "date": "2026-10-24",
+      "date": "2026-10-25",
       "district": "Biswanath",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -278,69 +278,23 @@
     "district": "Biswanath",
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
-    "date": "2026-10-20",
-    "time_of_issue_ist": "22:00 Hrs",
-    "valid_upto_ist": "01:00 Hrs",
-    "alert_color": "Red",
-    "alert_level": "Warning (Take Action)",
-    "message": "Convective weather warning active over Biswanath district.",
-    "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
-    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
-    "last_updated_utc": "2026-10-20T22:00:23Z",
-    "has_active_nowcast": true
+    "date": "2026-10-21",
+    "time_of_issue_ist": "08:37 Hrs",
+    "valid_upto_ist": "11:37 Hrs",
+    "alert_color": "Green",
+    "alert_level": "No Warning (All Clear)",
+    "message": "No active convective nowcast warning issued for Biswanath district by RMC Guwahati at this time.",
+    "impact": "Normal conditions; no severe storm hazard reported.",
+    "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
+    "last_updated_utc": "2026-10-21T12:07:07Z",
+    "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
     {
-      "upstream_district": "Ri Bhoi",
-      "state": "Meghalaya",
-      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Ri Bhoi (Meghalaya) into Biswanath",
-      "river_link": "Upstream mountain catchment & moisture advection corridor from Ri Bhoi (Meghalaya) into Biswanath",
-      "past_24h_actual_rainfall": "0.2 mm",
-      "past_24h_departure": "-96%",
-      "imd_alert_color": "Green",
-      "imd_alert_level": "No Warning (No Action)",
-      "imd_warning_summary": "No Warning",
-      "official_imd_status": "Green Alert (No Warning)",
-      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
-      "runoff_risk": "Green Alert (No Warning)",
-      "forecast_5days": [
-        {
-          "day_index": 1,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-20"
-        },
-        {
-          "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
-        },
-        {
-          "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-22"
-        },
-        {
-          "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-23"
-        },
-        {
-          "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
-        }
-      ]
-    },
-    {
-      "upstream_district": "Wokha",
-      "state": "Nagaland",
-      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Wokha (Nagaland) into Biswanath",
-      "river_link": "Upstream mountain catchment & moisture advection corridor from Wokha (Nagaland) into Biswanath",
+      "upstream_district": "East Kameng",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Borgang and Buroi river mountain catchments discharging into Biswanath",
+      "river_link": "Borgang and Buroi river mountain catchments discharging into Biswanath",
       "past_24h_actual_rainfall": "0 mm",
       "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
@@ -354,87 +308,87 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "date": "2026-10-21"
         },
         {
           "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "date": "2026-10-23"
         },
         {
           "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-23"
+          "date": "2026-10-24"
         },
         {
           "day_index": 5,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
+          "date": "2026-10-25"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Pakke Kessang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Buroi river headwaters draining southwards into Biswanath plains",
+      "river_link": "Buroi river headwaters draining southwards into Biswanath plains",
+      "past_24h_actual_rainfall": "0.0 mm",
+      "past_24h_departure": "0%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
           "date": "2026-10-24"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         }
       ]
     }
   ],
   "upstream_catchment_rainfall": [
     {
-      "upstream_district": "Ri Bhoi",
-      "state": "Meghalaya",
-      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Ri Bhoi (Meghalaya) into Biswanath",
-      "river_link": "Upstream mountain catchment & moisture advection corridor from Ri Bhoi (Meghalaya) into Biswanath",
-      "past_24h_actual_rainfall": "0.2 mm",
-      "past_24h_departure": "-96%",
-      "imd_alert_color": "Green",
-      "imd_alert_level": "No Warning (No Action)",
-      "imd_warning_summary": "No Warning",
-      "official_imd_status": "Green Alert (No Warning)",
-      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
-      "runoff_risk": "Green Alert (No Warning)",
-      "forecast_5days": [
-        {
-          "day_index": 1,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-20"
-        },
-        {
-          "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
-        },
-        {
-          "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-22"
-        },
-        {
-          "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-23"
-        },
-        {
-          "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
-        }
-      ]
-    },
-    {
-      "upstream_district": "Wokha",
-      "state": "Nagaland",
-      "river_link_to_hailakandi": "Upstream mountain catchment & moisture advection corridor from Wokha (Nagaland) into Biswanath",
-      "river_link": "Upstream mountain catchment & moisture advection corridor from Wokha (Nagaland) into Biswanath",
+      "upstream_district": "East Kameng",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Borgang and Buroi river mountain catchments discharging into Biswanath",
+      "river_link": "Borgang and Buroi river mountain catchments discharging into Biswanath",
       "past_24h_actual_rainfall": "0 mm",
       "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
@@ -448,50 +402,96 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "date": "2026-10-21"
         },
         {
           "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "date": "2026-10-23"
         },
         {
           "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-23"
+          "date": "2026-10-24"
         },
         {
           "day_index": 5,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
+          "date": "2026-10-25"
+        }
+      ]
+    },
+    {
+      "upstream_district": "Pakke Kessang",
+      "state": "Arunachal Pradesh",
+      "river_link_to_hailakandi": "Buroi river headwaters draining southwards into Biswanath plains",
+      "river_link": "Buroi river headwaters draining southwards into Biswanath plains",
+      "past_24h_actual_rainfall": "0.0 mm",
+      "past_24h_departure": "0%",
+      "imd_alert_color": "Green",
+      "imd_alert_level": "No Warning (No Action)",
+      "imd_warning_summary": "No Warning",
+      "official_imd_status": "Green Alert (No Warning)",
+      "runoff_inflow_risk_for_hailakandi": "Green Alert (No Warning)",
+      "runoff_risk": "Green Alert (No Warning)",
+      "forecast_5days": [
+        {
+          "day_index": 1,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-21"
+        },
+        {
+          "day_index": 2,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-22"
+        },
+        {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-23"
+        },
+        {
+          "day_index": 4,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
           "date": "2026-10-24"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         }
       ]
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
-    "local_pdf_path": "output\\biswanath\\pdfs\\IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/6c0b2830c426034c5f667364d3c10578.pdf",
+    "local_pdf_path": "output/biswanath/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {
-        "category": "Official IMD Regional Outlook (Central Assam)",
+        "category": "Official IMD Regional Outlook (North Assam)",
         "headline": "Northeast Regional Atmospheric Systems",
-        "details": "Isolated to Scattered rainfall likely over Assam & Meghalaya on 20th October; Nagaland, Manipur, Mizoram & Tripura during 20th-22nd October. West India: Isolated to Scattered rainfall likely over Konkan & Goa and Madhya Maharashtra during 20th-23rd October; Marathawada during 20th-21st October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely over Konkan & Goa and Madhya Maharashtra on 20th Octo",
+        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 21st-22nd October. *Red color warning does not mean \"Red Alert\" Red color warning means \"Take Action\" Forecast and warning for any day is valid from 0830 hours IST of day till 0830 hours IST of next day For more details kindly visit https://mausam.im",
         "impact_on_hailakandi": "Synoptic influence affecting Biswanath and adjoining river basins."
       },
       {
         "category": "National Synoptic Weather Systems",
         "headline": "Significant National Features",
-        "details": "Weather Systems and Warnings: Northwest India: Isolated to Scattered rainfall likely over Jammu-Kashmir-Ladakh-Gilgit-Baltistan-Muzaffarabad during 23rd-25th October; Himachal Pradesh during 24th-25th October; Uttarakhand during 23rd-26th October. Isolated to Scattered rainfall likely over Haryana Chandigarh & Delhi and Punjab during 24th-25th October; West Rajasthan on 24th October; East Rajasthan on 20th October and on 24th October.",
+        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 21st-22nd October; Kerala & Mahe and Lakshadweep during 21st-27th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated to Scattered rainfall likely over Tamil Nadu, Puducherry & Karaikal during 23rd-27th October; Coastal",
         "impact_on_hailakandi": "Influences regional air masses and moisture advection into Biswanath."
       }
     ]

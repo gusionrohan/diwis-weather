@@ -1,4 +1,4 @@
 Sector Name,Coordinates,Latitude,Longitude,Key Localities,IMD Alert Level,Hazard Phenomenon,Expected Wind Gusts,Data Source
-Southern Sector (Dholai & Mizoram Border),"24.60° N, 92.85° E",24.6,92.85,"Dholai, Kabuganj, Bhagabazar, Lailapur Border",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Heavy Rain,💨 Squalls (40 - 50 km/h),Source: IMD
-Central Sector (Silchar Urban & Lakhipur HQ),"24.83° N, 92.79° E",24.83,92.79,"Silchar Town, Meherpur, Tarapur, Lakhipur, DC Complex",Orange Alert (Be Prepared),⚡ Thunderstorm & Lightning with Gusty Winds,💨 Gusts (35 - 45 km/h),Source: IMD
-Northern Sector (Borkhola & Jaintia Hills Border),"24.95° N, 92.72° E",24.95,92.72,"Borkhola, Kalain, Bikrampur, Jatinga Confluence",Yellow Alert (Be Updated),⚡ Moderate Thunderstorm & Lightning,💨 Gusts (35 - 45 km/h),Source: IMD
+Southern Sector (Dholai & Mizoram Border),"24.60° N, 92.85° E",24.6,92.85,"Dholai, Kabuganj, Bhagabazar, Lailapur Border",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD
+Central Sector (Silchar Urban & Lakhipur HQ),"24.83° N, 92.79° E",24.83,92.79,"Silchar Town, Meherpur, Tarapur, Lakhipur, DC Complex",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD
+Northern Sector (Borkhola & Jaintia Hills Border),"24.95° N, 92.72° E",24.95,92.72,"Borkhola, Kalain, Bikrampur, Jatinga Confluence",Green Alert (Normal / Clear Weather),☀️ No Severe Convective Activity,🍃 Normal Breezes (10 - 20 km/h),Source: IMD

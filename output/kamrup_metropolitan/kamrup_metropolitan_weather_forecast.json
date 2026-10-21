@@ -13,74 +13,74 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T01:08:45.618428",
-    "output_directory": "output\\kamrup_metropolitan"
+    "scraped_at_local": "2026-10-21T08:35:56.052712",
+    "output_directory": "output/kamrup_metropolitan"
   },
   "temperature_data": {
-    "status": "OK",
+    "status": "UNAVAILABLE",
     "current_observation": {
-      "temperature_c": 24.8,
-      "relative_humidity_pct": 88,
-      "wind_speed_kmh": 3.2,
-      "surface_pressure_hpa": 1007.0,
-      "today_max_c": 32.5,
-      "today_min_c": 22.9,
-      "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-21 01:08 IST"
+      "temperature_c": null,
+      "relative_humidity_pct": null,
+      "wind_speed_kmh": null,
+      "surface_pressure_hpa": null,
+      "today_max_c": null,
+      "today_min_c": null,
+      "source": "Open-Meteo / IMD (Offline)",
+      "recorded_at_ist": "2026-10-21 08:34 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
         "date": "2026-10-21",
-        "max_temp_c": 32.5,
-        "min_temp_c": 22.9,
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 1.5
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 2,
         "date": "2026-10-22",
-        "max_temp_c": 32.3,
-        "min_temp_c": 23.5,
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 1.3
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 3,
         "date": "2026-10-23",
-        "max_temp_c": 31.8,
-        "min_temp_c": 23.5,
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 0.8
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 4,
         "date": "2026-10-24",
-        "max_temp_c": 31.8,
-        "min_temp_c": 23.2,
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 0.8
+        "normal_min_c": 21.5,
+        "departure_c": null
       },
       {
         "day_index": 5,
         "date": "2026-10-25",
-        "max_temp_c": 32.5,
-        "min_temp_c": 22.6,
+        "max_temp_c": null,
+        "min_temp_c": null,
         "normal_max_c": 31.0,
-        "normal_min_c": 23.5,
-        "departure_c": 1.5
+        "normal_min_c": 21.5,
+        "departure_c": null
       }
     ]
   },
   "lightning_zones_data": {
-    "overall_alert": "🚨 Critical Risk (Immediate Ground Strikes or Severe Nowcast Active)",
-    "storm_track_movement": "Propagating along Middle Brahmaputra & Meghalaya Plateau Catchment corridor across Kamrup Metropolitan.",
-    "active_window": "Immediate (0 to 3 Hours Convective Window)",
-    "safety_advice": "Immediate shelter required. Evacuate open fields and suspend all outdoor operations.",
+    "overall_alert": "🟢 All Clear (Atmospheric Conditions Stable)",
+    "storm_track_movement": "Calm / stable conditions prevailing across Kamrup Metropolitan.",
+    "active_window": "Current Window (No Convective Threat Active)",
+    "safety_advice": "Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.",
     "source": "IMD (India Meteorological Department) & IITM-ILDN",
     "sectors": [
       {
@@ -89,12 +89,12 @@
         "latitude": 26.11,
         "longitude": 91.82,
         "localities": "Khanapara, Jorabat, Basistha, Meghalaya Border Gate",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Kamrup Metropolitan."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
         "zone_name": "Central Sector (Guwahati Urban Core & Dispur HQ)",
@@ -102,12 +102,12 @@
         "latitude": 26.18,
         "longitude": 91.75,
         "localities": "Dispur, Panbazar, Paltan Bazar, Ganeshguri, DC Office",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Kamrup Metropolitan."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       },
       {
         "zone_name": "Northern Sector (Brahmaputra Bank & Jalukbari)",
@@ -115,12 +115,12 @@
         "latitude": 26.22,
         "longitude": 91.68,
         "localities": "Jalukbari, Pandu, North Guwahati, Saraighat Approach",
-        "alert_level": "Red Alert (Severe Convective Nowcast Active)",
-        "alert_color": "Red",
-        "hazard_phenomenon": "⚡ Severe Thunderstorm, Lightning & Squalls",
-        "expected_winds": "💨 Squalls (50 - 65 km/h)",
-        "action_suggested": "Take shelter indoors immediately. RMC Guwahati severe convective warning active for district.",
-        "convective_status": "Radar indicates severe convective cell traversal over Kamrup Metropolitan."
+        "alert_level": "Green Alert (Normal / Clear Weather)",
+        "alert_color": "Green",
+        "hazard_phenomenon": "☀️ No Severe Convective Activity",
+        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
+        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
+        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
       }
     ]
   },
@@ -162,7 +162,7 @@
     {
       "day_index": 1,
       "day_code": "Day_1",
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "district": "Kamrup Metropolitan",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -173,7 +173,7 @@
     {
       "day_index": 2,
       "day_code": "Day_2",
-      "date": "2026-10-21",
+      "date": "2026-10-22",
       "district": "Kamrup Metropolitan",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -184,7 +184,7 @@
     {
       "day_index": 3,
       "day_code": "Day_3",
-      "date": "2026-10-22",
+      "date": "2026-10-23",
       "district": "Kamrup Metropolitan",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -195,7 +195,7 @@
     {
       "day_index": 4,
       "day_code": "Day_4",
-      "date": "2026-10-23",
+      "date": "2026-10-24",
       "district": "Kamrup Metropolitan",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -206,7 +206,7 @@
     {
       "day_index": 5,
       "day_code": "Day_5",
-      "date": "2026-10-24",
+      "date": "2026-10-25",
       "district": "Kamrup Metropolitan",
       "state": "Assam",
       "rainfall_category": "Dry",
@@ -279,15 +279,15 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-21",
-    "time_of_issue_ist": "01:00 Hrs",
-    "valid_upto_ist": "04:00 Hrs",
-    "alert_color": "Red",
-    "alert_level": "Warning (Take Action)",
-    "message": "Convective weather warning active over Kamrup Metropolitan district.",
-    "impact": "Potential water pooling in low pockets; lightning hazard in open ground.",
-    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
-    "last_updated_utc": "2026-10-21T00:49:19Z",
-    "has_active_nowcast": true
+    "time_of_issue_ist": "08:35 Hrs",
+    "valid_upto_ist": "11:35 Hrs",
+    "alert_color": "Green",
+    "alert_level": "No Warning (All Clear)",
+    "message": "No active convective nowcast warning issued for Kamrup Metropolitan district by RMC Guwahati at this time.",
+    "impact": "Normal conditions; no severe storm hazard reported.",
+    "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
+    "last_updated_utc": "2026-10-21T12:07:07Z",
+    "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
     {
@@ -295,8 +295,8 @@
       "state": "Meghalaya",
       "river_link_to_hailakandi": "Umtrew / Digaru River catchment directly feeding Guwahati south basin",
       "river_link": "Umtrew / Digaru River catchment directly feeding Guwahati south basin",
-      "past_24h_actual_rainfall": "0.0 mm",
-      "past_24h_departure": "0%",
+      "past_24h_actual_rainfall": "0.2 mm",
+      "past_24h_departure": "-96%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -308,31 +308,31 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "date": "2026-10-21"
         },
         {
           "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "date": "2026-10-23"
         },
         {
           "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-23"
+          "date": "2026-10-24"
         },
         {
           "day_index": 5,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "date": "2026-10-25"
         }
       ]
     },
@@ -341,8 +341,8 @@
       "state": "Meghalaya",
       "river_link_to_hailakandi": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "river_link": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
-      "past_24h_actual_rainfall": "0.0 mm",
-      "past_24h_departure": "0%",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -352,33 +352,33 @@
       "forecast_5days": [
         {
           "day_index": 1,
-          "rainfall_category": "Isolated",
-          "station_coverage": "Stations=1-25%",
-          "date": "2026-10-20"
-        },
-        {
-          "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-21"
         },
         {
-          "day_index": 3,
+          "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-22"
         },
         {
-          "day_index": 4,
+          "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-23"
         },
         {
-          "day_index": 5,
+          "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-24"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         }
       ]
     }
@@ -389,8 +389,8 @@
       "state": "Meghalaya",
       "river_link_to_hailakandi": "Umtrew / Digaru River catchment directly feeding Guwahati south basin",
       "river_link": "Umtrew / Digaru River catchment directly feeding Guwahati south basin",
-      "past_24h_actual_rainfall": "0.0 mm",
-      "past_24h_departure": "0%",
+      "past_24h_actual_rainfall": "0.2 mm",
+      "past_24h_departure": "-96%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -402,31 +402,31 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "date": "2026-10-21"
         },
         {
           "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "date": "2026-10-23"
         },
         {
           "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-23"
+          "date": "2026-10-24"
         },
         {
           "day_index": 5,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "date": "2026-10-25"
         }
       ]
     },
@@ -435,8 +435,8 @@
       "state": "Meghalaya",
       "river_link_to_hailakandi": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "river_link": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
-      "past_24h_actual_rainfall": "0.0 mm",
-      "past_24h_departure": "0%",
+      "past_24h_actual_rainfall": "0 mm",
+      "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -446,52 +446,52 @@
       "forecast_5days": [
         {
           "day_index": 1,
-          "rainfall_category": "Isolated",
-          "station_coverage": "Stations=1-25%",
-          "date": "2026-10-20"
-        },
-        {
-          "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-21"
         },
         {
-          "day_index": 3,
+          "day_index": 2,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-22"
         },
         {
-          "day_index": 4,
+          "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-23"
         },
         {
-          "day_index": 5,
+          "day_index": 4,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-24"
+        },
+        {
+          "day_index": 5,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         }
       ]
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a6908ce5605f210d4d064b5024d8ceea.pdf",
-    "local_pdf_path": "output\\kamrup_metropolitan\\pdfs\\IMD_All_India_Weather_Forecast_Bulletin.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/6c0b2830c426034c5f667364d3c10578.pdf",
+    "local_pdf_path": "output/kamrup_metropolitan/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {
         "category": "Official IMD Regional Outlook (Lower Assam)",
         "headline": "Northeast Regional Atmospheric Systems",
-        "details": "Isolated to Scattered rainfall likely over Assam & Meghalaya on 20th October; Nagaland, Manipur, Mizoram & Tripura during 20th-22nd October. West India: Isolated to Scattered rainfall likely over Konkan & Goa and Madhya Maharashtra during 20th-23rd October; Marathawada during 20th-21st October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely over Konkan & Goa and Madhya Maharashtra on 20th Octo",
+        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 21st-22nd October. *Red color warning does not mean \"Red Alert\" Red color warning means \"Take Action\" Forecast and warning for any day is valid from 0830 hours IST of day till 0830 hours IST of next day For more details kindly visit https://mausam.im",
         "impact_on_hailakandi": "Synoptic influence affecting Kamrup Metropolitan and adjoining river basins."
       },
       {
         "category": "National Synoptic Weather Systems",
         "headline": "Significant National Features",
-        "details": "Weather Systems and Warnings: Northwest India: Isolated to Scattered rainfall likely over Jammu-Kashmir-Ladakh-Gilgit-Baltistan-Muzaffarabad during 23rd-25th October; Himachal Pradesh during 24th-25th October; Uttarakhand during 23rd-26th October. Isolated to Scattered rainfall likely over Haryana Chandigarh & Delhi and Punjab during 24th-25th October; West Rajasthan on 24th October; East Rajasthan on 20th October and on 24th October.",
+        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 21st-22nd October; Kerala & Mahe and Lakshadweep during 21st-27th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated to Scattered rainfall likely over Tamil Nadu, Puducherry & Karaikal during 23rd-27th October; Coastal",
         "impact_on_hailakandi": "Influences regional air masses and moisture advection into Kamrup Metropolitan."
       }
     ]

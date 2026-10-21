@@ -3,23 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Kamrup Metropolitan (Assam) | **Basin:** Middle Brahmaputra & Meghalaya Plateau Catchment | **HQ Coordinates:** 26.18°N, 91.75°E  
-**Bulletin Issued:** 2026-10-20 16:40:51 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 08:35:56 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
 * **Current Ambient Temperature:** N/A (Station Pending)
 * **Today's Maximum / Minimum Temperature:** N/A
 * **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
-
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | None °C | None °C | N/A |
-| Day 2 | 2026-10-21 | None °C | None °C | N/A |
-| Day 3 | 2026-10-22 | None °C | None °C | N/A |
-| Day 4 | 2026-10-23 | None °C | None °C | N/A |
-| Day 5 | 2026-10-24 | None °C | None °C | N/A |
 
 ---
 
@@ -31,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Kamrup Metropolitan)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Middle Brahmaputra & Meghalaya Plateau Catchment across Kamrup Metropolitan.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Kamrup Metropolitan.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Meghalaya Foothills & Khanapara)** | `26.11° N, 91.82° E` | Khanapara, Jorabat, Basistha, Meghalaya Border Gate | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Heavy Downpour | 💨 Squalls (40 - 50 km/h) |
-| **Central Sector (Guwahati Urban Core & Dispur HQ)** | `26.18° N, 91.75° E` | Dispur, Panbazar, Paltan Bazar, Ganeshguri, DC Office | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Urban Gusts | 💨 Gusts (35 - 45 km/h) |
-| **Northern Sector (Brahmaputra Bank & Jalukbari)** | `26.22° N, 91.68° E` | Jalukbari, Pandu, North Guwahati, Saraighat Approach | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Riverine Squall | 💨 Gusts (30 - 40 km/h) |
+| **Southern Sector (Meghalaya Foothills & Khanapara)** | `26.11° N, 91.82° E` | Khanapara, Jorabat, Basistha, Meghalaya Border Gate | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Guwahati Urban Core & Dispur HQ)** | `26.18° N, 91.75° E` | Dispur, Panbazar, Paltan Bazar, Ganeshguri, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Brahmaputra Bank & Jalukbari)** | `26.22° N, 91.68° E` | Jalukbari, Pandu, North Guwahati, Saraighat Approach | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
@@ -61,8 +53,7 @@
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Ri Bhoi | Meghalaya | Umtrew / Digaru River catchment directly feeding Guwahati south basin | 0.2 mm | Dry (No rain) | Green Alert (No Warning) |
-| East Khasi Hills | Meghalaya | Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment | 0 mm | Isolated (Stations=1-25%) | Green Alert (No Warning) |
-| Kamrup | Assam | Adjoining district tributary watershed & shared Kamrup Metropolitan river corridor | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| East Khasi Hills | Meghalaya | Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---
 

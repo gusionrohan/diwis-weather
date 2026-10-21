@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Hailakandi (Assam) | **Basin:** Barak Sub-Basin (Dhaleswari & Katakhal Corridor) | **HQ Coordinates:** 24.68°N, 92.56°E  
-**Bulletin Issued:** 2026-10-20 22:42:36 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 08:31:36 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 25.2 °C
-* **Today's Maximum / Minimum Temperature:** 31.5°C / 22.9°C
-* **Relative Humidity:** 88% | **Surface Wind Speed:** 4.5 km/h
+* **Current Ambient Temperature:** 32.0 °C
+* **Today's Maximum / Minimum Temperature:** 32.0°C / 23.0°C
+* **Relative Humidity:** 52% | **Surface Wind Speed:** 1.3 km/h
 
 ---
 
@@ -23,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Hailakandi)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) across Hailakandi.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Hailakandi.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Heavy Rain | 💨 Squalls (45 - 55 km/h) |
-| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Gusty Winds | 💨 Gusty winds (40 - 50 km/h) |
-| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Lightning | 💨 Gusts (35 - 45 km/h) |
+| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 

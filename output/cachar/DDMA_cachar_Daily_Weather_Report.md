@@ -3,23 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Cachar (Assam) | **Basin:** Central Barak River Basin | **HQ Coordinates:** 24.83°N, 92.79°E  
-**Bulletin Issued:** 2026-10-20 16:38:22 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 08:33:31 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
-### 1. 🌡️ Temperature Observations & 5-Day Forecast
-*Source: Surface Observations & 5-Day Temperature Network*
-* **Current Ambient Temperature:** 24.6 °C
-* **Today's Maximum / Minimum Temperature:** 32.6°C / 21.6°C
-* **Relative Humidity:** 91% | **Surface Wind Speed:** 2.8 km/h
-
-| Day | Date | Maximum Temp (°C) | Minimum Temp (°C) | Departure from Normal (°C) |
-| :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | 32.6 °C | 21.6 °C | +1.6°C |
-| Day 2 | 2026-10-21 | 32.8 °C | 21.1 °C | +1.8°C |
-| Day 3 | 2026-10-22 | 32.9 °C | 22.7 °C | +1.9°C |
-| Day 4 | 2026-10-23 | 32.3 °C | 22.1 °C | +1.3°C |
-| Day 5 | 2026-10-24 | 32.4 °C | 21.6 °C | +1.4°C |
+### 1. 🌡️ Current Meteorological Observations & Temperature
+*Source: Surface Station Network & IMD / Regional Observatories*
+* **Current Ambient Temperature:** N/A (Station Pending)
+* **Today's Maximum / Minimum Temperature:** N/A
+* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
 
 ---
 
@@ -31,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Cachar)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Central Barak River Basin across Cachar.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Cachar.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Dholai & Mizoram Border)** | `24.60° N, 92.85° E` | Dholai, Kabuganj, Bhagabazar, Lailapur Border | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Heavy Rain | 💨 Squalls (40 - 50 km/h) |
-| **Central Sector (Silchar Urban & Lakhipur HQ)** | `24.83° N, 92.79° E` | Silchar Town, Meherpur, Tarapur, Lakhipur, DC Complex | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Gusty Winds | 💨 Gusts (35 - 45 km/h) |
-| **Northern Sector (Borkhola & Jaintia Hills Border)** | `24.95° N, 92.72° E` | Borkhola, Kalain, Bikrampur, Jatinga Confluence | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Lightning | 💨 Gusts (35 - 45 km/h) |
+| **Southern Sector (Dholai & Mizoram Border)** | `24.60° N, 92.85° E` | Dholai, Kabuganj, Bhagabazar, Lailapur Border | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Silchar Urban & Lakhipur HQ)** | `24.83° N, 92.79° E` | Silchar Town, Meherpur, Tarapur, Lakhipur, DC Complex | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Borkhola & Jaintia Hills Border)** | `24.95° N, 92.72° E` | Borkhola, Kalain, Bikrampur, Jatinga Confluence | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
@@ -62,7 +54,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Pherzawl | Manipur | Upper Tuivai & Barak main stream headwaters in southern Manipur | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Kolasib | Mizoram | Southern Barak tributary drainage through Sonai & Dholai | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| East Jaintia Hills | Meghalaya | Lubha and Jatinga river headwaters discharging into Cachar | 0 mm | Isolated (Stations=1-25%) | Green Alert (No Warning) |
+| East Jaintia Hills | Meghalaya | Lubha and Jatinga river headwaters discharging into Cachar | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Jiribam | Manipur | Jiri river boundary confluence joining Barak river at Jirimukh | 0.0 mm | Data Pending (N/A) | Green Alert (No Warning) |
 
 ---

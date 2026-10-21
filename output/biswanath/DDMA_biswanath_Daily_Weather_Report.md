@@ -2,16 +2,16 @@
 ## District Integrated Weather Information System (DIWIS)
 **Daily Weather & Hydrological Intelligence Bulletin**
 
-**District:** Biswanath (Assam) | **Basin:** Central Brahmaputra Basin | **HQ Coordinates:** 26.73°N, 93.15°E  
-**Bulletin Issued:** 2026-10-20 23:11:58 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**District:** Biswanath (Assam) | **Basin:** Borgang & Buroi Sub-Basin | **HQ Coordinates:** 26.73°N, 93.15°E  
+**Bulletin Issued:** 2026-10-21 08:38:17 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 23.2 °C
-* **Today's Maximum / Minimum Temperature:** 30.5°C / 21.1°C
-* **Relative Humidity:** 90% | **Surface Wind Speed:** 4.6 km/h
+* **Current Ambient Temperature:** N/A (Station Pending)
+* **Today's Maximum / Minimum Temperature:** N/A
+* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
 
 ---
 
@@ -23,27 +23,27 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-20 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Biswanath)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚡ High Risk (Thunderstorms & Lightning Likely)**
-* **Active Window:** **Next 3 to 6 Hours (Convective Storm Window)**
-* **Storm Track Movement:** **Upstream-to-Downstream: Propagating along Central Brahmaputra Basin across Biswanath.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Biswanath.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern / Upstream Sector (Biswanath)** | `26.58° N, 93.15° E` | Southern Border Belt, Biswanath South | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Heavy Downpour | 💨 Squalls (40 - 50 km/h) |
-| **Central HQ Sector (Biswanath)** | `26.73° N, 93.15° E` | Biswanath Town, DC Office, Central Market | Orange Alert (Be Prepared) | ⚡ Thunderstorm & Lightning with Gusty Winds | 💨 Gusts (35 - 45 km/h) |
-| **Northern / Riverine Sector (Biswanath)** | `26.88° N, 93.15° E` | Northern Embankment, Riverine Floodplain | Yellow Alert (Be Updated) | ⚡ Moderate Thunderstorm & Squalls | 💨 Gusts (30 - 40 km/h) |
+| **Northern Sector (Behali & Borgang Arunachal Foothills)** | `26.88° N, 93.25° E` | Behali, Borgang River Entry, Arunachal Border Ridges | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Biswanath Chariali HQ & Commercial Belt)** | `26.73° N, 93.15° E` | Biswanath Chariali Town, DC Office, Pavoi, NH-15 | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Eastern Sector (Gohpur & Biswanath Ghat Brahmaputra Bank)** | `26.65° N, 93.45° E` | Gohpur, Helem, Biswanath Ghat, Buroi Outfall | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay indoors in safe buildings. Avoid open paddy fields, tall trees, and water bodies during active thunder & lightning.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
@@ -52,8 +52,8 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Ri Bhoi | Meghalaya | Upstream mountain catchment & moisture advection corridor from Ri Bhoi (Meghalaya) into Biswanath | 0.2 mm | Dry (No rain) | Green Alert (No Warning) |
-| Wokha | Nagaland | Upstream mountain catchment & moisture advection corridor from Wokha (Nagaland) into Biswanath | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| East Kameng | Arunachal Pradesh | Borgang and Buroi river mountain catchments discharging into Biswanath | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| Pakke Kessang | Arunachal Pradesh | Buroi river headwaters draining southwards into Biswanath plains | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---
 
