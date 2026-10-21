@@ -3,7 +3,7 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Cachar (Assam) | **Basin:** Central Barak River Basin | **HQ Coordinates:** 24.83°N, 92.79°E  
-**Bulletin Issued:** 2026-10-21 08:33:31 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 15:59:34 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
@@ -18,7 +18,7 @@
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 3.1 mm
+* **Normal Standard Benchmark:** 7.1 mm
 * **Rainfall Departure (%):** -100% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |

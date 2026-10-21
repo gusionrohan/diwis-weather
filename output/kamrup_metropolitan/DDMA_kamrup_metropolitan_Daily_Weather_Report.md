@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Kamrup Metropolitan (Assam) | **Basin:** Middle Brahmaputra & Meghalaya Plateau Catchment | **HQ Coordinates:** 26.18°N, 91.75°E  
-**Bulletin Issued:** 2026-10-21 08:35:56 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 16:02:15 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** N/A (Station Pending)
-* **Today's Maximum / Minimum Temperature:** N/A
-* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
+* **Current Ambient Temperature:** 26.7 °C
+* **Today's Maximum / Minimum Temperature:** 32.4°C / 23.3°C
+* **Relative Humidity:** 73% | **Surface Wind Speed:** 4.6 km/h
 
 ---
 
@@ -52,7 +52,7 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Ri Bhoi | Meghalaya | Umtrew / Digaru River catchment directly feeding Guwahati south basin | 0.2 mm | Dry (No rain) | Green Alert (No Warning) |
+| Ri Bhoi | Meghalaya | Umtrew / Digaru River catchment directly feeding Guwahati south basin | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | East Khasi Hills | Meghalaya | Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---

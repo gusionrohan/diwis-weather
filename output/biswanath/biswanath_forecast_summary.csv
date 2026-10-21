@@ -1,6 +1,6 @@
 Day Index,Forecast Date,District,State,Max Temp (°C),Min Temp (°C),Rainfall Forecast,Station Coverage,Severe Weather Alert Color,Warning Alert Level,Warning Types,Data Source
-1,2026-10-21,Biswanath,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-2,2026-10-22,Biswanath,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-3,2026-10-23,Biswanath,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-4,2026-10-24,Biswanath,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-5,2026-10-25,Biswanath,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+1,2026-10-21,Biswanath,Assam,30.6,21.3,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+2,2026-10-22,Biswanath,Assam,31.0,20.1,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+3,2026-10-23,Biswanath,Assam,30.5,19.7,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+4,2026-10-24,Biswanath,Assam,30.4,20.1,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+5,2026-10-25,Biswanath,Assam,30.7,19.4,Data Pending,N/A,Green,No Warning (No Action),No Warning,Source: IMD

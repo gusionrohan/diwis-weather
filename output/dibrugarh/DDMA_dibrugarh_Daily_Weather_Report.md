@@ -3,22 +3,22 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Dibrugarh (Assam) | **Basin:** Upper Brahmaputra & Burhi Dihing Basin | **HQ Coordinates:** 27.47°N, 94.91°E  
-**Bulletin Issued:** 2026-10-21 08:37:05 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 16:03:56 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 30.4 °C
-* **Today's Maximum / Minimum Temperature:** 30.4°C / 21.5°C
-* **Relative Humidity:** 52% | **Surface Wind Speed:** 1.5 km/h
+* **Current Ambient Temperature:** N/A (Station Pending)
+* **Today's Maximum / Minimum Temperature:** N/A
+* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 3 mm
+* **Normal Standard Benchmark:** 3.6 mm
 * **Rainfall Departure (%):** -100% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |

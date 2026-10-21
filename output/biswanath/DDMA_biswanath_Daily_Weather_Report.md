@@ -3,22 +3,22 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Biswanath (Assam) | **Basin:** Borgang & Buroi Sub-Basin | **HQ Coordinates:** 26.73°N, 93.15°E  
-**Bulletin Issued:** 2026-10-21 08:38:17 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 16:05:23 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** N/A (Station Pending)
-* **Today's Maximum / Minimum Temperature:** N/A
-* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
+* **Current Ambient Temperature:** 23.5 °C
+* **Today's Maximum / Minimum Temperature:** 30.6°C / 21.3°C
+* **Relative Humidity:** 89% | **Surface Wind Speed:** 3.9 km/h
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 5.3 mm
+* **Normal Standard Benchmark:** 7.1 mm
 * **Rainfall Departure (%):** -100% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
@@ -27,7 +27,7 @@
 | Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
@@ -52,7 +52,7 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| East Kameng | Arunachal Pradesh | Borgang and Buroi river mountain catchments discharging into Biswanath | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| East Kameng | Arunachal Pradesh | Borgang and Buroi river mountain catchments discharging into Biswanath | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Pakke Kessang | Arunachal Pradesh | Buroi river headwaters draining southwards into Biswanath plains | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---

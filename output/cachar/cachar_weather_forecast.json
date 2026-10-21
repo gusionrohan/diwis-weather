@@ -15,7 +15,7 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T08:33:31.872329",
+    "scraped_at_local": "2026-10-21T15:59:34.676172",
     "output_directory": "output/cachar"
   },
   "temperature_data": {
@@ -28,7 +28,7 @@
       "today_max_c": null,
       "today_min_c": null,
       "source": "Open-Meteo / IMD (Offline)",
-      "recorded_at_ist": "2026-10-21 08:31 IST"
+      "recorded_at_ist": "2026-10-21 15:58 IST"
     },
     "daily_temperature_forecast_5days": [
       {
@@ -152,9 +152,9 @@
   },
   "observed_rainfall_past24h": {
     "district": "Cachar",
-    "recorded_date": "2026-10-20",
+    "recorded_date": "2026-10-21",
     "actual_rainfall_mm": "0 mm",
-    "normal_rainfall_mm": "3.1 mm",
+    "normal_rainfall_mm": "7.1 mm",
     "departure_percentage": "-100%",
     "departure_category": "Large Deficient",
     "map_color_hex": "#FFFFFF",
@@ -281,14 +281,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-21",
-    "time_of_issue_ist": "08:32 Hrs",
-    "valid_upto_ist": "11:32 Hrs",
+    "time_of_issue_ist": "15:58 Hrs",
+    "valid_upto_ist": "18:58 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Cachar district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-21T12:07:07Z",
+    "last_updated_utc": "2026-10-21T18:58:05Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -360,21 +360,21 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-19"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 5,
@@ -424,9 +424,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-25"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -546,21 +546,21 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-19"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-20"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 5,
@@ -610,9 +610,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-25"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -664,7 +664,7 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/6c0b2830c426034c5f667364d3c10578.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/7c629a3ac86b62ac8dd368fdb3c3be8b.pdf",
     "local_pdf_path": "output/cachar/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [

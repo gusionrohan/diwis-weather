@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Karimganj (Assam) | **Basin:** Kushiara & Longai River Basin | **HQ Coordinates:** 24.87°N, 92.35°E  
-**Bulletin Issued:** 2026-10-21 08:34:40 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-21 16:00:57 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 32.0 °C
-* **Today's Maximum / Minimum Temperature:** 32.2°C / 22.0°C
-* **Relative Humidity:** 56% | **Surface Wind Speed:** 6.3 km/h
+* **Current Ambient Temperature:** 24.7 °C
+* **Today's Maximum / Minimum Temperature:** 32.2°C / 22.1°C
+* **Relative Humidity:** 80% | **Surface Wind Speed:** 4.3 km/h
 
 ---
 

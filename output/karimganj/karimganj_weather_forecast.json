@@ -14,27 +14,27 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T08:34:40.300438",
+    "scraped_at_local": "2026-10-21T16:00:57.015509",
     "output_directory": "output/karimganj"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 32.0,
-      "relative_humidity_pct": 56,
-      "wind_speed_kmh": 6.3,
-      "surface_pressure_hpa": 1008.2,
+      "temperature_c": 24.7,
+      "relative_humidity_pct": 80,
+      "wind_speed_kmh": 4.3,
+      "surface_pressure_hpa": 1011.7,
       "today_max_c": 32.2,
-      "today_min_c": 22.0,
+      "today_min_c": 22.1,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-21 08:33 IST"
+      "recorded_at_ist": "2026-10-21 15:59 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
         "date": "2026-10-21",
         "max_temp_c": 32.2,
-        "min_temp_c": 22.0,
+        "min_temp_c": 22.1,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
         "departure_c": 1.2
@@ -42,38 +42,38 @@
       {
         "day_index": 2,
         "date": "2026-10-22",
-        "max_temp_c": 31.9,
+        "max_temp_c": 32.0,
         "min_temp_c": 23.9,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 0.9
+        "departure_c": 1.0
       },
       {
         "day_index": 3,
         "date": "2026-10-23",
-        "max_temp_c": 31.9,
-        "min_temp_c": 23.6,
+        "max_temp_c": 31.6,
+        "min_temp_c": 23.8,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 0.9
+        "departure_c": 0.6
       },
       {
         "day_index": 4,
         "date": "2026-10-24",
-        "max_temp_c": 31.4,
-        "min_temp_c": 22.5,
+        "max_temp_c": 31.3,
+        "min_temp_c": 23.1,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 0.4
+        "departure_c": 0.3
       },
       {
         "day_index": 5,
         "date": "2026-10-25",
-        "max_temp_c": 32.8,
-        "min_temp_c": 22.0,
+        "max_temp_c": 32.2,
+        "min_temp_c": 21.4,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 1.8
+        "departure_c": 1.2
       }
     ]
   },
@@ -280,14 +280,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-21",
-    "time_of_issue_ist": "08:33 Hrs",
-    "valid_upto_ist": "11:33 Hrs",
+    "time_of_issue_ist": "15:59 Hrs",
+    "valid_upto_ist": "18:59 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Karimganj district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-21T12:07:07Z",
+    "last_updated_utc": "2026-10-21T18:58:05Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -313,9 +313,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -325,15 +325,15 @@
         },
         {
           "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-25"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -453,9 +453,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-22"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -465,15 +465,15 @@
         },
         {
           "day_index": 4,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-25"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -571,7 +571,7 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/6c0b2830c426034c5f667364d3c10578.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/7c629a3ac86b62ac8dd368fdb3c3be8b.pdf",
     "local_pdf_path": "output/karimganj/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
