@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Hailakandi (Assam) | **Basin:** Barak Sub-Basin (Dhaleswari & Katakhal Corridor) | **HQ Coordinates:** 24.68°N, 92.56°E  
-**Bulletin Issued:** 2026-10-21 15:57:59 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 08:34:06 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 25.7 °C
-* **Today's Maximum / Minimum Temperature:** 31.9°C / 23.0°C
-* **Relative Humidity:** 79% | **Surface Wind Speed:** 5.6 km/h
+* **Current Ambient Temperature:** 29.9 °C
+* **Today's Maximum / Minimum Temperature:** 29.9°C / 23.3°C
+* **Relative Humidity:** 69% | **Surface Wind Speed:** 1.3 km/h
 
 ---
 
@@ -33,17 +33,17 @@
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Hailakandi)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
-* **Active Window:** **Current Window (No Convective Threat Active)**
-* **Storm Track Movement:** **Calm / stable conditions prevailing across Hailakandi.**
+* **Overall Alert:** **⚠️ Moderate Risk (Isolated Thunderstorm / Gusts Possible)**
+* **Active Window:** **Next 3 to 6 Hours (Watch Window)**
+* **Storm Track Movement:** **Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) corridor across Hailakandi.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
-| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
-| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
+| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
+| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
 
-*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
+*⚠️ **Field Safety Directive:** Stay updated with live IMD bulletins and monitor local sky conditions.*
 
 ---
 

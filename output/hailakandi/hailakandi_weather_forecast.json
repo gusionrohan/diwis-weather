@@ -14,74 +14,74 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T15:57:58.653199",
+    "scraped_at_local": "2026-10-22T08:34:05.998747",
     "output_directory": "output/hailakandi"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 25.7,
-      "relative_humidity_pct": 79,
-      "wind_speed_kmh": 5.6,
-      "surface_pressure_hpa": 1011.4,
-      "today_max_c": 31.9,
-      "today_min_c": 23.0,
+      "temperature_c": 29.9,
+      "relative_humidity_pct": 69,
+      "wind_speed_kmh": 1.3,
+      "surface_pressure_hpa": 1008.6,
+      "today_max_c": 29.9,
+      "today_min_c": 23.3,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-21 15:56 IST"
+      "recorded_at_ist": "2026-10-22 08:32 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
-        "date": "2026-10-21",
-        "max_temp_c": 31.9,
-        "min_temp_c": 23.0,
+        "date": "2026-10-22",
+        "max_temp_c": 29.9,
+        "min_temp_c": 23.3,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 0.9
+        "departure_c": -1.1
       },
       {
         "day_index": 2,
-        "date": "2026-10-22",
-        "max_temp_c": 31.1,
-        "min_temp_c": 24.4,
-        "normal_max_c": 31.0,
-        "normal_min_c": 21.5,
-        "departure_c": 0.1
-      },
-      {
-        "day_index": 3,
         "date": "2026-10-23",
         "max_temp_c": 31.2,
-        "min_temp_c": 24.5,
+        "min_temp_c": 23.1,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
         "departure_c": 0.2
       },
       {
-        "day_index": 4,
+        "day_index": 3,
         "date": "2026-10-24",
         "max_temp_c": 31.3,
-        "min_temp_c": 23.7,
+        "min_temp_c": 23.6,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
         "departure_c": 0.3
       },
       {
-        "day_index": 5,
+        "day_index": 4,
         "date": "2026-10-25",
-        "max_temp_c": 32.3,
-        "min_temp_c": 22.1,
+        "max_temp_c": 32.2,
+        "min_temp_c": 23.0,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 1.3
+        "departure_c": 1.2
+      },
+      {
+        "day_index": 5,
+        "date": "2026-10-26",
+        "max_temp_c": 33.0,
+        "min_temp_c": 22.2,
+        "normal_max_c": 31.0,
+        "normal_min_c": 21.5,
+        "departure_c": 2.0
       }
     ]
   },
   "lightning_zones_data": {
-    "overall_alert": "🟢 All Clear (Atmospheric Conditions Stable)",
-    "storm_track_movement": "Calm / stable conditions prevailing across Hailakandi.",
-    "active_window": "Current Window (No Convective Threat Active)",
-    "safety_advice": "Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.",
+    "overall_alert": "⚠️ Moderate Risk (Isolated Thunderstorm / Gusts Possible)",
+    "storm_track_movement": "Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) corridor across Hailakandi.",
+    "active_window": "Next 3 to 6 Hours (Watch Window)",
+    "safety_advice": "Stay updated with live IMD bulletins and monitor local sky conditions.",
     "source": "IMD (India Meteorological Department) & IITM-ILDN",
     "sectors": [
       {
@@ -90,12 +90,12 @@
         "latitude": 24.42,
         "longitude": 92.58,
         "localities": "Katlicherra, Jamira, South Hailakandi, Bilaipur",
-        "alert_level": "Green Alert (Normal / Clear Weather)",
-        "alert_color": "Green",
-        "hazard_phenomenon": "☀️ No Severe Convective Activity",
-        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
-        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
-        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
+        "alert_level": "Yellow Alert (Be Updated)",
+        "alert_color": "Yellow",
+        "hazard_phenomenon": "⚡ Isolated Thunderstorm & Gusty Winds",
+        "expected_winds": "💨 Gusts (35 - 45 km/h)",
+        "action_suggested": "Stay updated with live RMC Guwahati nowcasts.",
+        "convective_status": "Marginal convective instability; localized convective build-up possible."
       },
       {
         "zone_name": "Central Sector (Hailakandi HQ & Lala Valley)",
@@ -103,12 +103,12 @@
         "latitude": 24.68,
         "longitude": 92.56,
         "localities": "Hailakandi Town, Lala, Monacherra, DC Office",
-        "alert_level": "Green Alert (Normal / Clear Weather)",
-        "alert_color": "Green",
-        "hazard_phenomenon": "☀️ No Severe Convective Activity",
-        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
-        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
-        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
+        "alert_level": "Yellow Alert (Be Updated)",
+        "alert_color": "Yellow",
+        "hazard_phenomenon": "⚡ Isolated Thunderstorm & Gusty Winds",
+        "expected_winds": "💨 Gusts (35 - 45 km/h)",
+        "action_suggested": "Stay updated with live RMC Guwahati nowcasts.",
+        "convective_status": "Marginal convective instability; localized convective build-up possible."
       },
       {
         "zone_name": "Northern Sector (Algapur Barak Floodplain)",
@@ -116,12 +116,12 @@
         "latitude": 24.78,
         "longitude": 92.55,
         "localities": "Algapur, Mohanpur, Kalinagar, Barak Bank",
-        "alert_level": "Green Alert (Normal / Clear Weather)",
-        "alert_color": "Green",
-        "hazard_phenomenon": "☀️ No Severe Convective Activity",
-        "expected_winds": "🍃 Normal Breezes (10 - 20 km/h)",
-        "action_suggested": "Safe for normal outdoor and municipal operations. Routine monitoring.",
-        "convective_status": "Stable atmospheric conditions; no active convective cells over sector."
+        "alert_level": "Yellow Alert (Be Updated)",
+        "alert_color": "Yellow",
+        "hazard_phenomenon": "⚡ Isolated Thunderstorm & Gusty Winds",
+        "expected_winds": "💨 Gusts (35 - 45 km/h)",
+        "action_suggested": "Stay updated with live RMC Guwahati nowcasts.",
+        "convective_status": "Marginal convective instability; localized convective build-up possible."
       }
     ]
   },
@@ -279,16 +279,16 @@
     "district": "Hailakandi",
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
-    "date": "2026-10-21",
-    "time_of_issue_ist": "15:56 Hrs",
-    "valid_upto_ist": "18:56 Hrs",
-    "alert_color": "Green",
-    "alert_level": "No Warning (All Clear)",
-    "message": "No active convective nowcast warning issued for Hailakandi district by RMC Guwahati at this time.",
-    "impact": "Normal conditions; no severe storm hazard reported.",
-    "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-21T18:58:05Z",
-    "has_active_nowcast": false
+    "date": "2026-10-22",
+    "time_of_issue_ist": "13:00 Hrs",
+    "valid_upto_ist": "16:00 Hrs",
+    "alert_color": "Yellow",
+    "alert_level": "Watch (Be Updated)",
+    "message": "Active nowcast warning: Heavy Rain expected over Hailakandi district.",
+    "impact": "Potential water pooling in low pockets; lightning hazard in open areas.",
+    "action_suggested": "Take shelter inside sturdy structures during thunderstorm activity.",
+    "last_updated_utc": "2026-10-22T12:51:37Z",
+    "has_active_nowcast": true
   },
   "upstream_mizoram_rainfall": [
     {
@@ -331,9 +331,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -405,9 +405,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -471,9 +471,9 @@
         },
         {
           "day_index": 5,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         }
       ]
     },
@@ -545,9 +545,9 @@
         },
         {
           "day_index": 2,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-18"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 3,
@@ -571,20 +571,20 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/7c629a3ac86b62ac8dd368fdb3c3be8b.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ddc4530371e807462342bd887d668387.pdf",
     "local_pdf_path": "output/hailakandi/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {
         "category": "Official IMD Regional Outlook (Barak Valley)",
         "headline": "Northeast Regional Atmospheric Systems",
-        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 21st-22nd October. *Red color warning does not mean \"Red Alert\" Red color warning means \"Take Action\" Forecast and warning for any day is valid from 0830 hours IST of day till 0830 hours IST of next day For more details kindly visit https://mausam.im",
+        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 22nd October. Fishermen warning: Arabian Sea: Along and off Karnataka, Kerala coasts, over Lakshadweep Area, Comorin area adjoining Maldives till 27th October; over some parts of southwest Arabian Sea on 22nd October. Bay of Bengal: Over Gulf of Mann",
         "impact_on_hailakandi": "Synoptic influence affecting Hailakandi and adjoining river basins."
       },
       {
         "category": "National Synoptic Weather Systems",
         "headline": "Significant National Features",
-        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 21st-22nd October; Kerala & Mahe and Lakshadweep during 21st-27th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated to Scattered rainfall likely over Tamil Nadu, Puducherry & Karaikal during 23rd-27th October; Coastal",
+        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 22nd-24th October; Kerala & Mahe and Lakshadweep during 22nd-26th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely",
         "impact_on_hailakandi": "Influences regional air masses and moisture advection into Hailakandi."
       }
     ]

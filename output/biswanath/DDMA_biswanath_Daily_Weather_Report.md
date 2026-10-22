@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Biswanath (Assam) | **Basin:** Borgang & Buroi Sub-Basin | **HQ Coordinates:** 26.73°N, 93.15°E  
-**Bulletin Issued:** 2026-10-21 16:05:23 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 08:44:10 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 23.5 °C
-* **Today's Maximum / Minimum Temperature:** 30.6°C / 21.3°C
-* **Relative Humidity:** 89% | **Surface Wind Speed:** 3.9 km/h
+* **Current Ambient Temperature:** 30.5 °C
+* **Today's Maximum / Minimum Temperature:** 30.6°C / 20.6°C
+* **Relative Humidity:** 54% | **Surface Wind Speed:** 6.6 km/h
 
 ---
 
@@ -27,7 +27,7 @@
 | Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-25 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
@@ -52,7 +52,7 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| East Kameng | Arunachal Pradesh | Borgang and Buroi river mountain catchments discharging into Biswanath | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
+| East Kameng | Arunachal Pradesh | Borgang and Buroi river mountain catchments discharging into Biswanath | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Pakke Kessang | Arunachal Pradesh | Buroi river headwaters draining southwards into Biswanath plains | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---

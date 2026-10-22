@@ -3,30 +3,30 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Dibrugarh (Assam) | **Basin:** Upper Brahmaputra & Burhi Dihing Basin | **HQ Coordinates:** 27.47°N, 94.91°E  
-**Bulletin Issued:** 2026-10-21 16:03:56 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 08:42:36 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** N/A (Station Pending)
-* **Today's Maximum / Minimum Temperature:** N/A
-* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
+* **Current Ambient Temperature:** 30.3 °C
+* **Today's Maximum / Minimum Temperature:** 30.4°C / 21.2°C
+* **Relative Humidity:** 48% | **Surface Wind Speed:** 1.4 km/h
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
-* **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 3.6 mm
-* **Rainfall Departure (%):** -100% (Large Deficient)
+* **Past 24h Recorded Rainfall (at 08:30 IST):** N/A (Telemetry Pending)
+* **Normal Standard Benchmark:** N/A
+* **Rainfall Departure (%):** N/A (Data Unavailable)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-24 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-25 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
 | Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---

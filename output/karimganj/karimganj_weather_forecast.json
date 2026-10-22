@@ -14,66 +14,66 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-21T16:00:57.015509",
+    "scraped_at_local": "2026-10-22T08:38:30.380159",
     "output_directory": "output/karimganj"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 24.7,
-      "relative_humidity_pct": 80,
-      "wind_speed_kmh": 4.3,
-      "surface_pressure_hpa": 1011.7,
-      "today_max_c": 32.2,
-      "today_min_c": 22.1,
+      "temperature_c": 30.8,
+      "relative_humidity_pct": 66,
+      "wind_speed_kmh": 2.7,
+      "surface_pressure_hpa": 1008.9,
+      "today_max_c": 30.8,
+      "today_min_c": 24.2,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-21 15:59 IST"
+      "recorded_at_ist": "2026-10-22 08:36 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
-        "date": "2026-10-21",
-        "max_temp_c": 32.2,
-        "min_temp_c": 22.1,
+        "date": "2026-10-22",
+        "max_temp_c": 30.8,
+        "min_temp_c": 24.2,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 1.2
+        "departure_c": -0.2
       },
       {
         "day_index": 2,
-        "date": "2026-10-22",
-        "max_temp_c": 32.0,
-        "min_temp_c": 23.9,
+        "date": "2026-10-23",
+        "max_temp_c": 31.7,
+        "min_temp_c": 24.4,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 1.0
+        "departure_c": 0.7
       },
       {
         "day_index": 3,
-        "date": "2026-10-23",
-        "max_temp_c": 31.6,
-        "min_temp_c": 23.8,
-        "normal_max_c": 31.0,
-        "normal_min_c": 21.5,
-        "departure_c": 0.6
-      },
-      {
-        "day_index": 4,
         "date": "2026-10-24",
         "max_temp_c": 31.3,
-        "min_temp_c": 23.1,
+        "min_temp_c": 23.2,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
         "departure_c": 0.3
       },
       {
-        "day_index": 5,
+        "day_index": 4,
         "date": "2026-10-25",
-        "max_temp_c": 32.2,
-        "min_temp_c": 21.4,
+        "max_temp_c": 32.3,
+        "min_temp_c": 22.3,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 1.2
+        "departure_c": 1.3
+      },
+      {
+        "day_index": 5,
+        "date": "2026-10-26",
+        "max_temp_c": 33.4,
+        "min_temp_c": 21.8,
+        "normal_max_c": 31.0,
+        "normal_min_c": 21.5,
+        "departure_c": 2.4
       }
     ]
   },
@@ -151,7 +151,7 @@
   },
   "observed_rainfall_past24h": {
     "district": "Karimganj",
-    "recorded_date": "2026-10-21",
+    "recorded_date": "2026-10-22",
     "actual_rainfall_mm": null,
     "normal_rainfall_mm": null,
     "departure_percentage": null,
@@ -279,15 +279,15 @@
     "district": "Karimganj",
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
-    "date": "2026-10-21",
-    "time_of_issue_ist": "15:59 Hrs",
-    "valid_upto_ist": "18:59 Hrs",
+    "date": "2026-10-22",
+    "time_of_issue_ist": "08:36 Hrs",
+    "valid_upto_ist": "11:36 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Karimganj district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-21T18:58:05Z",
+    "last_updated_utc": "2026-10-22T12:50:36Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -309,31 +309,31 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 2,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
-        },
-        {
-          "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-23"
         },
         {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        },
+        {
           "day_index": 4,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         },
         {
           "day_index": 5,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-26"
         }
       ]
     },
@@ -449,31 +449,31 @@
           "day_index": 1,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
-          "date": "2026-10-21"
+          "date": "2026-10-22"
         },
         {
           "day_index": 2,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
-        },
-        {
-          "day_index": 3,
           "rainfall_category": "Dry",
           "station_coverage": "No rain",
           "date": "2026-10-23"
         },
         {
+          "day_index": 3,
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-24"
+        },
+        {
           "day_index": 4,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-25"
         },
         {
           "day_index": 5,
-          "rainfall_category": "Data Pending",
-          "station_coverage": "N/A",
-          "date": ""
+          "rainfall_category": "Dry",
+          "station_coverage": "No rain",
+          "date": "2026-10-26"
         }
       ]
     },
@@ -571,20 +571,20 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/7c629a3ac86b62ac8dd368fdb3c3be8b.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ddc4530371e807462342bd887d668387.pdf",
     "local_pdf_path": "output/karimganj/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {
         "category": "Official IMD Regional Outlook (Barak Valley)",
         "headline": "Northeast Regional Atmospheric Systems",
-        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 21st-22nd October. *Red color warning does not mean \"Red Alert\" Red color warning means \"Take Action\" Forecast and warning for any day is valid from 0830 hours IST of day till 0830 hours IST of next day For more details kindly visit https://mausam.im",
+        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Hot & Humid weather warning: Hot and humid weather conditions likely to prevail over Konkan & Goa during 22nd October. Fishermen warning: Arabian Sea: Along and off Karnataka, Kerala coasts, over Lakshadweep Area, Comorin area adjoining Maldives till 27th October; over some parts of southwest Arabian Sea on 22nd October. Bay of Bengal: Over Gulf of Mann",
         "impact_on_hailakandi": "Synoptic influence affecting Karimganj and adjoining river basins."
       },
       {
         "category": "National Synoptic Weather Systems",
         "headline": "Significant National Features",
-        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 21st-22nd October; Kerala & Mahe and Lakshadweep during 21st-27th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated to Scattered rainfall likely over Tamil Nadu, Puducherry & Karaikal during 23rd-27th October; Coastal",
+        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 22nd-24th October; Kerala & Mahe and Lakshadweep during 22nd-26th October; Coastal Karnataka and South Interior Karnataka during 22nd-24th October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely",
         "impact_on_hailakandi": "Influences regional air masses and moisture advection into Karimganj."
       }
     ]

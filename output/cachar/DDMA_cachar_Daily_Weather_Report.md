@@ -3,7 +3,7 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Cachar (Assam) | **Basin:** Central Barak River Basin | **HQ Coordinates:** 24.83°N, 92.79°E  
-**Bulletin Issued:** 2026-10-21 15:59:34 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 08:36:38 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
