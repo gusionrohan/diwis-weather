@@ -13,36 +13,36 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-22T08:44:10.175363",
+    "scraped_at_local": "2026-10-22T15:59:57.182179",
     "output_directory": "output/biswanath"
   },
   "temperature_data": {
     "status": "OK",
     "current_observation": {
-      "temperature_c": 30.5,
-      "relative_humidity_pct": 54,
-      "wind_speed_kmh": 6.6,
-      "surface_pressure_hpa": 1001.9,
-      "today_max_c": 30.6,
+      "temperature_c": 23.8,
+      "relative_humidity_pct": 85,
+      "wind_speed_kmh": 4.5,
+      "surface_pressure_hpa": 1004.4,
+      "today_max_c": 30.7,
       "today_min_c": 20.6,
       "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
-      "recorded_at_ist": "2026-10-22 08:42 IST"
+      "recorded_at_ist": "2026-10-22 15:58 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
         "date": "2026-10-22",
-        "max_temp_c": 30.6,
+        "max_temp_c": 30.7,
         "min_temp_c": 20.6,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": -0.4
+        "departure_c": -0.3
       },
       {
         "day_index": 2,
         "date": "2026-10-23",
         "max_temp_c": 30.4,
-        "min_temp_c": 19.7,
+        "min_temp_c": 20.0,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
         "departure_c": -0.6
@@ -50,29 +50,29 @@
       {
         "day_index": 3,
         "date": "2026-10-24",
-        "max_temp_c": 30.6,
-        "min_temp_c": 20.1,
+        "max_temp_c": 30.5,
+        "min_temp_c": 19.8,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": -0.4
+        "departure_c": -0.5
       },
       {
         "day_index": 4,
         "date": "2026-10-25",
-        "max_temp_c": 30.8,
+        "max_temp_c": 30.5,
         "min_temp_c": 19.4,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": -0.2
+        "departure_c": -0.5
       },
       {
         "day_index": 5,
         "date": "2026-10-26",
-        "max_temp_c": 31.0,
-        "min_temp_c": 19.1,
+        "max_temp_c": 30.7,
+        "min_temp_c": 18.8,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": 0.0
+        "departure_c": -0.3
       }
     ]
   },
@@ -150,12 +150,12 @@
   },
   "observed_rainfall_past24h": {
     "district": "Biswanath",
-    "recorded_date": "2026-10-21",
+    "recorded_date": "2026-10-22",
     "actual_rainfall_mm": "0 mm",
-    "normal_rainfall_mm": "7.1 mm",
-    "departure_percentage": "-100%",
+    "normal_rainfall_mm": "4.5 mm",
+    "departure_percentage": "-99%",
     "departure_category": "Large Deficient",
-    "map_color_hex": "#FFFFFF",
+    "map_color_hex": "#FFFF01",
     "status": "OK"
   },
   "rainfall_forecast_5days": [
@@ -279,14 +279,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-22",
-    "time_of_issue_ist": "08:43 Hrs",
-    "valid_upto_ist": "11:43 Hrs",
+    "time_of_issue_ist": "15:58 Hrs",
+    "valid_upto_ist": "18:58 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Biswanath district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-22T12:50:36Z",
+    "last_updated_utc": "2026-10-22T18:46:44Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -478,7 +478,7 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ddc4530371e807462342bd887d668387.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ea2d458e1af05424b247b828d87167e7.pdf",
     "local_pdf_path": "output/biswanath/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [

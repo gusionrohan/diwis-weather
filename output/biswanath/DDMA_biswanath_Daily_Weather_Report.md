@@ -3,23 +3,23 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Biswanath (Assam) | **Basin:** Borgang & Buroi Sub-Basin | **HQ Coordinates:** 26.73°N, 93.15°E  
-**Bulletin Issued:** 2026-10-22 08:44:10 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 15:59:57 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 30.5 °C
-* **Today's Maximum / Minimum Temperature:** 30.6°C / 20.6°C
-* **Relative Humidity:** 54% | **Surface Wind Speed:** 6.6 km/h
+* **Current Ambient Temperature:** 23.8 °C
+* **Today's Maximum / Minimum Temperature:** 30.7°C / 20.6°C
+* **Relative Humidity:** 85% | **Surface Wind Speed:** 4.5 km/h
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 7.1 mm
-* **Rainfall Departure (%):** -100% (Large Deficient)
+* **Normal Standard Benchmark:** 4.5 mm
+* **Rainfall Departure (%):** -99% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |

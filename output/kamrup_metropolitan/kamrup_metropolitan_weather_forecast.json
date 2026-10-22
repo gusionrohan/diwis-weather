@@ -13,66 +13,66 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-22T08:40:28.115836",
+    "scraped_at_local": "2026-10-22T15:57:29.919603",
     "output_directory": "output/kamrup_metropolitan"
   },
   "temperature_data": {
-    "status": "UNAVAILABLE",
+    "status": "OK",
     "current_observation": {
-      "temperature_c": null,
-      "relative_humidity_pct": null,
-      "wind_speed_kmh": null,
-      "surface_pressure_hpa": null,
-      "today_max_c": null,
-      "today_min_c": null,
-      "source": "Open-Meteo / IMD (Offline)",
-      "recorded_at_ist": "2026-10-22 08:38 IST"
+      "temperature_c": 27.4,
+      "relative_humidity_pct": 70,
+      "wind_speed_kmh": 1.8,
+      "surface_pressure_hpa": 1006.9,
+      "today_max_c": 32.5,
+      "today_min_c": 22.9,
+      "source": "Open-Meteo Surface Grid / IMD Coordinate Anchor",
+      "recorded_at_ist": "2026-10-22 15:56 IST"
     },
     "daily_temperature_forecast_5days": [
       {
         "day_index": 1,
         "date": "2026-10-22",
-        "max_temp_c": null,
-        "min_temp_c": null,
+        "max_temp_c": 32.5,
+        "min_temp_c": 22.9,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": null
+        "departure_c": 1.5
       },
       {
         "day_index": 2,
         "date": "2026-10-23",
-        "max_temp_c": null,
-        "min_temp_c": null,
+        "max_temp_c": 32.0,
+        "min_temp_c": 23.5,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": null
+        "departure_c": 1.0
       },
       {
         "day_index": 3,
         "date": "2026-10-24",
-        "max_temp_c": null,
-        "min_temp_c": null,
+        "max_temp_c": 31.7,
+        "min_temp_c": 23.3,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": null
+        "departure_c": 0.7
       },
       {
         "day_index": 4,
         "date": "2026-10-25",
-        "max_temp_c": null,
-        "min_temp_c": null,
+        "max_temp_c": 32.5,
+        "min_temp_c": 22.8,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": null
+        "departure_c": 1.5
       },
       {
         "day_index": 5,
         "date": "2026-10-26",
-        "max_temp_c": null,
-        "min_temp_c": null,
+        "max_temp_c": 33.0,
+        "min_temp_c": 22.0,
         "normal_max_c": 31.0,
         "normal_min_c": 21.5,
-        "departure_c": null
+        "departure_c": 2.0
       }
     ]
   },
@@ -279,14 +279,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-22",
-    "time_of_issue_ist": "08:39 Hrs",
-    "valid_upto_ist": "11:39 Hrs",
+    "time_of_issue_ist": "15:56 Hrs",
+    "valid_upto_ist": "18:56 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Kamrup Metropolitan district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-22T12:50:36Z",
+    "last_updated_utc": "2026-10-22T18:46:44Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -318,9 +318,9 @@
         },
         {
           "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 4,
@@ -342,7 +342,7 @@
       "river_link_to_hailakandi": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "river_link": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "past_24h_actual_rainfall": "0 mm",
-      "past_24h_departure": "-99%",
+      "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -412,9 +412,9 @@
         },
         {
           "day_index": 3,
-          "rainfall_category": "Dry",
-          "station_coverage": "No rain",
-          "date": "2026-10-24"
+          "rainfall_category": "Data Pending",
+          "station_coverage": "N/A",
+          "date": ""
         },
         {
           "day_index": 4,
@@ -436,7 +436,7 @@
       "river_link_to_hailakandi": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "river_link": "Cherrapunji-Mawsynram ridge moisture front & Umkhrah-Basistha catchment",
       "past_24h_actual_rainfall": "0 mm",
-      "past_24h_departure": "-99%",
+      "past_24h_departure": "-100%",
       "imd_alert_color": "Green",
       "imd_alert_level": "No Warning (No Action)",
       "imd_warning_summary": "No Warning",
@@ -478,7 +478,7 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ddc4530371e807462342bd887d668387.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/ea2d458e1af05424b247b828d87167e7.pdf",
     "local_pdf_path": "output/kamrup_metropolitan/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [

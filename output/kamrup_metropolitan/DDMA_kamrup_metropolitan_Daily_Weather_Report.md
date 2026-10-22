@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Kamrup Metropolitan (Assam) | **Basin:** Middle Brahmaputra & Meghalaya Plateau Catchment | **HQ Coordinates:** 26.18°N, 91.75°E  
-**Bulletin Issued:** 2026-10-22 08:40:28 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 15:57:29 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** N/A (Station Pending)
-* **Today's Maximum / Minimum Temperature:** N/A
-* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
+* **Current Ambient Temperature:** 27.4 °C
+* **Today's Maximum / Minimum Temperature:** 32.5°C / 22.9°C
+* **Relative Humidity:** 70% | **Surface Wind Speed:** 1.8 km/h
 
 ---
 

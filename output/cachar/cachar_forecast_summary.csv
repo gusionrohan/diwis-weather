@@ -1,6 +1,6 @@
 Day Index,Forecast Date,District,State,Max Temp (°C),Min Temp (°C),Rainfall Forecast,Station Coverage,Severe Weather Alert Color,Warning Alert Level,Warning Types,Data Source
-1,2026-10-21,Cachar,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-2,2026-10-22,Cachar,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-3,2026-10-23,Cachar,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-4,2026-10-24,Cachar,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-5,2026-10-25,Cachar,Assam,,,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+1,2026-10-21,Cachar,Assam,31.6,24.8,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+2,2026-10-22,Cachar,Assam,31.7,22.8,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+3,2026-10-23,Cachar,Assam,32.1,22.8,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+4,2026-10-24,Cachar,Assam,32.9,21.2,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+5,2026-10-25,Cachar,Assam,34.3,20.5,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD

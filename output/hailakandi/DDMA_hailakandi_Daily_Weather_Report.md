@@ -3,27 +3,27 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Hailakandi (Assam) | **Basin:** Barak Sub-Basin (Dhaleswari & Katakhal Corridor) | **HQ Coordinates:** 24.68°N, 92.56°E  
-**Bulletin Issued:** 2026-10-22 08:34:06 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-22 15:53:37 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 29.9 °C
-* **Today's Maximum / Minimum Temperature:** 29.9°C / 23.3°C
-* **Relative Humidity:** 69% | **Surface Wind Speed:** 1.3 km/h
+* **Current Ambient Temperature:** 26.0 °C
+* **Today's Maximum / Minimum Temperature:** 30.1°C / 23.3°C
+* **Relative Humidity:** 92% | **Surface Wind Speed:** 3.4 km/h
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 7.4 mm
-* **Rainfall Departure (%):** -100% (Large Deficient)
+* **Normal Standard Benchmark:** 3.8 mm
+* **Rainfall Departure (%):** -99% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-22 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
 | Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 | Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
@@ -33,17 +33,17 @@
 
 ### 3. ⚡ Coordinate-Specific Lightning & Convective Hazard Zones (Hailakandi)
 *Source: Regional Meteorological Centre (RMC) Guwahati / IITM-ILDN DAMINI Sensor Network*
-* **Overall Alert:** **⚠️ Moderate Risk (Isolated Thunderstorm / Gusts Possible)**
-* **Active Window:** **Next 3 to 6 Hours (Watch Window)**
-* **Storm Track Movement:** **Propagating along Barak Sub-Basin (Dhaleswari & Katakhal Corridor) corridor across Hailakandi.**
+* **Overall Alert:** **🟢 All Clear (Atmospheric Conditions Stable)**
+* **Active Window:** **Current Window (No Convective Threat Active)**
+* **Storm Track Movement:** **Calm / stable conditions prevailing across Hailakandi.**
 
 | Sector / Zone | Coordinates | Key Localities Covered | IMD Alert Level | Weather Phenomenon & Winds |
 | :--- | :--- | :--- | :--- | :--- |
-| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
-| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
-| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Yellow Alert (Be Updated) | ⚡ Isolated Thunderstorm & Gusty Winds | 💨 Gusts (35 - 45 km/h) |
+| **Southern Sector (Mizoram Border & Katlicherra)** | `24.42° N, 92.58° E` | Katlicherra, Jamira, South Hailakandi, Bilaipur | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Central Sector (Hailakandi HQ & Lala Valley)** | `24.68° N, 92.56° E` | Hailakandi Town, Lala, Monacherra, DC Office | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
+| **Northern Sector (Algapur Barak Floodplain)** | `24.78° N, 92.55° E` | Algapur, Mohanpur, Kalinagar, Barak Bank | Green Alert (Normal / Clear Weather) | ☀️ No Severe Convective Activity | 🍃 Normal Breezes (10 - 20 km/h) |
 
-*⚠️ **Field Safety Directive:** Stay updated with live IMD bulletins and monitor local sky conditions.*
+*⚠️ **Field Safety Directive:** Atmosphere stable. Safe for routine municipal, agricultural, and outdoor activities.*
 
 ---
 
