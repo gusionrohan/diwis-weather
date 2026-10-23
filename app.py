@@ -1,2207 +1,2976 @@
-import os
-import json
-import subprocess
-from datetime import datetime
+"""Live district weather dashboard. Geography and weather are fetched on demand; no readings are persisted."""
+
+from __future__ import annotations
+
+import requests
 import streamlit as st
-import pandas as pd
+import os
+import re
+import json
+import html
+import io
+import math
+import struct
+from difflib import SequenceMatcher
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from shapely.geometry import shape, box
+from shapely.ops import unary_union
+from pypdf import PdfReader
+from db_manager import (DEFAULT_DB_PATH, authenticate_user, update_user_password,
+                        get_district_users, create_user, save_live_daily_snapshot,
+                        sync_admin_from_secrets)
 
-from geo_registry import (
-    NE_STATES_DISTRICTS,
-    ASSAM_DISTRICTS_CONFIG,
-    DISTRICT_COORDINATES_MAP,
-    get_district_meta,
-    get_river_link,
-    get_upstream_catchments_for_district
-)
-from weather_scraper import (
-    scrape_weather_data,
-    format_strike_age,
-    get_district_paths,
-    dynamize_micro_zone_sectors
-)
-from db_manager import (
-    get_all_tables_stats,
-    get_district_tables_stats,
-    query_dataframe,
-    DEFAULT_DB_PATH,
-    authenticate_user,
-    create_user,
-    delete_user_by_admin,
-    get_district_users,
-    update_user_password,
-    sync_admin_from_secrets,
-    hash_password,
-    hash_password_md5
-)
 
-# Page configuration - Clean wide layout without sidebar
+def format_clock_ampm(value):
+    """Format visible 24-hour clock values as 12-hour time without changing their date/zone."""
+    if value in (None, ""):
+        return value
+    text = str(value)
+    def replace_clock(match):
+        hour, minute, second = match.group(1), match.group(2), match.group(3)
+        hour_num = int(hour)
+        suffix = "AM" if hour_num < 12 else "PM"
+        hour_12 = hour_num % 12 or 12
+        return f"{hour_12:02d}:{minute}" + (f":{second}" if second else "") + f" {suffix}"
+    text = re.sub(r"(?<!\d)([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(?!\d)", replace_clock, text)
+    return text
+
+
+def format_feed_clock(value):
+    """Format a feed clock such as 0830 or 08:30 as 08:30 AM."""
+    if value in (None, ""):
+        return value
+    raw = str(value).strip()
+    for pattern in ("%H%M", "%H:%M", "%H:%M:%S"):
+        try:
+            return datetime.strptime(raw, pattern).strftime("%I:%M %p")
+        except ValueError:
+            pass
+    return format_clock_ampm(raw)
+
+
+def temperature_cell(value):
+    """Temperature table cell as text: '30.2' or 'Not reported'."""
+    if value in ("", "-", "--", None):
+        return "Not reported"
+    try:
+        return f"{float(value):g}"
+    except (TypeError, ValueError):
+        return "Not reported"
+
+
+def freshness_label(fetched_at, stale_after_minutes=12 * 60):
+    """Describe DIWIS fetch age without implying the source itself is current."""
+    if not fetched_at:
+        return "Fetch time not recorded"
+    try:
+        fetched = datetime.fromisoformat(str(fetched_at))
+        if fetched.tzinfo is None:
+            fetched = fetched.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+        age_seconds = (datetime.now(ZoneInfo("Asia/Kolkata")) - fetched).total_seconds()
+    except (ValueError, TypeError):
+        return "Fetch time unreadable"
+    if age_seconds < -60:
+        return "Fetch time is in the future; check the system clock"
+    age_minutes = max(0, int(age_seconds // 60))
+    if age_minutes < 1:
+        age = "less than 1 minute ago"
+    elif age_minutes < 60:
+        age = f"{age_minutes} minutes ago"
+    else:
+        hours, minutes = divmod(age_minutes, 60)
+        age = f"{hours}h {minutes}m ago" if minutes else f"{hours}h ago"
+    if age_minutes > stale_after_minutes:
+        return f"STALE · fetched {age} (refresh overdue)"
+    return f"Fetched {age}"
+
+
+def warning_mentions_cyclone(warning):
+    """Return whether a warning's coded hazards or source text mentions cyclone activity."""
+    hazards = warning.get("hazards") or []
+    text = " ".join(str(value) for value in hazards) + " " + str(warning.get("text") or "")
+    return bool(re.search(r"\b(?:cyclone|cyclonic|depression)\b", text, re.I))
+
+
+def nowcast_expiry_label(nowcast):
+    """Short 'DD-MM-YYYY HH:MM AM/PM IST' text for when a nowcast entry stopped being valid."""
+    try:
+        return datetime.fromisoformat(str(nowcast.get("valid_until_at"))).strftime("%d-%m-%Y %I:%M %p IST")
+    except (ValueError, TypeError):
+        clock = format_feed_clock(nowcast.get("valid_until"))
+        return f"{clock} IST" if clock else "time not reported"
+
+
 st.set_page_config(
-    page_title="District Integrated Weather Information System (DIWIS) | Assam",
-    page_icon="",
+    page_title="DIWIS · District Integrated Weather Information System",
+    page_icon="🌦️",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded",
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = DEFAULT_DB_PATH
-
-# Auto-sync admin credentials from Streamlit Cloud Secrets or env vars if provided
-try:
-    sec_pwd = None
-    if hasattr(st, "secrets") and "ADMIN_PASSWORD" in st.secrets:
-        sec_pwd = str(st.secrets["ADMIN_PASSWORD"]).strip()
-    elif "DIWIS_ADMIN_PASSWORD" in os.environ:
-        sec_pwd = os.environ["DIWIS_ADMIN_PASSWORD"].strip()
-    
-    if sec_pwd:
-        sec_user = "admin"
-        if hasattr(st, "secrets") and "ADMIN_USERNAME" in st.secrets:
-            sec_user = str(st.secrets["ADMIN_USERNAME"]).strip()
-        elif "DIWIS_ADMIN_USERNAME" in os.environ:
-            sec_user = os.environ["DIWIS_ADMIN_USERNAME"].strip()
-        sync_admin_from_secrets(sec_pwd, sec_user, db_path=DB_PATH)
-except Exception:
-    pass
-
-# CSS Styling to hide sidebar and style modern cards
 st.markdown("""
 <style>
-    /* Hide Streamlit sidebar completely */
+    :root { color-scheme: light; }
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+        background: #f4f7f8 !important; color: #20313b !important;
+    }
+    [data-testid="stHeader"] { background: #f4f7f8 !important; }
+    .block-container { max-width: 100% !important; min-height:100vh; background:#fff;
+        padding: 1.4rem 3.2rem 3rem !important; }
     [data-testid="stSidebar"] {
-        display: none !important;
+        min-width: 320px !important; width: 320px !important;
+        background: linear-gradient(180deg, #173b49 0%, #102d3a 100%) !important;
+        border-right: 1px solid #244c5a;
     }
-    [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
+    [data-testid="stSidebar"] > div:first-child { padding: 0 1rem 1rem; }
+    [data-testid="stSidebarUserContent"], [data-testid="stSidebarContent"] {
+        padding-top:0 !important; margin-top:0 !important;
     }
-    
-    /* Hide Streamlit top header, GitHub repository buttons, fork/edit icons, share, and menus completely */
-    header[data-testid="stHeader"], header {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0px !important;
+    [data-testid="stSidebarHeader"] { display:none !important; height:0 !important; padding:0 !important; margin:0 !important; }
+    [data-testid="stSidebar"] .block-container { padding-top:.15rem !important; }
+    [data-testid="stSidebarCollapseButton"], [data-testid="stSidebarExpandButton"] { display:none !important; }
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .75rem; }
+    .sidebar-brand { display:flex; align-items:center; gap:12px; padding:4px 12px 10px;
+        margin:0 0 2px; border-bottom:1px solid rgba(255,255,255,.14); }
+    .sidebar-brand-mark { width:42px; height:42px; display:grid; place-items:center;
+        border-radius:12px; background:rgba(255,255,255,.13); color:#d9f2ec; font-size:21px; }
+    .sidebar-brand-name { color:#fff; font-size:17px; font-weight:750; letter-spacing:-.02em; }
+    .sidebar-brand-caption { color:#bdd0d6; font-size:11px; margin-top:2px; }
+    [data-testid="stSidebar"] label, [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] { color:#d3e0e4 !important; }
+    [data-testid="stSidebar"] a { color:#9ee6d2 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label { color:#e8f0f2 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] > div { gap:5px; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label {
+        padding:9px 11px; border-radius:9px; transition:background .15s ease;
     }
-    #MainMenu, footer {
-        visibility: hidden !important;
-        display: none !important;
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background:#edf5f2; }
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {
+        border:1px solid #cbd8dc !important; border-radius:9px; min-height:43px;
+        background:#fff !important; color:#20313b !important;
     }
-    [data-testid="stToolbar"], [data-testid="stToolbarActions"], [data-testid="stDecoration"], [data-testid="stStatusWidget"] {
-        display: none !important;
-        visibility: hidden !important;
+    [data-testid="stSidebar"] [data-baseweb="select"] input,
+    [data-testid="stSidebar"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+        color:#20313b !important;
     }
-    .stAppDeployButton, [data-testid="manage-app-button"] {
-        display: none !important;
+    [data-testid="stSidebar"] [data-baseweb="select"] svg { fill:#36515d !important; }
+    [data-testid="stSidebar"] [data-baseweb="popover"],
+    [data-testid="stSidebar"] [data-baseweb="popover"] ul {
+        background:#fff !important; color:#20313b !important;
     }
-    button[title*="GitHub"], button[title*="git"], button[title*="Share"], button[title*="Star"] {
-        display: none !important;
+    [data-testid="stSidebar"] [data-baseweb="popover"] li {
+        color:#20313b !important; background:#fff !important;
     }
-    
-    /* Global styles */
-    .block-container {
-        padding-top: 1.8rem !important;
-        padding-bottom: 2.5rem;
-        max-width: 1200px;
+    [data-testid="stSidebar"] [data-baseweb="popover"] li:hover {
+        background:#edf5f2 !important;
     }
-    .header-box {
-        background: linear-gradient(135deg, #1E3A8A 0%, #0284C7 50%, #059669 100%);
-        color: #FFFFFF;
-        padding: 22px 24px;
-        border-radius: 16px;
-        margin-bottom: 18px;
-        box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.2);
-    }
-    .header-title {
-        font-size: 1.85rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin-bottom: 4px;
-    }
-    .header-sub {
-        font-size: 0.95rem;
-        color: #E0F2FE;
-    }
-    .config-card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-top: 4px solid #0284C7;
-        border-radius: 14px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
-        color: #F8FAFC;
-    }
-    .card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-radius: 14px;
-        padding: 18px;
-        color: #F8FAFC;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .obs-card {
-        background: #1E293B;
-        border: 1px solid #0284C7;
-        border-left: 4px solid #0284C7;
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 20px;
-        color: #F8FAFC;
-    }
-    .temp-card {
-        background: #1E293B;
-        border: 1px solid #D97706;
-        border-left: 4px solid #D97706;
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 20px;
-        color: #F8FAFC;
-    }
-    .zone-card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-left: 4px solid #EA580C;
-        border-radius: 12px;
-        padding: 16px 18px;
-        height: 100%;
-        color: #F8FAFC;
-    }
-    .zone-card-yellow {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-left: 4px solid #CA8A04;
-        border-radius: 12px;
-        padding: 16px 18px;
-        height: 100%;
-        color: #F8FAFC;
-    }
-    .provenance-card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-radius: 14px;
-        padding: 20px 20px 16px 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 220px;
-        margin-bottom: 16px;
-        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-    }
-    .provenance-card:hover {
-        border-color: #0284C7;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px -3px rgba(2, 132, 199, 0.2);
-    }
-    .prov-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .prov-badge {
-        background: rgba(15, 23, 42, 0.75);
-        border: 1px solid #334155;
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #94A3B8;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    .prov-status {
-        background: rgba(34, 197, 94, 0.15);
-        border: 1px solid rgba(34, 197, 94, 0.35);
-        color: #4ADE80;
-        font-size: 0.68rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .prov-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #F8FAFC;
-        margin-bottom: 6px;
-        line-height: 1.35;
-    }
-    .prov-desc {
-        font-size: 0.80rem;
-        color: #94A3B8;
-        line-height: 1.45;
-        margin-bottom: 14px;
-        flex-grow: 1;
-    }
-    .prov-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 10px;
-        border-top: 1px solid rgba(51, 65, 85, 0.7);
-    }
-    .prov-protocol {
-        font-size: 0.70rem;
-        color: #64748B;
-        font-family: monospace;
-        font-weight: 600;
-    }
-    .prov-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
-        color: #FFFFFF !important;
-        font-size: 0.74rem;
-        font-weight: 700;
-        padding: 5px 12px;
-        border-radius: 6px;
-        text-decoration: none !important;
-        transition: all 0.2s ease;
-    }
-    .prov-btn:hover {
-        background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
-        color: #FFFFFF !important;
-    }
-    .badge-red {
-        background-color: rgba(239, 68, 68, 0.2);
-        color: #FCA5A5;
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        display: inline-block;
-    }
-    .badge-yellow {
-        background-color: rgba(234, 179, 8, 0.2);
-        color: #FACC15;
-        border: 1px solid rgba(234, 179, 8, 0.4);
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        display: inline-block;
-    }
-    .badge-green {
-        background-color: rgba(34, 197, 94, 0.2);
-        color: #4ADE80;
-        border: 1px solid rgba(34, 197, 94, 0.4);
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        display: inline-block;
-    }
-    .badge-orange {
-        background-color: rgba(234, 88, 12, 0.2);
-        color: #FB923C;
-        border: 1px solid rgba(234, 88, 12, 0.4);
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        display: inline-block;
-    }
-    .synoptic-card {
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-left: 4px solid #0284C7;
-        border-radius: 10px;
-        padding: 14px 16px;
-        margin-bottom: 12px;
-        color: #F8FAFC;
-    }
-    
-    /* Modern Login Card Styling */
-    .login-brand-box {
-        text-align: center;
-        background: #1E293B;
-        border: 1px solid #334155;
-        border-top: 4px solid #0284C7;
-        border-radius: 16px 16px 0 0;
-        padding: 26px 24px 18px 24px;
-        margin-bottom: 0px;
-    }
-    .login-icon-badge {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #1E3A8A 0%, #0284C7 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.7rem;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
-    }
-    .login-title {
-        font-size: 1.45rem;
-        font-weight: 800;
-        color: #F8FAFC;
-        letter-spacing: -0.02em;
-        margin-bottom: 3px;
-    }
-    .login-subtitle {
-        font-size: 0.83rem;
-        color: #94A3B8;
-        line-height: 1.35;
-    }
-    
-    /* Executive EOC Tab Bar Styling */
-    div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-        gap: 8px;
-        background: #0F172A;
-        padding: 8px;
-        border-radius: 12px;
-        border: 1px solid #334155;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-    }
-    div[data-testid="stTabs"] button[data-baseweb="tab"] {
-        border-radius: 8px;
-        padding: 10px 18px;
-        color: #94A3B8;
-        font-weight: 700;
-        font-size: 0.90rem;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
-        background: transparent;
-    }
-    div[data-testid="stTabs"] button[data-baseweb="tab"]:hover {
-        color: #38BDF8;
-        background: rgba(30, 41, 59, 0.6);
-    }
-    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%) !important;
-        color: #38BDF8 !important;
-        border: 1px solid #0284C7 !important;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-    }
-    div[data-testid="stTabs"] div[data-baseweb="tab-border"] {
-        display: none;
-    }
-    div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] {
-        background-color: #38BDF8 !important;
-        height: 3px;
-        border-radius: 3px;
-    }
-
-    /* Executive Condition Banner */
-    .condition-banner {
-        background: #1E293B;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-    }
-    .condition-banner-red {
-        border: 1px solid #EF4444;
-        border-left: 6px solid #EF4444;
-    }
-    .condition-banner-orange {
-        border: 1px solid #F97316;
-        border-left: 6px solid #F97316;
-    }
-    .condition-banner-yellow {
-        border: 1px solid #EAB308;
-        border-left: 6px solid #EAB308;
-    }
-    .condition-banner-green {
-        border: 1px solid #10B981;
-        border-left: 6px solid #10B981;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    @keyframes pulse-subtle {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.75; transform: scale(1.04); }
+    h1, h2, h3 { color: #193b4a !important; }
+    .login-shell { max-width:1060px; margin:8vh auto 0; padding:12px; border-radius:24px;
+        background:linear-gradient(135deg,#287a68 0%,#255f78 58%,#6a83a4 100%);
+        box-shadow:0 24px 70px rgba(29,68,82,.18); }
+    div[data-testid="stHorizontalBlock"]:has(.login-welcome) {
+        max-width:1060px; margin:8vh auto 0; padding:12px; gap:0 !important;
+        border-radius:24px; background:linear-gradient(135deg,#287a68 0%,#255f78 58%,#6a83a4 100%);
+        box-shadow:0 24px 70px rgba(29,68,82,.18); }
+    .login-welcome { min-height:430px; height:100%; box-sizing:border-box; padding:54px 38px;
+        border-radius:16px 0 0 16px; color:#fff;
+        background:radial-gradient(circle at 85% 18%,rgba(255,255,255,.18),transparent 29%),
+                   linear-gradient(150deg,#287a68 0%,#25677a 58%,#527d96 100%);
+        display:flex; flex-direction:column; justify-content:center; }
+    .login-welcome-mark { width:54px; height:54px; border-radius:15px; display:grid; place-items:center;
+        background:rgba(255,255,255,.16); font-size:27px; margin-bottom:25px; }
+    .login-welcome h1 { color:#fff !important; font-size:32px; line-height:1.18; margin:0 0 14px; }
+    .login-welcome p { color:#e4f0f1; font-size:15px; line-height:1.65; margin:0; max-width:390px; }
+    .login-welcome .login-caption { color:#d3e5e7; font-size:12px; margin-top:30px; letter-spacing:.04em; }
+    .st-key-login_form_col { min-height:430px; height:100%; background:rgba(255,255,255,.97);
+        border-radius:0 16px 16px 0; padding:28px 34px; box-sizing:border-box; }
+    .login-form-title { color:#193b4a; font-size:22px; font-weight:700; margin:0 0 4px; }
+    .login-form-hint { color:#71818a; font-size:13px; margin:0 0 22px; }
+    .st-key-login_form_col [data-testid="stForm"] { background:transparent; border:0; padding:0; box-shadow:none; backdrop-filter:none; }
+    .st-key-login_form_col [data-testid="stForm"] label { color:#304c59 !important; }
+    [data-testid="stForm"] { background:rgba(255,255,255,.82); border:1px solid rgba(255,255,255,.9);
+        border-radius:14px; padding:22px; box-shadow:0 16px 42px rgba(31,65,77,.12);
+        backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+    [data-testid="stExpander"] { background:#fff; border:1px solid #dbe5e8; border-radius:8px; }
+    div.stButton > button[kind="primary"] { background:#287a68; border-color:#287a68; }
+    div.stButton > button[kind="primary"]:hover { background:#1d6253; border-color:#1d6253; }
+    [data-testid="stMetric"] { background:#fff; border:1px solid #dbe5e8; border-radius:8px; padding:16px; }
+    [data-testid="stAlert"] { border-radius:7px; }
+    div[data-baseweb="select"] > div { background:#fff; }
+    a { color:#176b5b !important; }
+    @media (max-width: 700px) {
+        .block-container { padding:1rem !important; }
+        [data-testid="stSidebar"] { min-width:290px !important; width:290px !important; }
+        div[data-testid="stHorizontalBlock"]:has(.login-welcome) { margin:1rem auto 0; padding:8px; }
+        .login-welcome { min-height:250px; border-radius:14px 14px 0 0; padding:30px 24px; }
+        .login-welcome h1 { font-size:26px; }
+        .st-key-login_form_col { min-height:unset; border-radius:0 0 14px 14px; padding:24px; }
     }
 </style>
 """, unsafe_allow_html=True)
 
+IMD_WFS = "https://reactjs.imd.gov.in/geoserver/wfs"
+HEADERS = {"User-Agent": "AssamDistrictWeather/1.0 (live public data dashboard)"}
+DB_PATH = DEFAULT_DB_PATH  # User accounts and daily live weather snapshots.
+DATA_PIPELINE_VERSION = "public-imd-district-wfs-feeds-21"
+try:
+    admin_password = st.secrets.get("ADMIN_PASSWORD") or __import__("os").environ.get("DIWIS_ADMIN_PASSWORD")
+    if admin_password:
+        admin_username = st.secrets.get("ADMIN_USERNAME") or __import__("os").environ.get("DIWIS_ADMIN_USERNAME") or "admin"
+        sync_admin_from_secrets(str(admin_password).strip(), str(admin_username).strip(), db_path=DB_PATH)
+except Exception:
+    pass
 
-def load_local_data(district_name: str = "Hailakandi"):
-    paths = get_district_paths(district_name)
-    target_json = paths["json_path"]
-    if not os.path.exists(target_json) and district_name.lower() == "hailakandi":
-        legacy_json = os.path.join(BASE_DIR, "output_hailakandi", "hailakandi_weather_forecast.json")
-        if os.path.exists(legacy_json):
-            target_json = legacy_json
-    if os.path.exists(target_json):
+
+def fetch_json(url: str, timeout: int = 20, headers=None, params=None):
+    response = requests.get(url, headers=headers or HEADERS, params=params, timeout=timeout)
+    response.raise_for_status()
+    return response.json()
+
+
+# Administrative polygons are geography, not weather observations. Keep the live WFS
+# response in Streamlit's in-memory cache so sign-in and selector reruns are immediate.
+@st.cache_data(ttl=6 * 60 * 60, show_spinner=False)
+def boundary(level: str):
+    layer = {"ADM1": "imd:India_State", "ADM2": "imd:india_districts"}.get(level)
+    if not layer:
+        raise ValueError("Unsupported IMD boundary level.")
+    return fetch_json(IMD_WFS, timeout=25, params={
+        "service": "WFS", "version": "1.1.0", "request": "GetFeature",
+        "typename": layer, "srsname": "EPSG:4326", "outputFormat": "application/json",
+    })
+
+
+def current_district_revision(features, state_names):
+    """Group IMD nowcast-layer district polygons by state.
+
+    IMD's nowcast layer follows the current district revision (the older boundary layer
+    still lacks newer districts such as Majuli or Hojai), so it can complete the list.
+    Returns {state: {district_name: geometry}}; pieces sharing a name are merged.
+    """
+    state_lookup = {normalized(name): name for name in state_names}
+    grouped = {}
+    for feature in features or []:
+        props = feature.get("properties") or {}
+        parent = state_lookup.get(normalized(props.get("State")))
+        geom_data = feature.get("geometry")
+        raw_name = str(props.get("State_District") or props.get("District") or "").strip()
+        if not parent or not geom_data or not raw_name:
+            continue
+        prefixed = re.match(rf"^{re.escape(parent)}\s*[-_:/,]\s*(.+)$", raw_name, re.I)
+        name = prefixed.group(1).strip() if prefixed else raw_name
+        if name.isupper():
+            name = name.title()
         try:
-            with open(target_json, "r", encoding="utf-8") as f:
-                return json.load(f)
+            geom = shape(geom_data)
+            if not geom.is_valid:
+                geom = geom.buffer(0)
         except Exception:
-            return None
+            continue
+        if geom.is_empty:
+            continue
+        grouped.setdefault(parent, {}).setdefault(normalized(name), [name, []])[1].append(geom)
+    # IMD labels a district's second polygon with a trailing digit (e.g. "Lawngtlai2"); fold
+    # it into the base district when that base name exists in the same state.
+    for items in grouped.values():
+        for key in [k for k in items if re.search(r"[a-z]\d$", k)]:
+            base_key = key[:-1].strip()
+            if base_key in items and base_key != key:
+                items[base_key][1].extend(items.pop(key)[1])
+    return {parent: {name: (parts[0] if len(parts) == 1 else unary_union(parts))
+                     for name, parts in items.values()}
+            for parent, items in grouped.items()}
+
+
+# Names IMD's layers print wrongly or out of date. Keys are normalized source labels; values
+# are the names shown in DIWIS. Feed matching still accepts both spellings (see DISTRICT_LABEL_ALIASES).
+DISTRICT_DISPLAY_FIXES = {
+    "karbi analog": "Karbi Anglong",   # IMD typo
+    "karimganj": "Sribhumi",           # renamed district
+}
+
+
+def tidy_district_names(district_state, district_geometries):
+    """Merge IMD's split polygons ('Lawngtlai2' into 'Lawngtlai') and fix known wrong names, in place."""
+    for key in list(district_geometries):
+        parent, name = key
+        match = re.match(r"^(.*\D)\s*\d+$", name)
+        if not match:
+            continue
+        base_key = (parent, match.group(1).strip())
+        if base_key in district_geometries and base_key != key:
+            district_geometries[base_key] = unary_union([district_geometries[base_key], district_geometries[key]])
+            district_geometries.pop(key, None)
+            district_state.pop(key, None)
+    # In IMD's maps "Kamrup" is Kamrup Metropolitan (Guwahati) and "Kamrup Rural" is Kamrup Rural
+    # (confirmed by the department). Show the Metropolitan name when IMD does not use it itself.
+    assam = next((p for p, _n in district_geometries if normalized(p) == "assam"), None)
+    if assam:
+        by_name = {normalized(n): (p, n) for (p, n) in district_geometries if p == assam}
+        kamrup, rural = by_name.get("kamrup"), by_name.get("kamrup rural")
+        has_metro = "kamrup metropolitan" in by_name or "kamrup metro" in by_name
+        if kamrup and rural and not has_metro:
+            metro_key = (assam, "Kamrup Metropolitan")
+            district_geometries[metro_key] = district_geometries.pop(kamrup)
+            district_state.pop(kamrup, None)
+            district_state[metro_key] = assam
+    for key in list(district_geometries):
+        parent, name = key
+        fixed = DISTRICT_DISPLAY_FIXES.get(normalized(name))
+        if fixed and (parent, fixed) not in district_geometries:
+            district_geometries[(parent, fixed)] = district_geometries.pop(key)
+            district_state.pop(key, None)
+            district_state[(parent, fixed)] = parent
+
+
+@st.cache_resource(ttl=6 * 60 * 60, show_spinner=False)
+def live_administrative_geography():
+    """Load live IMD boundaries and build selector geometry once per process."""
+    # The state and district services are independent; fetch them together so a cold
+    # login does not wait for two sequential network timeouts.
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        nowcast_future = pool.submit(live_imd_district_feed, IMD_DISTRICT_NOWCAST_LAYER)
+        states_geo, districts_geo = pool.map(boundary, ("ADM1", "ADM2"))
+        try:
+            nowcast_layer = nowcast_future.result()
+        except Exception:
+            nowcast_layer = None  # keep the boundary-layer list if the nowcast layer is unreachable
+    states = states_geo.get("features", [])
+    districts = districts_geo.get("features", [])
+    assam = next((f for f in states if feature_name(f).casefold() == "assam"), None)
+    if assam is None:
+        raise ValueError("Assam was not returned by the live administrative-boundary service.")
+    assam_shape = shape(assam["geometry"])
+    state_shapes = [(feature_name(f), shape(f["geometry"])) for f in states
+                    if feature_name(f) and f.get("geometry")]
+    neighbor_candidates = sorted(
+        [name for name, _geom in state_shapes if name.casefold() == "assam"]
+        + [name for name, geom in state_shapes
+           if name.casefold() != "assam" and assam_shape.boundary.intersects(geom.boundary)],
+        key=normalized,
+    )
+    district_state = {}
+    district_geometries = {}
+    for feature in districts:
+        geom_data = feature.get("geometry")
+        name = feature_name(feature)
+        if not geom_data or not name:
+            continue
+        district_shape = shape(geom_data)
+        center = district_shape.representative_point()
+        parent = next((state for state, state_geom in state_shapes if state_geom.covers(center)), None)
+        if parent:
+            key = (parent, name)
+            district_state[key] = parent
+            district_geometries[key] = district_shape
+    # Complete each relevant state from IMD's current district revision, but only when that
+    # layer lists at least as many districts as the boundary layer (it never shrinks a list).
+    if nowcast_layer:
+        relevant = set(neighbor_candidates)
+        revised = current_district_revision(nowcast_layer, relevant)
+        for parent, districts_now in revised.items():
+            existing = [key for key in district_state if key[0] == parent]
+            if len(districts_now) >= len(existing):
+                for key in existing:
+                    district_state.pop(key, None)
+                    district_geometries.pop(key, None)
+                for name, geom in districts_now.items():
+                    district_state[(parent, name)] = parent
+                    district_geometries[(parent, name)] = geom
+    tidy_district_names(district_state, district_geometries)
+    district_options = sorted(name for parent, name in district_state
+                              if parent.casefold() == "assam")
+    if not district_options:
+        raise ValueError("No Assam district names were returned by the live geography services.")
+    return neighbor_candidates, district_state, district_geometries, district_options
+
+
+def feature_name(feature):
+    props = feature.get("properties") or {}
+    for key in ("stname", "district", "shapeName", "name", "NAME_1", "NAME_2", "district", "state"):
+        if props.get(key):
+            return str(props[key]).strip()
+    return ""
+
+
+def normalized(value):
+    value = str(value or "").casefold().replace("&", " and ")
+    return " ".join(re.sub(r"[\W_]+", " ", value, flags=re.UNICODE).split())
+
+
+def district_label_key(value):
+    """Normalize bilingual/annotated live labels without using a stored alias list."""
+    label = str(value or "").split("/", 1)[0]
+    label = re.sub(r"\s*\([^)]*\)\s*$", "", label)
+    return normalized(label)
+
+
+# Explicit district-name equivalences requested for the live feeds. These affect
+# name matching only; the returned source label/station remains visible to users.
+DISTRICT_LABEL_ALIASES = {
+    "kamrup metropolitan": {"kamrup metropolitan", "kamrup metro", "guwahati"},
+    "kamrup metro": {"kamrup metropolitan", "kamrup metro", "guwahati"},
+    "guwahati": {"kamrup metropolitan", "kamrup metro", "guwahati"},
+    "karimganj": {"karimganj", "sribhumi", "sribhumi district"},
+    "sribhumi": {"karimganj", "sribhumi", "sribhumi district"},
+    "sribhumi district": {"karimganj", "sribhumi", "sribhumi district"},
+    # IMD's own pages spell Mizoram's southernmost district both ways (Saiha / Siaha).
+    "saiha": {"saiha", "siaha"},
+    "siaha": {"saiha", "siaha"},
+    "karbi anglong": {"karbi anglong", "karbi analog"},
+    "karbi analog": {"karbi anglong", "karbi analog"},
+}
+# IMD's maps label Kamrup Metropolitan (Guwahati) just "Kamrup"; the other district is "Kamrup Rural". Treat "kamrup" as a weak alias for Metropolitan: used only when no stronger label exists.
+WEAK_DISTRICT_ALIASES = {"kamrup"}
+DISTRICT_LABEL_ALIASES.update({
+    "kamrup metropolitan": {"kamrup metropolitan", "kamrup metro", "guwahati", "kamrup"},
+    "kamrup metro": {"kamrup metropolitan", "kamrup metro", "guwahati", "kamrup"},
+    "guwahati": {"kamrup metropolitan", "kamrup metro", "guwahati", "kamrup"},
+})
+
+
+def unique_district_label_match(target, labels, threshold=0.88):
+    """Match exact or small spelling variants only when the live labels are unambiguous."""
+    keyed = [(label, district_label_key(label)) for label in labels]
+    keyed = [(label, key) for label, key in keyed if key]
+    target_key = district_label_key(target)
+    if not target_key:
+        return None
+    target_keys = DISTRICT_LABEL_ALIASES.get(target_key, {target_key})
+    exact = [label for label, key in keyed if key in target_keys]
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        # Several labels fit through aliases: prefer the district's own name, then drop weak
+        # (shorter, ambiguous) aliases. Still ambiguous after that means no match.
+        own = [label for label in exact if district_label_key(label) == target_key]
+        if len(own) == 1:
+            return own[0]
+        strong = [label for label in exact if district_label_key(label) not in WEAK_DISTRICT_ALIASES]
+        if len(strong) == 1:
+            return strong[0]
+    if exact:
+        return None
+    scored = sorted(
+        ((max(SequenceMatcher(None, alias, key).ratio() for alias in target_keys), label)
+         for label, key in keyed), reverse=True,
+    )
+    if not scored or scored[0][0] < threshold:
+        return None
+    if len(scored) > 1 and scored[0][0] - scored[1][0] < 0.04:
+        return None
+    return scored[0][1]
+
+
+def source_date_is_today(value):
+    raw = str(value or "").strip()
+    from zoneinfo import ZoneInfo
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(raw[:10], fmt).date() == today
+        except ValueError:
+            continue
+    return False
+
+
+def source_date_is_latest_observation(value):
+    """Accept today's or yesterday's dated daily observation as the latest published report."""
+    raw = str(value or "").strip()
+    from zoneinfo import ZoneInfo
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(raw[:10], fmt).date() in {today, today - timedelta(days=1)}
+        except ValueError:
+            continue
+    return False
+
+
+def source_date_is_current_daily_observation(value):
+    """Daily 0830 IST reports remain current until that day's report is published."""
+    raw = str(value or "").strip()
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
+        try:
+            report_date = datetime.strptime(raw[:10], fmt).date()
+            return report_date == now.date() or (
+                report_date == now.date() - timedelta(days=1)
+                and (now.hour, now.minute) < (8, 30)
+            )
+        except ValueError:
+            continue
+    return False
+
+
+def live_imd_public_rainfall_records():
+    """Parse IMD's public, no-key all-India district rainfall map for its current daily view."""
+    url = "https://mausam.imd.gov.in/responsive/rainfallinformation.php"
+    response = requests.get(url, headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    page = response.text
+    # The IMD page includes the observation time and the word "of" in its
+    # current heading; older page versions omitted both.
+    period = re.search(
+        r"Rainfall Recorded from(?:\s+\d{4}\s+hrs)?\s+(?:of\s+)?"
+        r"(\d{2}-\d{2}-\d{4})\s+to(?:\s+\d{4}\s+hrs)?\s+(?:of\s+)?"
+        r"(\d{2}-\d{2}-\d{4})",
+        page, re.I,
+    )
+    if not period:
+        raise RuntimeError("IMD's public district rainfall page did not show a report period.")
+    if not source_date_is_current_daily_observation(period.group(2)):
+        latest = datetime.strptime(period.group(2), "%d-%m-%Y").date().isoformat()
+        raise RuntimeError(f"IMD's latest public district rainfall report ends {latest}, not today.")
+    records = []
+    # The IMD map embeds district features as JavaScript objects; balloonText is the
+    # page's own observation text. Do not infer state from coordinates or a local list.
+    for match in re.finditer(r"\{[^{}]*\}", page):
+        raw = match.group(0)
+        balloon_match = re.search(r'\"balloonText\"\s*:\s*\"((?:\\.|[^\"\\])*)\"', raw, re.S)
+        if not balloon_match:
+            continue
+        try:
+            balloon = json.loads('"' + balloon_match.group(1) + '"')
+        except (ValueError, TypeError):
+            balloon = html.unescape(balloon_match.group(1))
+        text = html.unescape(re.sub(r"<br\s*/?>", " | ", balloon, flags=re.I))
+        title_match = re.search(r'\"title\"\s*:\s*\"((?:\\.|[^\"\\])*)\"', raw, re.S)
+        title = ""
+        if title_match:
+            try:
+                title = json.loads('"' + title_match.group(1) + '"')
+            except ValueError:
+                title = title_match.group(1)
+        district_field = re.search(r"\bDistrict\s*:\s*([^|<\r\n]+)", html.unescape(balloon), re.I)
+        state_field = re.search(r"\bState\s*:\s*([^|<\r\n]+)", html.unescape(balloon), re.I)
+        district_label = district_field.group(1).strip() if district_field else title.strip()
+        date_match = re.search(r"\bDate\s*:\s*([^|<\r\n]+)", text, re.I)
+        actual_match = re.search(r"\bActual\s*:\s*([-+]?\d+(?:\.\d+)?)\s*mm\b", text, re.I)
+        if not district_label or not date_match or not actual_match:
+            continue
+        if not source_date_is_current_daily_observation(date_match.group(1).strip()):
+            continue
+        records.append({"district": district_label,
+                        "state": state_field.group(1).strip() if state_field else None,
+                        "value_mm": actual_match.group(1),
+                        "date": date_match.group(1).strip(), "detail": text})
+    if not records:
+        raise RuntimeError("IMD's public rainfall page did not expose parseable current district observations.")
+    return records
+
+
+def live_imd_public_rainfall(state: str, district: str, records):
+    matches = records
+    state_matches = [row for row in matches if row.get("state")
+                     and normalized(row["state"]) == normalized(state)]
+    if state_matches:
+        matches = state_matches
+    match_label = unique_district_label_match(district, [row["district"] for row in matches])
+    matches = [row for row in matches if row["district"] == match_label] if match_label else []
+    if len(matches) != 1:
+        raise RuntimeError("No unique exact district/state match on IMD's live rainfall page.")
+    row = matches[0]
+    # The page's district map may omit state identity. Accept only a globally unique,
+    # exact district label; ambiguous labels are deliberately left not reported.
+    matched_label = row["district"]
+    result = {"value_mm": row["value_mm"], "date": row["date"],
+              "source": "IMD public district rainfall page"}
+    if district_label_key(matched_label) != district_label_key(district):
+        result["matched_source_label"] = matched_label
+    return result
+
+
+@st.cache_data(ttl=12 * 60 * 60, show_spinner=False)
+def live_imd_realtime_rainfall_grid(report_date):
+    """Download IMD's dated 0.25-degree real-time rainfall grid in memory."""
+    page_url = "https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/Rain_Download.html"
+    download_url = "https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/rain.php"
+    session = requests.Session()
+    page = session.get(page_url, headers=HEADERS, timeout=20)
+    page.raise_for_status()
+    response = session.post(
+        download_url,
+        data={"rain": report_date.strftime("%d%m%Y")},
+        headers={**HEADERS, "Referer": page_url},
+        timeout=30,
+    )
+    response.raise_for_status()
+    expected_bytes = 135 * 129 * 4
+    if len(response.content) != expected_bytes:
+        raise RuntimeError(
+            f"IMD real-time grid for {report_date.isoformat()} was not published or had an unexpected size."
+        )
+    values = struct.unpack("<" + "f" * (135 * 129), response.content)
+    if not any(math.isfinite(value) and value >= 0 for value in values):
+        raise RuntimeError("IMD real-time grid contained no valid rainfall cells.")
+    return values
+
+
+def live_imd_grid_district_rainfall(district_geometry):
+    """Calculate the area-weighted district mean from the freshest available IMD grid."""
+    from zoneinfo import ZoneInfo
+
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    errors = []
+    for report_date in (today, today - timedelta(days=1)):
+        try:
+            values = live_imd_realtime_rainfall_grid(report_date)
+            domain = box(66.375, 6.375, 100.125, 38.875)
+            if not domain.buffer(1e-9).covers(district_geometry):
+                raise RuntimeError("The IMD grid does not cover the complete district boundary.")
+
+            min_lon, min_lat, max_lon, max_lat = district_geometry.bounds
+            first_x = max(0, math.floor((min_lon - 66.5) / 0.25) - 1)
+            last_x = min(134, math.ceil((max_lon - 66.5) / 0.25) + 1)
+            first_y = max(0, math.floor((min_lat - 6.5) / 0.25) - 1)
+            last_y = min(128, math.ceil((max_lat - 6.5) / 0.25) + 1)
+            weighted_sum = 0.0
+            valid_area = 0.0
+            domain_area = 0.0
+            for y_index in range(first_y, last_y + 1):
+                latitude = 6.5 + 0.25 * y_index
+                for x_index in range(first_x, last_x + 1):
+                    longitude = 66.5 + 0.25 * x_index
+                    cell = box(longitude - 0.125, latitude - 0.125,
+                               longitude + 0.125, latitude + 0.125)
+                    overlap = district_geometry.intersection(cell)
+                    if overlap.is_empty or overlap.area <= 0:
+                        continue
+                    area_weight = overlap.area * math.cos(math.radians(overlap.centroid.y))
+                    domain_area += area_weight
+                    value = values[y_index * 135 + x_index]
+                    if math.isfinite(value) and value >= 0:
+                        valid_area += area_weight
+                        weighted_sum += value * area_weight
+
+            coverage = valid_area / domain_area if domain_area else 0.0
+            # Border districts can extend slightly past the grid's valid (land) cells; accept 90%+
+            # coverage, and state the exact covered share in the note shown to operators.
+            if coverage < 0.90:
+                raise RuntimeError(
+                    f"IMD grid has only {coverage * 100:.2f}% valid coverage inside the district boundary."
+                )
+            return {
+                "value_mm": round(weighted_sum / valid_area, 2),
+                "date": report_date.isoformat(),
+                "source": "IMD real-time 0.25° rainfall grid (area-weighted district average)",
+                "coverage_note": (f"Valid grid coverage: {coverage * 100:.1f}% of district boundary"
+                                  if coverage >= 0.999999 else
+                                  f"PARTIAL grid estimate: the grid covers {coverage * 100:.1f}% of the district boundary; "
+                                  "the rest has no grid value."),
+                "source_url": "https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/Rain_Download.html",
+            }
+        except Exception as exc:
+            errors.append(f"{report_date.isoformat()}: {exc}")
+    raise RuntimeError("; ".join(errors))
+
+
+def live_rmc_assam_today_report():
+    """Fetch current observations from RMC Guwahati's public no-key HTML station table."""
+    url = "https://mausam.imd.gov.in/imd_latest/contents/Todaysweather_mc.php?id=24"
+    response = requests.get(url, headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    page = response.text
+    date_match = re.search(r"\bDate\s*:\s*(\d{4}-\d{2}-\d{2})\b", page, re.I)
+    if not date_match or not source_date_is_current_daily_observation(date_match.group(1)):
+        raise RuntimeError("RMC Guwahati's public station report is not the current daily report.")
+    from html.parser import HTMLParser
+
+    class TableRows(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.rows, self.row, self.cell = [], None, None
+        def handle_starttag(self, tag, attrs):
+            if tag == "tr": self.row = []
+            elif tag in ("td", "th") and self.row is not None: self.cell = []
+        def handle_data(self, data):
+            if self.cell is not None: self.cell.append(data)
+        def handle_endtag(self, tag):
+            if tag in ("td", "th") and self.cell is not None and self.row is not None:
+                self.row.append(" ".join("".join(self.cell).split())); self.cell = None
+            elif tag == "tr" and self.row is not None:
+                if self.row: self.rows.append(self.row)
+                self.row = None
+
+    parser = TableRows()
+    parser.feed(page)
+    stations = {}
+    for row in parser.rows:
+        if len(row) < 8 or normalized(row[0]) in ("station", ""):
+            continue
+        # Official header order: Station, Max Temp, dep, Min Temp, dep, RH, RH, Rainfall.
+        clean = lambda value: value.strip() if value.strip() not in ("--", "-") else None
+        rainfall_text = clean(row[7])
+        # RMC's station table uses the literal NIL to report no measured rain.
+        # Treat only that explicit source value as 0; blanks and '--' stay missing.
+        rainfall_value = 0.0 if (row[7] or "").strip().casefold() == "nil" else rainfall_text
+        stations[normalized(row[0])] = {
+            "station": row[0], "rainfall": rainfall_value, "date": date_match.group(1),
+            "source": "RMC Guwahati today's weather report",
+        }
+    if not stations:
+        raise RuntimeError("RMC Guwahati's public station table could not be parsed.")
+    return {"date": date_match.group(1), "stations": stations}
+
+
+def live_rmc_today_station_value(report, district):
+    station_label = unique_district_label_match(
+        district, [value.get("station", "") for value in report["stations"].values()], threshold=0.80,
+    )
+    row = next((value for value in report["stations"].values()
+                if value.get("station") == station_label), None)
+    if row is None:
+        source_names = ", ".join(sorted(value.get("station", "") for value in report["stations"].values()))
+        raise RuntimeError(
+            f"RMC Guwahati has no exact current station-name match for {district}. "
+            f"Live station labels returned: {source_names or 'none'}. No approximate district match was assumed."
+        )
+    result = dict(row)
+    if district_label_key(station_label) != district_label_key(district):
+        result["matched_source_label"] = station_label
+        result["coverage_note"] = "Guwahati station reading mapped by district-name equivalence; it is not a district-wide aggregate."
+    return result
+
+
+def live_rmc_assam_station_observations():
+    """Read current-day observed values from the official RMC Guwahati daily report."""
+    url = "https://mausam.imd.gov.in/guwahati/mcdata/dwr.pdf"
+    response = requests.get(url, headers=HEADERS, timeout=40)
+    response.raise_for_status()
+    if not response.content.startswith(b"%PDF"):
+        raise RuntimeError("RMC Guwahati did not return its daily weather report PDF.")
+    pdf = PdfReader(io.BytesIO(response.content))
+    all_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+    date_match = re.search(
+        r"Observed Weather parameters for Assam recorded at 0830 hours IST of\s*(\d{1,2})-\s*([A-Za-z]+)-\s*(\d{4})",
+        all_text, re.I,
+    )
+    if not date_match:
+        raise RuntimeError("RMC daily report did not provide a recognizable observation date.")
+    report_date = datetime.strptime(" ".join(date_match.groups()), "%d %B %Y").date()
+    from zoneinfo import ZoneInfo
+    if not source_date_is_current_daily_observation(report_date.isoformat()):
+        raise RuntimeError("RMC Guwahati's daily station observations are not the current daily report.")
+    table = pdf.pages[-1].extract_text(extraction_mode="layout") or ""
+    station_rows = {}
+    numeric_pattern = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)$")
+    for line in table.splitlines():
+        match = re.match(r"^\s*(.*?)\s{2,}(.+?)\s*$", line)
+        if not match:
+            continue
+        station = match.group(1).strip()
+        fields = match.group(2).split()
+        if not station or len(fields) < 9:
+            continue
+        if not numeric_pattern.fullmatch(fields[8]):
+            continue
+        station_rows[normalized(station)] = {
+            "station": station,
+            "rain_mm": float(fields[8]),
+        }
+    return {"date": report_date.isoformat(), "stations": station_rows}
+
+
+def live_rmc_assam_station_value(report, district):
+    station_label = unique_district_label_match(
+        district, [row.get("station", "") for row in report["stations"].values()], threshold=0.80,
+    )
+    row = next((value for value in report["stations"].values()
+                if value.get("station") == station_label), None)
+    if row is None:
+        names = ", ".join(sorted(row.get("station", "") for row in report["stations"].values()))
+        raise RuntimeError(
+            f"RMC Guwahati has no observation from a station named exactly for {district}. "
+            f"Live station labels returned: {names or 'none'}. No approximate district match was assumed."
+        )
+    result = {**row, "date": report["date"], "source": "RMC Guwahati daily station report"}
+    if district_label_key(station_label) != district_label_key(district):
+        result["matched_source_label"] = station_label
+        result["coverage_note"] = "Guwahati station reading mapped by district-name equivalence; it is not a district-wide aggregate."
+    return result
+
+
+NRSC_LIGHTNING_GEOJSON_URL = (
+    "https://bhuvan-app1.nrsc.gov.in/lightning/usrtasks/heatwave/get/geojson.php"
+)
+
+
+def live_nrsc_lightning_hourly_records():
+    """Fetch the latest six completed hourly point datasets from NRSC-ISRO Bhuvan."""
+    from datetime import timezone, timedelta
+    from concurrent.futures import ThreadPoolExecutor
+
+    now_utc = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    windows = [now_utc - timedelta(hours=offset) for offset in range(1, 7)]
+
+    def fetch_hour(hour_start):
+        response = requests.get(
+            NRSC_LIGHTNING_GEOJSON_URL, headers=HEADERS,
+            params={"date": hour_start.date().isoformat(), "timestamp": f"{hour_start.hour:02d}"},
+            timeout=(5, 20),
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("type") != "FeatureCollection" or not isinstance(payload.get("features"), list):
+            raise RuntimeError("NRSC lightning feed returned an unexpected GeoJSON response.")
+        return hour_start, payload["features"]
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(fetch_hour, windows))
+    records = []
+    for hour_start, features in results:
+        for feature in features:
+            geometry = feature.get("geometry") or {}
+            if geometry.get("type") != "Point":
+                continue
+            coordinates = geometry.get("coordinates") or []
+            if len(coordinates) < 2:
+                continue
+            longitude, latitude = coordinates[:2]
+            if not isinstance(latitude, (int, float)) or not isinstance(longitude, (int, float)):
+                continue
+            properties = feature.get("properties") or {}
+            records.append({
+                "latitude": latitude, "longitude": longitude,
+                "hour_utc": hour_start.strftime("%Y-%m-%d %H:00 UTC"),
+                "source_time": properties.get("time"),
+                "feed_id": properties.get("gid"),
+                "current": properties.get("current"),
+                "properties": properties,
+            })
+    return {"records": records, "window_start": windows[-1], "window_end": windows[0] + timedelta(hours=1)}
+
+
+def live_nrsc_lightning_coordinates(feed, district_geometry):
+    """Return only live NRSC strike points contained by the exact live district polygon."""
+    from shapely.geometry import Point
+    matches = []
+    for record in feed["records"]:
+        point = Point(record["longitude"], record["latitude"])
+        if district_geometry.covers(point):
+            matches.append({
+                "latitude": record["latitude"], "longitude": record["longitude"],
+                "hour_utc": record["hour_utc"],
+                "source_time": record.get("source_time"),
+                "feed_id": record.get("feed_id"),
+                "current": record.get("current"),
+            })
+    return {
+        "status": "OK", "coordinates": matches,
+        "window_start": feed["window_start"].strftime("%Y-%m-%d %H:%M UTC"),
+        "window_end": feed["window_end"].strftime("%Y-%m-%d %H:%M UTC"),
+        "source": "NRSC–ISRO Bhuvan hourly lightning data",
+    }
+
+
+def live_rmc_assam_warning_features():
+    """Read RMC Guwahati's current-day district warning entries from its official page."""
+    response = requests.get(
+        "https://mausam.imd.gov.in/imd_latest/contents/districtwise-warning_mc.php",
+        params={"id": "24", "day": "Day_1"}, headers=HEADERS, timeout=30,
+    )
+    response.raise_for_status()
+    pattern = re.compile(
+        r'\{\s*"title"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*'
+        r'"id"\s*:\s*"([^"\\]*)"\s*,\s*"color"\s*:\s*"([^"\\]*)"\s*,\s*'
+        r'"balloonText"\s*:\s*"((?:\\.|[^"\\])*)"\s*\}', re.S,
+    )
+    entries = []
+    for match in pattern.finditer(response.text):
+        try:
+            entries.append({
+                "District": json.loads('"' + match.group(1) + '"'),
+                "Obj_id": match.group(2),
+                "Color": match.group(3),
+                "Text": html.unescape(json.loads('"' + match.group(4) + '"')),
+            })
+        except (ValueError, json.JSONDecodeError):
+            continue
+    if not entries:
+        raise RuntimeError("RMC Guwahati's live warning page did not contain district warning records.")
+    return entries
+
+
+def live_rmc_assam_district_warning(entries, district):
+    matched_name = unique_district_label_match(
+        district, [entry.get("District", "") for entry in entries], threshold=0.84,
+    )
+    matches = [entry for entry in entries if entry.get("District") == matched_name] if matched_name else []
+    if len(matches) != 1:
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "RMC Guwahati did not return one unambiguous record for this district."}
+    entry = matches[0]
+    updated = re.search(r"Updated on:\s*(\d{4}-\d{2}-\d{2})", entry.get("Text", ""), re.I)
+    if not updated or not source_date_is_today(updated.group(1)):
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "RMC Guwahati's matching district warning is not dated today."}
+    plain_text = " ".join(re.sub(r"<[^>]*>", " ", entry.get("Text", "")).split())
+    lowered = plain_text.casefold()
+    if "no warning" in lowered:
+        return {"status": "OK", "items": [], "no_warning_days": [1],
+                "issue_date": updated.group(1), "source": "RMC Guwahati"}
+    hazards = []
+    if any(word in lowered for word in ("heavy rain", "very heavy rain", "extremely heavy rain")):
+        hazards.append("Heavy rain")
+    if "thunderstorm" in lowered or "lightning" in lowered:
+        hazards.append("Thunderstorm / lightning")
+    if any(word in lowered for word in ("cyclone", "cyclonic", "depression")):
+        hazards.append("Cyclone-related wording in RMC warning")
+    items = ([{"day": 1, "date": updated.group(1), "hazards": hazards,
+               "text": plain_text, "color": entry.get("Color")}] if hazards else [])
+    return {"status": "OK", "items": items, "no_warning_days": [],
+            "issue_date": updated.group(1), "source": "RMC Guwahati"}
+
+
+RMC_DAILY_REPORT_URL = "https://mausam.imd.gov.in/guwahati/mcdata/dwr.pdf"
+RMC_NOWCAST_URL = "https://mausam.imd.gov.in/imd_latest/contents/districtwisewarnings_mc.php?id=24"
+
+IMD_WARNING_MAP_URL = "https://mausam.imd.gov.in/responsive/districtWiseWarningGIS.php"
+IMD_NOWCAST_MAP_URL = "https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php"
+IMD_DISTRICT_WARNING_LAYER = "imd:district_warnings_india"
+IMD_DISTRICT_NOWCAST_LAYER = "imd:NowcastWarningDistrict"
+
+
+def live_imd_district_feed(layer):
+    """Fetch the public district feature layer used by IMD's own warning/nowcast map."""
+    if layer not in {IMD_DISTRICT_WARNING_LAYER, IMD_DISTRICT_NOWCAST_LAYER}:
+        raise ValueError("Unsupported IMD district warning layer.")
+    response = requests.get(
+        "https://reactjs.imd.gov.in/geoserver/ows", headers=HEADERS,
+        params={"service": "WFS", "version": "1.1.0", "request": "GetFeature",
+                "typename": layer, "srsname": "EPSG:4326", "outputFormat": "application/json"},
+        timeout=(5, 35),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if payload.get("type") != "FeatureCollection" or not isinstance(payload.get("features"), list):
+        raise RuntimeError("IMD district feed returned an unexpected feature collection.")
+    if not payload["features"]:
+        raise RuntimeError("IMD district feed returned no district records.")
+    return payload["features"]
+
+
+def _district_feed_match(features, state, district, district_geometry, name_fields, state_fields=()):
+    """Resolve a live feed record by state, district label, and spatial overlap."""
+    from shapely.geometry import shape
+    target_key = district_label_key(district)
+    scored = []
+    named = []
+    for feature in features:
+        props = feature.get("properties") or {}
+        row_state = next((str(props.get(key) or "").strip() for key in state_fields
+                          if props.get(key)), "")
+        if row_state and normalized(row_state) != normalized(state):
+            continue
+        name = next((str(props.get(key) or "").strip() for key in name_fields
+                     if props.get(key)), "")
+        if name:
+            named.append((feature, name))
+        similarity = SequenceMatcher(None, target_key, district_label_key(name)).ratio()
+        if similarity < 0.80:
+            continue
+        geometry_data = feature.get("geometry")
+        if not name or not geometry_data:
+            continue
+        try:
+            candidate_geometry = shape(geometry_data)
+            district_bounds = district_geometry.bounds
+            candidate_bounds = candidate_geometry.bounds
+            if (candidate_bounds[2] < district_bounds[0] or candidate_bounds[0] > district_bounds[2]
+                    or candidate_bounds[3] < district_bounds[1] or candidate_bounds[1] > district_bounds[3]):
+                continue
+            denominator = district_geometry.area or 1
+            overlap = district_geometry.intersection(candidate_geometry).area / denominator
+        except Exception:
+            continue
+        if overlap < 0.5:
+            continue
+        scored.append((overlap, similarity, feature))
+    exact = [row for row in scored if row[1] == 1]
+    ranked = sorted(exact or [row for row in scored if row[1] >= 0.80],
+                    key=lambda row: (row[0], row[1]), reverse=True)
+    if not ranked:
+        spatial = []
+        for feature, _name in named:
+            geometry_data = feature.get("geometry")
+            if not geometry_data:
+                continue
+            try:
+                candidate_geometry = shape(geometry_data)
+                district_bounds = district_geometry.bounds
+                candidate_bounds = candidate_geometry.bounds
+                if (candidate_bounds[2] < district_bounds[0] or candidate_bounds[0] > district_bounds[2]
+                        or candidate_bounds[3] < district_bounds[1] or candidate_bounds[1] > district_bounds[3]):
+                    continue
+                intersection_area = district_geometry.intersection(candidate_geometry).area
+                coverage = intersection_area / (district_geometry.area or 1)
+                iou = intersection_area / (
+                    district_geometry.area + candidate_geometry.area - intersection_area or 1
+                )
+                spatial.append((iou, coverage, feature))
+            except Exception:
+                continue
+        spatial.sort(key=lambda row: (row[0], row[1]), reverse=True)
+        # Legacy IMD district labels (e.g. East Midnapore/Purba Medinipur) are
+        # accepted only when the live source polygon is an almost exact match.
+        if (spatial and spatial[0][0] >= 0.90 and spatial[0][1] >= 0.95
+                and (len(spatial) == 1 or spatial[0][0] - spatial[1][0] >= 0.50)):
+            return spatial[0][2]
+        # Some IMD warning polygons do not spatially overlap the current IMD
+        # administrative polygon revision. Permit a name-only fallback only
+        # when the official feed label resolves uniquely within this feed/state.
+        matched_name = unique_district_label_match(district, [name for _feature, name in named], threshold=0.80)
+        exact_named = [(feature, name) for feature, name in named
+                       if matched_name and district_label_key(name) == district_label_key(matched_name)]
+        return exact_named[0][0] if len(exact_named) == 1 else None
+    if len(ranked) > 1 and (ranked[0][0], ranked[0][1]) == (ranked[1][0], ranked[1][1]):
+        return None
+    return ranked[0][2]
+
+
+IMD_WARNING_CATEGORIES = {
+    "2": "Heavy rain", "3": "Heavy snow", "4": "Thunderstorms and lightning",
+    "5": "Hailstorm", "6": "Dust storm", "7": "Dust raising winds",
+    "8": "Strong surface winds", "9": "Heat wave", "10": "Hot day",
+    "11": "Warm night", "12": "Cold wave", "13": "Cold day",
+    "14": "Ground frost", "15": "Fog", "16": "Very heavy rain",
+    "17": "Extremely heavy rain",
+}
+
+
+def live_imd_district_warning(features, state, district, district_geometry):
+    feature = _district_feed_match(features, state, district, district_geometry,
+                                   ("District", "State_District"))
+    if feature is None:
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "No unambiguous matching district record in IMD's live warning map."}
+    props = feature.get("properties") or {}
+    report_date = props.get("Date")
+    if not source_date_is_current_daily_observation(report_date):
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "IMD's district warning record is outside its current daily validity."}
+    issue_date = _forecast_date_key(report_date)
+    if not issue_date:
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "IMD's district warning record has no readable issue date."}
+    # Day 1 is the record's own issue date (not the server clock), so a report dated
+    # yesterday is never shifted forward by a day.
+    base_date = datetime.strptime(issue_date, "%Y-%m-%d").date()
+    items, no_warning_days = [], []
+    for day in range(1, 6):
+        raw_codes = str(props.get(f"Day_{day}") or "").strip()
+        if not raw_codes:
+            continue
+        codes = [code.strip() for code in raw_codes.split(",") if code.strip()]
+        if not codes:
+            continue
+        if all(code == "1" for code in codes):
+            no_warning_days.append(day)
+            continue
+        hazards = [IMD_WARNING_CATEGORIES[code] for code in codes if code in IMD_WARNING_CATEGORIES]
+        extra = str(props.get(f"Day{day}_text") or "").strip()
+        if hazards or extra:
+            valid_date = (base_date + timedelta(days=day - 1)).isoformat()
+            items.append({"day": day, "date": valid_date, "hazards": hazards,
+                          "text": extra, "color": props.get(f"Day{day}_Color")})
+    if not items and not no_warning_days:
+        return {"status": "UNAVAILABLE", "items": [],
+                "reason": "IMD's matching district warning record had no explicit warning or no-warning entry for any day."}
+    missing_days = [day for day in range(1, 6)
+                    if day not in no_warning_days and day not in {item["day"] for item in items}]
+    result = {"status": "OK", "items": items, "no_warning_days": no_warning_days,
+              "issue_date": issue_date, "source": "IMD district warning map"}
+    if missing_days:
+        result["missing_days"] = missing_days  # days the feed left blank: not an all-clear
+    return result
+
+
+IMD_NOWCAST_CATEGORIES = {
+    2: "Light rain", 3: "Light snow", 4: "Light thunderstorm",
+    5: "Slight dust storm", 6: "Low lightning probability", 7: "Moderate rain",
+    8: "Moderate snow", 9: "Moderate thunderstorm", 10: "Moderate dust storm",
+    11: "Moderate lightning probability", 12: "Heavy rain", 13: "Heavy snow",
+    14: "Severe thunderstorm", 15: "Very severe thunderstorm", 17: "Thunderstorm with hail",
+    18: "Severe dust storm", 19: "High lightning probability",
+}
+
+
+def live_imd_district_nowcast(features, state, district, district_geometry):
+    feature = _district_feed_match(features, state, district, district_geometry,
+                                   ("State_District", "District"), ("State",))
+    if feature is None:
+        return {"status": "UNAVAILABLE", "reason": "No unambiguous matching district record in IMD's live nowcast map."}
+    props = feature.get("properties") or {}
+    issue_date_raw = str(props.get("Date") or "").strip()
+    issue_time = str(props.get("toi") or "").strip().zfill(4)
+    valid_time = str(props.get("vupto") or "").strip().zfill(4)
+    try:
+        from zoneinfo import ZoneInfo
+        issue_date = datetime.strptime(issue_date_raw[:10], "%Y-%m-%d").date()
+        issued_at = datetime.combine(issue_date, datetime.strptime(issue_time, "%H%M").time(),
+                                     tzinfo=ZoneInfo("Asia/Kolkata"))
+        valid_until = datetime.combine(issue_date, datetime.strptime(valid_time, "%H%M").time(),
+                                       tzinfo=ZoneInfo("Asia/Kolkata"))
+        if valid_until <= issued_at:
+            valid_until += timedelta(days=1)
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    except (ValueError, TypeError):
+        return {"status": "UNAVAILABLE", "reason": "IMD nowcast did not provide valid issue and expiry times."}
+    if now < issued_at - timedelta(minutes=5):
+        return {"status": "UNAVAILABLE", "reason": "IMD's matching nowcast entry has an issue time in the future."}
+    # An entry past its stated validity is still returned, clearly marked EXPIRED with its own
+    # issue date/time and validity, so operators see what IMD last published (never as current).
+    expired = now > valid_until
+    message = str(props.get("message") or "").strip()
+    active = []
+    for number, label in IMD_NOWCAST_CATEGORIES.items():
+        if props.get(f"cat{number}") not in (None, "", 0, "0", False):
+            active.append(label)
+    if message:
+        active.append(message)
+    no_warning = (not active and str(props.get("cat1") or "") in {"1", "1.0"})
+    if not no_warning and not active:
+        return {"status": "UNAVAILABLE", "reason": "IMD nowcast row had no explicit warning or no-warning code."}
+    result = {"status": "EXPIRED" if expired else "OK",
+              "district": props.get("State_District") or props.get("District"),
+              "message": "; ".join(active), "no_warning": no_warning,
+              "issue_date": issue_date.isoformat(), "issue_time": issue_time,
+              "valid_until": valid_time, "valid_until_at": valid_until.isoformat(timespec="minutes"),
+              "source": "IMD district nowcast map"}
+    if expired:
+        result["reason"] = (f"Last IMD entry expired {valid_until.strftime('%d-%m-%Y %I:%M %p')} IST; "
+                            "no newer entry has been published yet.")
+    return result
+
+
+def compute_nowcast(state, district, geometry, features, feed_error, rmc_loader):
+    """Resolve one district's nowcast: IMD map first, RMC Guwahati page as the Assam fallback."""
+    if features is not None:
+        nowcast = live_imd_district_nowcast(features, state, district, geometry)
+    else:
+        nowcast = {"status": "UNAVAILABLE", "reason": feed_error}
+    if nowcast.get("status") != "OK" and normalized(state) == "assam":
+        imd_reason = feed_error or nowcast.get("reason")
+        try:
+            rmc = live_rmc_assam_nowcast(rmc_loader(), district)
+            if rmc.get("status") == "OK":
+                return rmc
+            rmc_reason = rmc.get("reason")
+        except Exception as exc:
+            rmc_reason = str(exc)
+        nowcast = dict(nowcast)
+        nowcast["reason"] = f"IMD district feed: {imd_reason}; RMC Guwahati: {rmc_reason}"
+    return nowcast
+
+
+def refresh_live_nowcasts(places, district_geometries):
+    """Re-read only the nowcast sources and update stored results; returns names whose entry changed."""
+    from zoneinfo import ZoneInfo
+    results = st.session_state.get("live_results") or []
+    features, feed_error = None, None
+    try:
+        features = live_imd_district_feed(IMD_DISTRICT_NOWCAST_LAYER)
+    except Exception as exc:
+        feed_error = str(exc)
+    rmc_cache = {}
+
+    def rmc_loader():
+        if "records" not in rmc_cache and "error" not in rmc_cache:
+            try:
+                rmc_cache["records"] = live_rmc_assam_nowcast_records()
+            except Exception as exc:
+                rmc_cache["error"] = str(exc)
+        if "error" in rmc_cache:
+            raise RuntimeError(rmc_cache["error"])
+        return rmc_cache["records"]
+
+    def signature(entry):
+        return (entry.get("status"), entry.get("issue_date"), entry.get("issue_time"),
+                entry.get("valid_until"), entry.get("message"), entry.get("no_warning"))
+
+    changed = []
+    for item in results:
+        if not isinstance(item, dict) or item.get("error"):
+            continue
+        geometry = next((g for (s, d), g in district_geometries.items()
+                         if normalized(s) == normalized(item["state"])
+                         and normalized(d) == normalized(item["district"])), None)
+        if geometry is None:
+            continue
+        new_nowcast = compute_nowcast(item["state"], item["district"], geometry,
+                                      features, feed_error, rmc_loader)
+        previous_nowcast = item.get("nowcast") or {}
+        checked_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
+        if new_nowcast.get("status") != "OK" and previous_nowcast.get("status") in {"OK", "EXPIRED", "STALE"}:
+            new_nowcast = dict(previous_nowcast)
+            new_nowcast["last_checked_at"] = checked_at
+            new_nowcast["recheck_error"] = (
+                new_nowcast.get("reason")
+                or feed_error
+                or "No current nowcast could be verified from IMD or the Assam fallback."
+            )
+            valid_until_at = new_nowcast.get("valid_until_at")
+            try:
+                valid_until = datetime.fromisoformat(str(valid_until_at))
+                if valid_until.tzinfo is None:
+                    valid_until = valid_until.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            except (ValueError, TypeError):
+                valid_until = None
+            if previous_nowcast.get("status") == "EXPIRED" or (
+                valid_until and datetime.now(ZoneInfo("Asia/Kolkata")) > valid_until
+            ):
+                new_nowcast["status"] = "EXPIRED"
+            else:
+                new_nowcast["status"] = "STALE"
+        elif new_nowcast.get("status") in {"OK", "EXPIRED"}:
+            new_nowcast["last_verified_at"] = checked_at
+            new_nowcast["last_checked_at"] = checked_at
+        if signature(new_nowcast) != signature(item.get("nowcast") or {}):
+            changed.append(item["district"])
+        item["nowcast"] = new_nowcast
+    st.session_state.nowcast_checked_at = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d-%m-%Y %I:%M %p IST")
+    return changed
+
+
+def live_rmc_assam_nowcast_records():
+    """Scrape current district nowcast entries, including explicit No Warning and validity times."""
+    response = requests.get(RMC_NOWCAST_URL, headers=HEADERS, timeout=(5, 25))
+    response.raise_for_status()
+    records = []
+    for match in re.finditer(r"\{[^{}]*\"title\"\s*:\s*\"[^\"]*\"[^{}]*\}", response.text, re.S):
+        try:
+            entry = json.loads(match.group(0))
+        except (ValueError, TypeError):
+            continue
+        name = entry.get("title")
+        raw = entry.get("balloonText") or entry.get("info")
+        if not name or not raw:
+            continue
+        plain = " ".join(html.unescape(re.sub(r"<[^>]*>", " ", raw)).split())
+        issued = re.search(r"Time of issue:\s*(\d{4}-\d{2}-\d{2})\s*(\d{3,4})\s*Hrs", plain, re.I)
+        valid = re.search(r"Valid upto:\s*(\d{3,4})\s*Hrs", plain, re.I)
+        records.append({
+            "district": name, "message": plain, "color": entry.get("color"),
+            "no_warning": bool(re.search(r"\bNo Warning\b", plain, re.I)),
+            "issue_date": issued.group(1) if issued else None,
+            "issue_time": issued.group(2) if issued else None,
+            "valid_until": valid.group(1) if valid else None,
+            "source": "RMC Guwahati district-wise nowcast",
+        })
+    if not records:
+        raise RuntimeError("RMC Guwahati's live district nowcast page returned no parseable district records.")
+    return records
+
+
+def live_rmc_assam_nowcast(records, district):
+    matched_name = unique_district_label_match(
+        district, [row.get("district", "") for row in records], threshold=0.84,
+    )
+    matches = [row for row in records if row.get("district") == matched_name] if matched_name else []
+    if len(matches) != 1:
+        return {"status": "UNAVAILABLE", "reason":
+                "RMC Guwahati did not return one exact, unambiguous nowcast entry for this district."}
+    row = matches[0]
+    if row.get("issue_date") and not source_date_is_today(row["issue_date"]):
+        return {"status": "UNAVAILABLE", "reason": "RMC Guwahati's matching nowcast entry is not dated today."}
+    return {"status": "OK", **row}
+
+
+def live_rmc_assam_forecast_report():
+    """Read the live RMC PDF's Assam district forecast and seven-day Guwahati forecast sections."""
+    response = requests.get(RMC_DAILY_REPORT_URL, headers=HEADERS, timeout=(5, 30))
+    response.raise_for_status()
+    if not response.content.startswith(b"%PDF"):
+        raise RuntimeError("RMC Guwahati did not return its daily weather report PDF.")
+    pdf = PdfReader(io.BytesIO(response.content))
+    text = "\n".join(page.extract_text(extraction_mode="layout") or "" for page in pdf.pages)
+    date_match = re.search(
+        r"Observed Weather parameters for Assam recorded at 0830 hours IST of\s*(\d{1,2})-\s*([A-Za-z]+)-\s*(\d{4})",
+        text, re.I,
+    )
+    if not date_match:
+        raise RuntimeError("RMC daily report did not provide a recognizable observation date.")
+    report_date = datetime.strptime(" ".join(date_match.groups()), "%d %B %Y").date()
+    from zoneinfo import ZoneInfo
+    if report_date != datetime.now(ZoneInfo("Asia/Kolkata")).date():
+        raise RuntimeError(f"RMC daily report is dated {report_date.isoformat()}, not today.")
+
+    def extract_days(section, limit):
+        starts = list(re.finditer(
+            r"(?ims)^\s*Day\s*(\d+)\s*\(Valid\s+upto\s+.*?\)", section
+        ))
+        output = []
+        for index, start in enumerate(starts):
+            day = int(start.group(1))
+            if day > limit:
+                continue
+            end = starts[index + 1].start() if index + 1 < len(starts) else len(section)
+            block = " ".join(section[start.start():end].split())
+            warning = "No Warning" if re.search(r"\bNo Warning\b", block, re.I) else None
+            output.append({"day": day, "official_text": block, "warning": warning,
+                           "source": "RMC Guwahati daily weather report PDF"})
+        return output
+
+    district_heading = re.search(r"WEATHER FORECAST AND WARNING FOR DISTRICTS OF ASSAM", text, re.I)
+    local_heading = re.search(r"Local forecast for Guwahati\s*&\s*neighbourhood", text, re.I)
+    if not district_heading or not local_heading or local_heading.start() <= district_heading.start():
+        raise RuntimeError("RMC daily report did not contain its expected district and Guwahati forecast sections.")
+    district_days = extract_days(text[district_heading.end():local_heading.start()], 5)
+    local_end = date_match.start()
+    guwahati_days = extract_days(text[local_heading.end():local_end], 7)
+    return {"date": report_date.isoformat(), "district_days": district_days,
+            "guwahati_days": guwahati_days, "source": RMC_DAILY_REPORT_URL}
+
+
+IMD_DISTRICT_RAIN_FORECAST_URL = "https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php"
+IMD_DISTRICT_RAIN_FORECAST_PAGE = "https://mausam.imd.gov.in/responsive/5d_statewisedistricts_rf_forecast.php"
+
+# Current district products linked from the relevant IMD Meteorological Centre
+# sites. West Bengal needs separate North and South Bengal reports.
+MC_DISTRICT_FORECAST_PDFS = {
+    "assam": [("https://mausam.imd.gov.in/guwahati/mcdata/distlevel.pdf", "RMC Guwahati")],
+    "arunachal pradesh": [("https://mausam.imd.gov.in/itanagar/mcdata/AP_forecast.pdf", "IMD Met Centre Itanagar")],
+    "meghalaya": [("https://mausam.imd.gov.in/shillong/mcdata/forecast.pdf", "IMD Met Centre Shillong")],
+    "mizoram": [("https://mausam.imd.gov.in/aizawl/mcdata/AP_forecast.pdf", "IMD Met Centre Aizawl")],
+    "manipur": [("https://mausam.imd.gov.in/imphal/mcdata/imp_forecast.pdf", "IMD Met Centre Imphal")],
+    "nagaland": [("https://mausam.imd.gov.in/kohima/mcdata/NGL_Forecast.pdf", "IMD Met Centre Kohima")],
+    "tripura": [("https://mausam.imd.gov.in/agartala/mcdata/District%20Forecast.pdf", "IMD Met Centre Agartala")],
+    "west bengal": [
+        ("https://mausam.imd.gov.in/kolkata/mcdata/north_bengal.pdf", "RMC Kolkata · North Bengal"),
+        ("https://mausam.imd.gov.in/kolkata/mcdata/south_bengal.pdf", "RMC Kolkata · South Bengal"),
+    ],
+}
+
+
+def _imd_forecast_text(value):
+    return html.unescape(re.sub(r"<[^>]+>", " ", str(value or ""))).replace("\xa0", " ").strip()
+
+
+def _is_current_or_future_forecast_date(value):
+    from zoneinfo import ZoneInfo
+    raw = re.sub(r"\b(\d{1,2})(st|nd|rd|th)\b", r"\1", str(value or "").strip(), flags=re.I)
+    raw = re.sub(r"^(date|forecast date)\s*:\s*", "", raw, flags=re.I)
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%d-%b-%Y",
+                "%d-%B-%Y", "%d %b %Y", "%d %B %Y", "%d %b, %Y", "%d %B, %Y",
+                "%d-%b", "%d %b"):
+        try:
+            parsed = datetime.strptime(raw[:20].strip(), fmt)
+            if fmt in ("%d-%b", "%d %b"):
+                parsed = parsed.replace(year=datetime.now(ZoneInfo("Asia/Kolkata")).year)
+            forecast_date = parsed.date()
+            now = datetime.now(ZoneInfo("Asia/Kolkata"))
+            if forecast_date >= now.date():
+                return True
+            # IMD's standard district forecast day runs through 0830 IST of
+            # the following date. Keep yesterday's Day 1 until that validity
+            # window closes after midnight.
+            return (forecast_date == now.date() - timedelta(days=1)
+                    and now.time() < datetime.strptime("08:30", "%H:%M").time())
+        except ValueError:
+            continue
+    return False
+
+
+def _forecast_date_key(value):
+    """Normalize an official source date for exact-date joins; never align by row position."""
+    raw = re.sub(r"\b(\d{1,2})(st|nd|rd|th)\b", r"\1", str(value or "").strip(), flags=re.I)
+    raw = re.sub(r"^(date|forecast date)\s*:\s*", "", raw, flags=re.I)
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%d-%b-%Y", "%d-%B-%Y",
+                "%d %b %Y", "%d %B %Y", "%d %b, %Y", "%d %B, %Y", "%d-%b", "%d %b"):
+        try:
+            parsed = datetime.strptime(raw[:20].strip(), fmt)
+            if fmt in ("%d-%b", "%d %b"):
+                from zoneinfo import ZoneInfo
+                parsed = parsed.replace(year=datetime.now(ZoneInfo("Asia/Kolkata")).year)
+            return parsed.date().isoformat()
+        except ValueError:
+            continue
     return None
 
 
-# ==========================================
-# AUTHENTICATION & LOGIN GATEWAY
-# ==========================================
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "user" not in st.session_state:
-    st.session_state.user = None
-if "show_admin_panel" not in st.session_state:
-    st.session_state.show_admin_panel = False
-if "show_pwd_modal" not in st.session_state:
-    st.session_state.show_pwd_modal = False
-
-assam_districts_list = sorted(NE_STATES_DISTRICTS["Assam"])
-
-auth_container = st.empty()
-
-# If user is not authenticated, display the Login Screen
-if not st.session_state.authenticated:
-    with auth_container.container():
-        st.markdown("<div class='diwis-login-page'>", unsafe_allow_html=True)
-        st.markdown("<div style='padding-top: 1.5rem;'></div>", unsafe_allow_html=True)
-        
-        login_col1, login_col2, login_col3 = st.columns([1, 1.3, 1])
-        with login_col2:
-            st.markdown("""
-            <div class="login-brand-box">
-                <div class="login-icon-badge">🏛️</div>
-                <div class="login-title">DIWIS Portal Sign In</div>
-                <div class="login-subtitle">
-                    District Integrated Weather Information System<br>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            with st.form("diwis_login_form"):
-                login_district = st.selectbox(
-                    "📍 Select Operational District:",
-                    options=assam_districts_list,
-                    index=assam_districts_list.index("Hailakandi") if "Hailakandi" in assam_districts_list else 0,
-                )
-                login_username = st.text_input(
-                    "👤 Username / ID:",
-                )
-                login_password = st.text_input(
-                    "🔑 Password:",
-                    type="password",
-                )
-                
-                submit_login = st.form_submit_button("🚀 Sign In to District Portal", use_container_width=True, type="primary")
-
-            if submit_login:
-                if not login_username or not login_password:
-                    st.error("Please provide both username and password.")
-                else:
-                    success, msg, user_dict = authenticate_user(login_username, login_password, login_district, db_path=DB_PATH)
-                    if success and user_dict:
-                        st.session_state.authenticated = True
-                        st.session_state.user = user_dict
-                        st.session_state.selected_primary_state = "Assam"
-                        st.session_state.selected_primary_district = login_district
-                        
-                        # Dynamically auto-detect upstream secondary river catchment predictors
-                        sec_items = get_upstream_catchments_for_district(login_district)
-                        st.session_state.selected_secondary_items = sec_items
-                        st.session_state.last_synced_district = login_district
-                        st.session_state.page = "dashboard"
-                        st.session_state.app_view = "dashboard"
-                        auth_container.empty()
-                        st.rerun()
-                    else:
-                        st.error(msg)
-
-            st.markdown("""
-            <div style="text-align: center; font-size: 0.75rem; color: #64748B; margin-top: 14px;">
-                🔒 Authorized District Operations Portal &bull; Role-Based Access Control
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.stop()
-else:
-    auth_container.empty()
-    st.markdown("""
-    <style>
-    /* Complete elimination of login UI elements during post-authentication transitions */
-    .diwis-login-page,
-    .login-brand-box,
-    form[aria-label="diwis_login_form"],
-    div[data-testid="stForm"]:has(input[aria-label*="Username"]) {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        max-height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        overflow: hidden !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-
-# ==========================================
-# AUTHENTICATED USER STATE & DISTRICT LOCK
-# ==========================================
-current_user = st.session_state.get("user") or {}
-user_role = current_user.get("role", "staff")
-user_name = current_user.get("full_name") or current_user.get("username") or "Operator"
-user_username = current_user.get("username", "")
-user_assigned_dist = current_user.get("district", "ALL")
-
-# Mandatory initial password change gate
-if current_user.get("must_change_password") == 1:
-    st.markdown("""
-    <div style="max-width: 650px; margin: 40px auto 20px auto; background: rgba(220, 38, 38, 0.08); border: 1px solid #DC2626; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="font-size: 1.8rem;">🛡️</div>
-            <div>
-                <h3 style="color: #F87171; margin: 0; font-size: 1.25rem;">Mandatory Security Action: Update Initial Password</h3>
-                <p style="color: #94A3B8; margin: 2px 0 0 0; font-size: 0.85rem;">Emergency Operations & Disaster Management Security Protocol</p>
-            </div>
-        </div>
-        <p style="color: #E2E8F0; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0;">
-            Your account is currently using default bootstrap credentials. To protect public safety data and prevent unauthorized district access, you must establish a new private password before proceeding.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    f_col1, f_col2, f_col3 = st.columns([1, 2, 1])
-    with f_col2:
-        with st.form("forced_password_reset_form"):
-            f_curr = st.text_input("🔑 Current Password:", type="password")
-            f_new = st.text_input("🔒 New Secure Password (minimum 6 characters):", type="password")
-            f_conf = st.text_input("🔒 Confirm New Password:", type="password")
-            f_submit = st.form_submit_button("💾 Save New Password & Access System", type="primary", use_container_width=True)
-            if f_submit:
-                if not f_curr or not f_new:
-                    st.error("Please fill in all password fields.")
-                elif f_new != f_conf:
-                    st.error("New password and confirmation do not match.")
-                elif len(f_new.strip()) < 6:
-                    st.error("New password must be at least 6 characters.")
-                else:
-                    r_ok, r_msg = update_user_password(user_username, f_new, current_password=f_curr, db_path=DB_PATH)
-                    if r_ok:
-                        st.session_state.user["must_change_password"] = 0
-                        st.success("Security credentials updated! Loading dashboard...")
-                        st.rerun()
-                    else:
-                        st.error(r_msg)
-    st.stop()
-
-# Enforce Primary District Lock: Non-superadmins CANNOT change their assigned district
-if user_role == "superadmin":
-    primary_district = st.session_state.get("selected_primary_district", "Hailakandi")
-else:
-    primary_district = user_assigned_dist
-    st.session_state.selected_primary_district = primary_district
-
-primary_state = "Assam"
-st.session_state.selected_primary_state = primary_state
-secondary_items = st.session_state.get("selected_secondary_items", [])
-if not secondary_items or st.session_state.get("last_synced_district") != primary_district:
-    secondary_items = get_upstream_catchments_for_district(primary_district)
-    st.session_state.selected_secondary_items = secondary_items
-    st.session_state.last_synced_district = primary_district
-
-current_meta = get_district_meta(primary_district)
-
-# Resolve partitioned district file paths
-active_paths = get_district_paths(primary_district)
-if primary_district.lower() == "hailakandi" and not os.path.exists(active_paths["json_path"]):
-    legacy_json = os.path.join(BASE_DIR, "output_hailakandi", "hailakandi_weather_forecast.json")
-    if os.path.exists(legacy_json):
-        active_paths["json_path"] = legacy_json
-        active_paths["forecast_csv"] = os.path.join(BASE_DIR, "output_hailakandi", "hailakandi_forecast_summary.csv")
-        active_paths["lightning_csv"] = os.path.join(BASE_DIR, "output_hailakandi", "hailakandi_lightning_zones_summary.csv")
-        active_paths["upstream_csv"] = os.path.join(BASE_DIR, "output_hailakandi", "hailakandi_upstream_mizoram_summary.csv")
-        active_paths["pdf_report"] = os.path.join(BASE_DIR, "output_hailakandi", "Hailakandi_Daily_Weather_Report.pdf")
-        active_paths["md_report"] = os.path.join(BASE_DIR, "output_hailakandi", "Hailakandi_Daily_Weather_Report.md")
-
-JSON_PATH = active_paths["json_path"]
-CSV_PATH = active_paths["forecast_csv"]
-LIGHTNING_CSV_PATH = active_paths["lightning_csv"]
-MIZORAM_CSV_PATH = active_paths["upstream_csv"]
-PDF_REPORT_PATH = active_paths["pdf_report"]
-MD_REPORT_PATH = active_paths["md_report"]
-
-if "app_view" not in st.session_state:
-    st.session_state.app_view = "dashboard"
-
-# ==========================================
-# VIEW 1: DEDICATED ADMIN & USER MANAGEMENT VIEW
-# ==========================================
-if st.session_state.app_view == "admin" and user_role in ("district_admin", "superadmin"):
-    top_nav1, top_nav2 = st.columns([1.5, 4.5])
-    with top_nav1:
-        if st.button("⬅️ Back to Weather Dashboard", type="primary", use_container_width=True):
-            st.session_state.app_view = "dashboard"
-            st.rerun()
-    with top_nav2:
-        st.markdown(f"""
-        <div style="text-align: right; padding-top: 6px; font-size: 0.88rem; color: #94A3B8;">
-            Signed in as: <b style="color: #F8FAFC;">{user_name}</b> (@{user_username}) &nbsp;|&nbsp; <b>District:</b> <span style="color: #38BDF8;">{primary_district}</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    if user_role == "superadmin":
-        st.markdown("""
-        <div class="header-box" style="margin-top: 8px; margin-bottom: 20px;">
-            <div style="font-size: 0.80rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #BAE6FD; margin-bottom: 2px;">
-                🏛️ State Super Administrator &bull; User Governance & District Admin Provisioning
-            </div>
-            <div class="header-title">👑 State Super Administrator Workspace</div>
-            <div class="header-sub">
-                Create and manage <b>District Administrators</b> across all 35 Assam districts and oversee user accounts state-wide.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        tab_users, tab_create, tab_reset, tab_delete = st.tabs([
-            "📋 State-Wide Users Directory",
-            "➕ Create District Admin Account",
-            "🔄 Reset User Password",
-            "🗑️ Delete User Account"
-        ])
-
-        # 1. Superadmin Directory
-        with tab_users:
-            filter_dist = st.selectbox("Filter Directory by District:", options=["ALL"] + assam_districts_list, index=0)
-            users_list = get_district_users(filter_dist if filter_dist != "ALL" else None, requester_role="superadmin", db_path=DB_PATH)
-            if users_list:
-                df_users = pd.DataFrame(users_list)
-                df_users.rename(columns={
-                    "id": "User ID",
-                    "username": "Username",
-                    "full_name": "Full Name",
-                    "role": "Role",
-                    "district": "Assigned District",
-                    "created_at": "Account Created At",
-                    "created_by": "Created By"
-                }, inplace=True)
-                st.dataframe(df_users, use_container_width=True, hide_index=True)
-                st.caption(f"Total Accounts Listed: **{len(users_list)} Users**")
-            else:
-                st.info("No users found for selected filter.")
-
-        # 2. Superadmin: Create District Admin
-        with tab_create:
-            st.markdown("#### ➕ Create New Account (Admin, Staff, or Superadmin)")
-            st.caption("Provision authorized user credentials with role-based access control and district locking.")
-            with st.form("create_district_admin_form"):
-                ca_col1, ca_col2 = st.columns(2)
-                with ca_col1:
-                    new_role = st.selectbox(
-                        "Account Role:",
-                        options=["district_admin", "staff", "superadmin"],
-                        format_func=lambda x: {
-                            "district_admin": "District Administrator (Manages District & Staff)",
-                            "staff": "District Staff / Field Operator (Dashboard & Reports)",
-                            "superadmin": "State Super Administrator (Full State-Wide Access)"
-                        }.get(x, x)
-                    )
-                    target_dist_for_admin = st.selectbox("Assign to District (Assam):", options=["ALL"] + assam_districts_list if new_role == "superadmin" else assam_districts_list)
-                    new_username = st.text_input("Username (Unique Login ID):")
-                with ca_col2:
-                    new_fullname = st.text_input("Full Name / Official Designation:")
-                    new_password = st.text_input("Initial Password (min 6 characters):", type="password")
-                
-                btn_create_admin = st.form_submit_button("🚀 Create Account with Salted Scrypt", type="primary", use_container_width=True)
-                
-                if btn_create_admin:
-                    if not new_username or not new_password or not new_fullname:
-                        st.error("Please fill in username, full name, and initial password.")
-                    elif len(new_password.strip()) < 6:
-                        st.error("Password must be at least 6 characters long.")
-                    else:
-                        c_dist = "ALL" if new_role == "superadmin" else target_dist_for_admin
-                        c_ok, c_msg = create_user(
-                            username=new_username,
-                            password=new_password,
-                            full_name=new_fullname,
-                            role=new_role,
-                            district=c_dist,
-                            created_by=user_username,
-                            db_path=DB_PATH
-                        )
-                        if c_ok:
-                            st.success(c_msg)
-                            st.rerun()
-                        else:
-                            st.error(c_msg)
-
-        # 3. Superadmin: Reset Password
-        with tab_reset:
-            st.markdown("#### 🔄 Reset Any User / Admin Password")
-            all_users = get_district_users(None, requester_role="superadmin", db_path=DB_PATH)
-            if all_users:
-                user_choices = {f"{u['full_name']} (@{u['username']}) - [{u['role']}] ({u['district']})": u['username'] for u in all_users}
-                with st.form("super_reset_pwd_form"):
-                    target_user_label = st.selectbox("Select Account to Reset:", list(user_choices.keys()))
-                    target_user_name = user_choices[target_user_label]
-                    new_admin_pwd = st.text_input("Enter New Password:", type="password")
-                    btn_reset_pwd = st.form_submit_button("🔑 Update Password", type="primary", use_container_width=True)
-                    
-                    if btn_reset_pwd:
-                        if not new_admin_pwd or len(new_admin_pwd.strip()) < 6:
-                            st.error("Password must be at least 6 characters long.")
-                        else:
-                            r_ok, r_msg = update_user_password(target_user_name, new_admin_pwd, requester_role="superadmin", db_path=DB_PATH)
-                            if r_ok:
-                                st.success(f"Successfully updated password for user @{target_user_name}!")
-                            else:
-                                st.error(r_msg)
-
-        # 4. Superadmin: Delete Account
-        with tab_delete:
-            st.markdown("#### 🗑️ Delete User / Admin Account")
-            deletable_users = [u for u in get_district_users(None, requester_role="superadmin", db_path=DB_PATH) if u.get("username").lower() != user_username.lower()]
-            if deletable_users:
-                del_choices = {f"{u['full_name']} (@{u['username']}) - [{u['role']}] ({u['district']})": u['username'] for u in deletable_users}
-                with st.form("super_delete_user_form"):
-                    del_user_label = st.selectbox("Select Account to Delete:", list(del_choices.keys()))
-                    del_username = del_choices[del_user_label]
-                    confirm_check = st.checkbox(f"I confirm permanent deletion of user account @{del_username}")
-                    btn_delete_user = st.form_submit_button("🗑️ Permanently Delete Account", type="secondary", use_container_width=True)
-                    
-                    if btn_delete_user:
-                        if not confirm_check:
-                            st.error("Please check the confirmation box before deleting.")
-                        else:
-                            d_ok, d_msg = delete_user_by_admin(del_username, current_user, db_path=DB_PATH)
-                            if d_ok:
-                                st.success(d_msg)
-                                st.rerun()
-                            else:
-                                st.error(d_msg)
-
-    else:
-        # DISTRICT ADMIN WORKSPACE (Dedicated to their own District Staff)
-        st.markdown(f"""
-        <div class="header-box" style="margin-top: 8px; margin-bottom: 20px;">
-            <div style="font-size: 0.80rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #BAE6FD; margin-bottom: 2px;">
-                District Disaster Management Authority (DDMA), {primary_district.upper()}
-            </div>
-            <div class="header-title">{primary_district} DDMA &bull; Staff Administration Workspace</div>
-            <div class="header-sub">
-                Create user IDs and passwords for your district's field officers, hydrological operators, and staff members in <b>{primary_district}</b>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        tab_users, tab_create, tab_reset, tab_delete = st.tabs([
-            f"📋 {primary_district} Staff Directory",
-            "➕ Create New District Staff Account",
-            "🔄 Reset Staff Password",
-            "🗑️ Delete Staff Account"
-        ])
-
-        # 1. Staff Directory
-        with tab_users:
-            users_list = get_district_users(primary_district, requester_role="district_admin", db_path=DB_PATH)
-            if users_list:
-                df_users = pd.DataFrame(users_list)
-                df_users.rename(columns={
-                    "id": "User ID",
-                    "username": "Username",
-                    "full_name": "Full Name",
-                    "role": "Role",
-                    "district": "Assigned District",
-                    "created_at": "Account Created At",
-                    "created_by": "Created By"
-                }, inplace=True)
-                st.dataframe(df_users, use_container_width=True, hide_index=True)
-                st.caption(f"Total Accounts in {primary_district}: **{len(users_list)} Users**")
-            else:
-                st.info(f"No staff accounts created for {primary_district} yet.")
-
-        # 2. Create New District Staff
-        with tab_create:
-            st.markdown(f"#### ➕ Create New Staff Account for **{primary_district}**")
-            st.caption(f"This user will be registered as a Staff Operator strictly locked to **{primary_district}**.")
-            with st.form("create_staff_form"):
-                new_u1, new_u2 = st.columns(2)
-                with new_u1:
-                    new_username = st.text_input("Staff Username (Unique ID):")
-                    new_fullname = st.text_input("Staff Full Name / Designation:")
-                with new_u2:
-                    new_password = st.text_input("Initial Password:", type="password")
-                    st.text_input("Assigned District (Locked):", value=primary_district, disabled=True)
-                
-                btn_create_staff = st.form_submit_button("🚀 Create District Staff Account", type="primary", use_container_width=True)
-                
-                if btn_create_staff:
-                    if not new_username or not new_password or not new_fullname:
-                        st.error("Please fill in username, full name, and initial password.")
-                    else:
-                        c_ok, c_msg = create_user(
-                            username=new_username,
-                            password=new_password,
-                            full_name=new_fullname,
-                            role="staff",
-                            district=primary_district,
-                            created_by=user_username,
-                            db_path=DB_PATH
-                        )
-                        if c_ok:
-                            st.success(c_msg)
-                            st.rerun()
-                        else:
-                            st.error(c_msg)
-
-        # 3. Reset Staff Password
-        with tab_reset:
-            st.markdown(f"#### 🔄 Reset Staff Password in **{primary_district}**")
-            staff_users = [u for u in get_district_users(primary_district, requester_role="district_admin", db_path=DB_PATH) if u.get("role") == "staff"]
-            if staff_users:
-                staff_choices = {f"{u['full_name']} (@{u['username']})": u['username'] for u in staff_users}
-                with st.form("reset_staff_pwd_form"):
-                    target_user_label = st.selectbox("Select Staff Account to Reset:", list(staff_choices.keys()))
-                    target_user_name = staff_choices[target_user_label]
-                    new_admin_pwd = st.text_input("Enter New Password for Staff:", type="password")
-                    btn_reset_pwd = st.form_submit_button("🔑 Update Password", type="primary", use_container_width=True)
-                    
-                    if btn_reset_pwd:
-                        if not new_admin_pwd or len(new_admin_pwd.strip()) < 6:
-                            st.error("Password must be at least 6 characters long.")
-                        else:
-                            r_ok, r_msg = update_user_password(target_user_name, new_admin_pwd, requester_role="superadmin", db_path=DB_PATH)
-                            if r_ok:
-                                st.success(f"Successfully updated password for staff user @{target_user_name}!")
-                            else:
-                                st.error(r_msg)
-            else:
-                st.info("No staff accounts found in this district to reset.")
-
-        # 4. Delete Staff Account
-        with tab_delete:
-            st.markdown(f"#### 🗑️ Remove Staff Account from **{primary_district}**")
-            deletable_users = [u for u in get_district_users(primary_district, requester_role="district_admin", db_path=DB_PATH) if u.get("role") == "staff"]
-            if deletable_users:
-                del_choices = {f"{u['full_name']} (@{u['username']})": u['username'] for u in deletable_users}
-                with st.form("delete_staff_form"):
-                    del_user_label = st.selectbox("Select Account to Delete:", list(del_choices.keys()))
-                    del_username = del_choices[del_user_label]
-                    confirm_check = st.checkbox(f"I confirm permanent deletion of user account @{del_username}")
-                    btn_delete_staff = st.form_submit_button("🗑️ Permanently Delete Account", type="secondary", use_container_width=True)
-                    
-                    if btn_delete_staff:
-                        if not confirm_check:
-                            st.error("Please check the confirmation box before deleting.")
-                        else:
-                            d_ok, d_msg = delete_user_by_admin(del_username, current_user, db_path=DB_PATH)
-                            if d_ok:
-                                st.success(d_msg)
-                                st.rerun()
-                            else:
-                                st.error(d_msg)
-            else:
-                st.info("No staff accounts eligible for deletion in this district.")
-
-    st.stop()
-
-
-
-# ==========================================
-# VIEW 2: DEDICATED PASSWORD SETTINGS VIEW
-# ==========================================
-if st.session_state.app_view == "password":
-    top_p1, top_p2 = st.columns([1.5, 4.5])
-    with top_p1:
-        if st.button("⬅️ Back to Weather Dashboard", type="primary", use_container_width=True):
-            st.session_state.app_view = "dashboard"
-            st.rerun()
-    with top_p2:
-        st.markdown(f"""
-        <div style="text-align: right; padding-top: 6px; font-size: 0.88rem; color: #94A3B8;">
-            Signed in as: <b style="color: #F8FAFC;">{user_name}</b> (@{user_username}) &nbsp;|&nbsp; <b>District:</b> <span style="color: #38BDF8;">{primary_district}</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="header-box" style="margin-top: 8px; margin-bottom: 20px;">
-        <div style="font-size: 0.80rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #BAE6FD; margin-bottom: 2px;">
-            🔐 Security & Access Control
-        </div>
-        <div class="header-title">🔑 Change Account Password</div>
-        <div class="header-sub">
-            Update your personal portal password. All credentials are protected with Salted Scrypt cryptographic hashing.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    pwd_col1, pwd_col2, pwd_col3 = st.columns([1, 2, 1])
-    with pwd_col2:
-        with st.form("self_pwd_change_form"):
-            curr_pwd = st.text_input("Enter Current Password:", type="password")
-            new_pwd = st.text_input("Enter New Password (min 6 chars):", type="password")
-            confirm_new_pwd = st.text_input("Confirm New Password:", type="password")
-            
-            btn_update_pwd = st.form_submit_button("💾 Update Password (Scrypt Encrypted)", type="primary", use_container_width=True)
-            
-            if btn_update_pwd:
-                if not curr_pwd or not new_pwd:
-                    st.error("Please fill all required password fields.")
-                elif new_pwd != confirm_new_pwd:
-                    st.error("New password and confirmation do not match.")
-                elif len(new_pwd.strip()) < 6:
-                    st.error("Password must be at least 6 characters long.")
-                else:
-                    upd_ok, upd_msg = update_user_password(user_username, new_pwd, current_password=curr_pwd, db_path=DB_PATH)
-                    if upd_ok:
-                        st.success(f"{upd_msg} Please use your new password on subsequent logins.")
-                    else:
-                        st.error(upd_msg)
-
-    st.stop()
-
-
-# ==========================================
-# VIEW 3: MAIN CLEAN WEATHER DASHBOARD VIEW
-# ==========================================
-
-# Check local data availability before rendering dashboard elements
-raw_data = load_local_data(primary_district)
-needs_sync = False
-if not raw_data:
-    needs_sync = True
-elif raw_data.get("metadata", {}).get("target_location", {}).get("district") != primary_district:
-    needs_sync = True
-
-if needs_sync and secondary_items:
-    init_placeholder = st.empty()
-    with init_placeholder.container():
-        st.markdown(f"""
-        <div style="max-width: 650px; margin: 4rem auto 2rem auto; background: #1E293B; border: 1px solid #334155; border-top: 4px solid #0284C7; border-radius: 16px; padding: 40px 32px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
-            <div style="font-size: 3.5rem; margin-bottom: 14px; animation: pulse-subtle 2s infinite;">🛰️</div>
-            <h2 style="font-size: 1.55rem; font-weight: 800; color: #F8FAFC; margin-bottom: 8px;">Initializing {primary_district} Weather Intelligence</h2>
-            <p style="font-size: 0.90rem; color: #94A3B8; margin-bottom: 22px; line-height: 1.55;">
-                Retrieving real-time observations, IMD 5-day warning bulletins, and IITM-ILDN DAMINI lightning sensors for <b>{primary_district}</b>. Initial provisioning takes ~15–20 seconds.
-            </p>
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.4); padding: 8px 20px; border-radius: 9999px; color: #38BDF8; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;">
-                📡 Connecting to IMD Regional Observatories & IITM Sensors...
-            </div>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; color: #94A3B8; font-size: 0.88rem;">
-                <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #38BDF8; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                <span>Compiling meteorological feeds for <b>{primary_district}</b>...</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        raw_data = scrape_weather_data(primary_state, primary_district, secondary_items, generate_reports=True, report_generated_by=user_name)
-        init_placeholder.empty()
-    st.rerun()
-
-data = raw_data
-
-if data:
-    # Dynamize micro-zone sectors and overall alert in memory so dashboard immediately reflects live telemetry
-    nowcast_obj = data.get("current_nowcast_warning", {})
-    damini_obj = data.get("damini_sensor_lightning", {})
-    warn_obj = data.get("severe_weather_warnings_5days", {})
-    base_sec = current_meta.get("sectors", [])
-    dyn_sec, dyn_ov = dynamize_micro_zone_sectors(
-        base_sec,
-        nowcast=nowcast_obj,
-        damini_sensor=damini_obj,
-        warnings=warn_obj,
-        district_name=primary_district,
-        river_basin=current_meta.get("river_basin", "River Basin")
+def live_imd_district_rain_forecast(state_value, day_index):
+    """Scrape one day of district rainfall categories from IMD's public live map."""
+    response = requests.get(
+        IMD_DISTRICT_RAIN_FORECAST_URL, headers=HEADERS,
+        params={"id": state_value, "day": f"Day_{day_index}"}, timeout=(5, 20),
     )
-    data["lightning_zones_data"] = dyn_ov
+    response.raise_for_status()
+    records = {}
+    for match in re.finditer(r"\{[^{}]*\}", response.text):
+        raw = match.group(0)
+        title_match = re.search(r'"title"\s*:\s*"((?:\\.|[^"\\])*)"', raw, re.S)
+        balloon_match = re.search(r'"balloonText"\s*:\s*"((?:\\.|[^"\\])*)"', raw, re.S)
+        if not title_match or not balloon_match:
+            continue
+        try:
+            title = json.loads('"' + title_match.group(1) + '"')
+            balloon = json.loads('"' + balloon_match.group(1) + '"')
+        except (ValueError, TypeError):
+            continue
+        parts = [part.strip() for part in re.split(r"</?br\s*/?>", balloon, flags=re.I)
+                 if part.strip()]
+        if len(parts) < 3:
+            continue
+        source_date = _imd_forecast_text(parts[-1])
+        if not _is_current_or_future_forecast_date(source_date):
+            continue
+        records[district_label_key(title)] = {
+            "district": title,
+            "date": source_date,
+            "rainfall": _imd_forecast_text(parts[1]),
+            "coverage": _imd_forecast_text(parts[2]) if len(parts) > 3 else "",
+            "source": "IMD five-day district rainfall forecast",
+        }
+    if not records:
+        raise RuntimeError("IMD's public rainfall forecast page returned no district records.")
+    return records
 
-role_badge_colors = {
-    "superadmin": ("#DC2626", "rgba(220, 38, 38, 0.2)", "State Super Administrator"),
-    "district_admin": ("#0284C7", "rgba(2, 132, 199, 0.2)", "District Administrator"),
-    "staff": ("#059669", "rgba(5, 150, 105, 0.2)", "District Staff / Operator")
-}
-r_col, r_bg, r_label = role_badge_colors.get(user_role, ("#64748B", "rgba(100, 116, 139, 0.2)", "User"))
-dist_badge_text = f"🔒 Locked District: {primary_district}" if user_role != "superadmin" else f"🌐 State Deck: {primary_district} (Superadmin Access)"
 
-top_u_col1, top_u_col2 = st.columns([2.6, 1.8])
-with top_u_col1:
-    st.markdown(f"""
-    <div style="background: #1E293B; border: 1px solid #334155; border-radius: 10px; padding: 8px 14px; display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 1.4rem;">👤</div>
-        <div>
-            <div style="font-size: 0.90rem; font-weight: 800; color: #F8FAFC;">
-                {user_name} <span style="font-size: 0.78rem; color: #94A3B8; font-weight: 500;">(@{user_username})</span>
-            </div>
-            <div style="display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap;">
-                <span style="background: {r_bg}; color: {r_col}; border: 1px solid {r_col}; font-size: 0.70rem; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">
-                    🛡️ {r_label}
-                </span>
-                <span style="background: rgba(14, 165, 233, 0.15); color: #38BDF8; border: 1px solid rgba(14, 165, 233, 0.4); font-size: 0.70rem; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">
-                    {dist_badge_text}
-                </span>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+def _imd_rainfall_map_state_labels(page):
+    """Read the live state labels used by IMD's interactive rainfall map."""
+    area_start = re.search(r"areas\s*:\s*\[", page, re.I)
+    if not area_start:
+        raise RuntimeError("IMD rainfall page did not expose its live map state list.")
+    area_end = page.find("]", area_start.end())
+    areas = page[area_start.end():area_end if area_end >= 0 else None]
+    labels = []
+    for match in re.finditer(r"\{([^{}]+)\}", areas, re.S):
+        item = match.group(1)
+        # IMD currently quotes JavaScript object keys ("ajaxUrl"). Accept both
+        # quoted and unquoted keys so the live state list is not discarded.
+        if not re.search(r"[\"']?ajaxUrl[\"']?\s*:\s*[\"'](?:rainfallinformation/)?district_rain\.php[\"']", item, re.I):
+            continue
+        label = re.search(r"[\"']label[\"']\s*:\s*[\"']([^\"']+)[\"']", item, re.I)
+        state_id = re.search(r"[\"']id[\"']\s*:\s*[\"']([^\"']+)[\"']", item, re.I)
+        if label and state_id:
+            value = html.unescape(label.group(1)).strip()
+            labels.append((state_id.group(1).strip(), value))
+    if not labels:
+        raise RuntimeError("IMD rainfall map did not publish any district-feed state labels.")
+    return labels
 
-with top_u_col2:
-    btn_m1, btn_m2, btn_m3 = st.columns(3)
-    with btn_m1:
-        if st.button("🔑 Password", use_container_width=True, help="Change personal password"):
-            st.session_state.app_view = "password"
-            st.rerun()
-    with btn_m2:
-        if user_role in ("district_admin", "superadmin"):
-            panel_btn_label = "👥 Staff Admin" if user_role == "district_admin" else "👥 User Admin"
-            if st.button(panel_btn_label, use_container_width=True, help="Open dedicated staff admin workspace"):
-                st.session_state.app_view = "admin"
-                st.rerun()
-        else:
-            st.button("🔒 Staff View", disabled=True, use_container_width=True)
-    with btn_m3:
-        if st.button("🚪 Sign Out", use_container_width=True, help="Sign out of DIWIS portal"):
-            st.session_state.authenticated = False
-            st.session_state.user = None
-            st.session_state.page = "portal"
-            st.session_state.app_view = "dashboard"
-            st.rerun()
 
-# Superadmin District Switch Modal Dialog
-@st.dialog("🏛️ Switch Operational District (Superadmin)")
-def show_district_switch_dialog():
-    st.markdown("""
-    <div style="font-size: 0.88rem; color: #94A3B8; margin-bottom: 12px; line-height: 1.5;">
-        Select any of the <b>35 Assam districts</b> to re-target the DIWIS Command Deck. 
-        Upstream river basin catchments and hydrological telemetry will automatically re-align.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    current_dist = st.session_state.get("selected_primary_district", "Hailakandi")
-    dist_idx = assam_districts_list.index(current_dist) if current_dist in assam_districts_list else 0
-    
-    target_choice = st.selectbox(
-        "📍 Select Operational Target District:",
-        options=assam_districts_list,
-        index=dist_idx,
-        key="superadmin_dialog_district_picker"
+OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+
+def live_open_meteo_temperature_forecast(district_geometry):
+    """Fetch a live model forecast at a point derived from the live district boundary."""
+    point = district_geometry.representative_point()
+    response = requests.get(
+        OPEN_METEO_FORECAST_URL, headers=HEADERS,
+        params={
+            "latitude": point.y, "longitude": point.x,
+            "daily": "temperature_2m_max,temperature_2m_min",
+            "forecast_days": 5, "timezone": "Asia/Kolkata",
+        }, timeout=(5, 20),
     )
-    
-    target_meta = get_district_meta(target_choice)
-    auto_catchments = get_upstream_catchments_for_district(target_choice)
-    
-    st.markdown(f"""
-    <div style="background: #0F172A; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin: 12px 0 16px 0; font-size: 0.84rem;">
-        <div style="color: #38BDF8; font-weight: 700; margin-bottom: 4px;">🌊 River Basin: {target_meta.get('river_basin', 'Assam Basin')}</div>
-        <div style="color: #94A3B8; margin-bottom: 6px;"><b>Coordinates:</b> {target_meta['lat']}°N, {target_meta['lon']}°E &nbsp;|&nbsp; <b>Subdivision:</b> {target_meta.get('subdivision', 'Assam')}</div>
-        <div style="color: #4ADE80; font-weight: 600;"><b>Auto-Detected Upstream Catchments:</b></div>
-        <div style="color: #CBD5E1; margin-top: 2px;">{', '.join([c['district'] + ' (' + c['state'] + ')' for c in auto_catchments])}</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    dlg_c1, dlg_c2 = st.columns(2)
-    with dlg_c1:
-        if st.button("🚀 Load District Command Deck", type="primary", use_container_width=True):
-            st.session_state.selected_primary_district = target_choice
-            st.session_state.selected_primary_state = "Assam"
-            st.session_state.selected_secondary_items = auto_catchments
-            st.session_state.last_synced_district = target_choice
-            st.session_state.app_view = "dashboard"
-            st.rerun()
-    with dlg_c2:
-        if st.button("Cancel", use_container_width=True):
-            st.rerun()
-
-# Top Navigation Bar
-nav_col1, nav_col2 = st.columns([3.4, 1.3])
-with nav_col1:
-    st.markdown(f"""
-    <div style="font-size: 0.90rem; color: #94A3B8; padding: 6px 0;">
-        📍 <b>Active Target:</b> <span style="color: #38BDF8; font-weight: 700;">{primary_district}, Assam</span> &nbsp;|&nbsp; <b>Catchments:</b> <span style="color: #F8FAFC; font-weight: 600;">{len(secondary_items)} Districts</span> &nbsp;|&nbsp; <b>Live Feeds:</b> <span style="color: #4ADE80; font-weight: 600;">IMD & IITM-ILDN</span>
-    </div>
-    """, unsafe_allow_html=True)
-with nav_col2:
-    if user_role == "superadmin":
-        if st.button("⚙️ Superadmin: Switch District", use_container_width=True):
-            show_district_switch_dialog()
-    else:
-        st.markdown(f"""
-        <div style="text-align: right; padding-top: 6px;">
-            <span style="background: rgba(30, 41, 59, 0.8); color: #94A3B8; border: 1px solid #334155; padding: 6px 12px; border-radius: 8px; font-size: 0.80rem; font-weight: 600;">
-                🔒 District Locked to {primary_district}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+    response.raise_for_status()
+    payload = response.json()
+    daily = payload.get("daily") or {}
+    dates = daily.get("time") or []
+    maxima = daily.get("temperature_2m_max") or []
+    minima = daily.get("temperature_2m_min") or []
+    if not dates or len(dates) != len(maxima) or len(dates) != len(minima):
+        raise RuntimeError("Open-Meteo returned no complete dated maximum/minimum forecast.")
+    model_lat = payload.get("latitude")
+    model_lon = payload.get("longitude")
+    if model_lat is None or model_lon is None:
+        raise RuntimeError("Open-Meteo did not identify the forecast grid coordinates.")
+    source = "Open-Meteo live model · district reference point"
+    return [{
+        "date": date, "maximum_c": maximum, "minimum_c": minimum,
+        "source": source, "source_url": "https://open-meteo.com/",
+        "reference_latitude": point.y, "reference_longitude": point.x,
+        "grid_latitude": model_lat, "grid_longitude": model_lon,
+    } for date, maximum, minimum in zip(dates[:5], maxima[:5], minima[:5])
+        if maximum is not None and minimum is not None]
 
 
-target_loc = data.get("metadata", {}).get("target_location", {}) if data else {}
-active_district = target_loc.get("district", primary_district)
-active_coords = target_loc.get("coordinates", f"{current_meta['lat']}°N, {current_meta['lon']}°E")
-active_basin = target_loc.get("river_basin", current_meta.get("river_basin", "Assam River Basin"))
+def live_met_centre_district_forecast(state, district, pdf_content=None, source_config=None):
+    """Parse a current district row from a live IMD/RMC Met Centre PDF table."""
+    configured = source_config or MC_DISTRICT_FORECAST_PDFS.get(normalized(state))
+    if isinstance(configured, list):
+        configured = configured[0] if configured else None
+    if not configured:
+        raise RuntimeError("No district forecast PDF is connected for this Meteorological Centre.")
+    url, centre = configured
+    if pdf_content is None:
+        response = requests.get(url, headers=HEADERS, timeout=(5, 30))
+        response.raise_for_status()
+        pdf_content = response.content
+    if not pdf_content.startswith(b"%PDF"):
+        raise RuntimeError(f"{centre} did not return its district forecast PDF.")
 
-st.markdown(f"""
-<div class="header-box">
-    <div style="font-size: 0.80rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #BAE6FD; margin-bottom: 2px;">
-        District Disaster Management Authority (DDMA), {active_district.upper()}
-    </div>
-    <div class="header-title">District Integrated Weather Information System (DIWIS)</div>
-    <div class="header-sub">
-        Target District: <b>{active_district}, Assam</b> | HQ Coordinates: <b>{active_coords}</b> | Basin: <b>{active_basin}</b> | <b>Data Sources: India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)</b>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# 3. ACTION CONTROLS
-# ==========================================
-action_col1, action_col2, action_col3 = st.columns([1.5, 1.2, 1.2])
-
-with action_col1:
-    if st.button("🔄 Sync with IMD & SQL Database", use_container_width=True, type="primary"):
-        with st.spinner(f"Syncing live IMD weather, lightning & upstream data for {primary_district}..."):
-            data = scrape_weather_data(primary_state, primary_district, secondary_items, generate_reports=True, report_generated_by=user_name)
-            st.success(f"Successfully synchronized and persisted data for {primary_district}!")
-            st.rerun()
-
-with action_col2:
-    if os.path.exists(PDF_REPORT_PATH):
-        with open(PDF_REPORT_PATH, "rb") as pdf_file:
-            st.download_button(
-                label="📥 Download Daily PDF Dossier",
-                data=pdf_file,
-                file_name=f"DDMA_{active_district}_Daily_Weather_Report.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
-    else:
-        st.button("📥 Daily PDF (Click Sync to Generate)", disabled=True, use_container_width=True)
-
-with action_col3:
-    if os.path.exists(MD_REPORT_PATH):
-        with open(MD_REPORT_PATH, "rb") as md_file:
-            st.download_button(
-                label="📄 Download Report Brief (MD)",
-                data=md_file,
-                file_name=f"DDMA_{active_district}_Daily_Report.md",
-                mime="text/markdown",
-                use_container_width=True
-            )
-    else:
-        st.button("📄 Report Brief (Pending)", disabled=True, use_container_width=True)
-
-st.caption(f"🕒 **Last Synchronized with IMD:** {data.get('metadata', {}).get('scraped_at_local', 'N/A') if data else 'Never'} | **Active Primary:** {active_district} (Assam) | **Monitored Predictors:** {len(secondary_items)} Districts | **Database:** SQLite Connected")
-st.markdown("---")
-
-if not data:
-    st.warning("No data found. Click 'Sync with IMD' above to fetch real-time data!")
-    st.stop()
-
-# ==========================================
-# 4. OPTION 1: STATE EOC COMMAND DECK (5 SEGMENTED OPERATIONAL TABS)
-# ==========================================
-
-# Unpack all data models for tabs
-temp_obs = data.get("temperature_data", {}).get("current_observation", {})
-obs_rf = data.get("observed_rainfall_past24h", {})
-rainfall = data.get("rainfall_forecast_5days", [])
-warnings = data.get("severe_weather_warnings_5days", {}).get("daily_warnings", [])
-temp_fc = data.get("temperature_data", {}).get("daily_temperature_forecast_5days", [])
-upstream_data = data.get("upstream_catchment_rainfall") or data.get("upstream_mizoram_rainfall", [])
-nowcast_info = data.get("current_nowcast_warning", {})
-damini = data.get("damini_sensor_lightning", {})
-active_sectors = data.get("lightning_zones_data", {}).get("sectors", current_meta.get("sectors", []))
-synoptic_data = data.get("synoptic_bulletin", {}).get("synoptic_excerpts", [])
-
-# Primary Segmented Operational Tabs
-tab_tactical, tab_hydro, tab_convective, tab_reports_sql, tab_provenance = st.tabs([
-    "🛰️ Tactical Overview",
-    "🌧️ Hydrometeorology & Inflows",
-    "⚡ Convective & Lightning Hazards",
-    "📑 Official Reports & SQL Archive",
-    "🏛️ Telemetry & Data Provenance"
-])
-
-# -------------------------------------------------------------
-# TAB 1: TACTICAL OVERVIEW (EXECUTIVE SITUATION ROOM)
-# -------------------------------------------------------------
-with tab_tactical:
-    # 1. Dynamic Operational Condition Status Banner
-    today_w = warnings[0] if warnings else {}
-    w_color = today_w.get("alert_color", "Green")
-    w_sum = today_w.get("warning_summary", "No Warning")
-    
-    nowcast_color = nowcast_info.get("alert_color", "Green")
-    nowcast_msg = nowcast_info.get("message", "Convective weather alert issued.")
-    has_nowcast = nowcast_info.get("has_active_nowcast", False) or nowcast_color in ["Red", "Orange"]
-    
-    c_inside = damini.get("total_strikes_inside_boundary", 0)
-    c_20 = damini.get("total_strikes_20km", 0)
-    c_40 = damini.get("total_strikes_40km", 0)
-
-    # Pinpoint exact trigger feed and build clear operational message
-    if w_color == "Red":
-        cond_class = "condition-banner-red"
-        cond_title = f"🔴 CONDITION RED: IMD SEVERE WEATHER WARNING ACTIVE ({active_district.upper()})"
-        cond_badge = "CRITICAL ALERT"
-        cond_bg = "rgba(239, 68, 68, 0.2)"
-        cond_fg = "#FCA5A5"
-        cond_border = "rgba(239, 68, 68, 0.4)"
-        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Immediate district disaster management protocols in effect."
-    elif nowcast_color == "Red" and has_nowcast:
-        cond_class = "condition-banner-red"
-        cond_title = f"🔴 CONDITION RED: RMC GUWAHATI 3-HOUR NOWCAST WARNING ({active_district.upper()})"
-        cond_badge = "RADAR NOWCAST"
-        cond_bg = "rgba(239, 68, 68, 0.2)"
-        cond_fg = "#FCA5A5"
-        cond_border = "rgba(239, 68, 68, 0.4)"
-        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg} <i>(Note: 5-Day synoptic baseline is currently {w_color} Alert).</i>"
-    elif c_inside > 0:
-        cond_class = "condition-banner-red"
-        cond_title = f"🔴 CONDITION RED: ACTIVE GROUND LIGHTNING STRIKES ({active_district.upper()})"
-        cond_badge = "SENSOR STRIKES"
-        cond_bg = "rgba(239, 68, 68, 0.2)"
-        cond_fg = "#FCA5A5"
-        cond_border = "rgba(239, 68, 68, 0.4)"
-        cond_desc = f"<b>Trigger: IITM-ILDN Ground Sensors:</b> {c_inside} active ground strike(s) detected inside {active_district} in past 45m. Restrict outdoor movement."
-    elif w_color == "Orange":
-        cond_class = "condition-banner-orange"
-        cond_title = f"🟠 CONDITION ORANGE: IMD WEATHER WATCH ({active_district.upper()})"
-        cond_badge = "ENHANCED WATCH"
-        cond_bg = "rgba(249, 115, 22, 0.2)"
-        cond_fg = "#FB923C"
-        cond_border = "rgba(249, 115, 22, 0.4)"
-        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Field personnel on enhanced standby."
-    elif nowcast_color == "Orange" and has_nowcast:
-        cond_class = "condition-banner-orange"
-        cond_title = f"🟠 CONDITION ORANGE: RMC GUWAHATI NOWCAST WATCH ({active_district.upper()})"
-        cond_badge = "RADAR WATCH"
-        cond_bg = "rgba(249, 115, 22, 0.2)"
-        cond_fg = "#FB923C"
-        cond_border = "rgba(249, 115, 22, 0.4)"
-        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg}"
-    elif w_color == "Yellow":
-        cond_class = "condition-banner-yellow"
-        cond_title = f"🟡 CONDITION YELLOW: IMD WEATHER ADVISORY ({active_district.upper()})"
-        cond_badge = "ADVISORY"
-        cond_bg = "rgba(234, 179, 8, 0.2)"
-        cond_fg = "#FACC15"
-        cond_border = "rgba(234, 179, 8, 0.4)"
-        cond_desc = f"<b>Trigger: IMD 5-Day Severe Weather Warning:</b> {w_sum}. Precautionary monitoring active."
-    elif nowcast_color == "Yellow" and has_nowcast:
-        cond_class = "condition-banner-yellow"
-        cond_title = f"🟡 CONDITION YELLOW: RMC GUWAHATI NOWCAST ADVISORY ({active_district.upper()})"
-        cond_badge = "NOWCAST ADVISORY"
-        cond_bg = "rgba(234, 179, 8, 0.2)"
-        cond_fg = "#FACC15"
-        cond_border = "rgba(234, 179, 8, 0.4)"
-        cond_desc = f"<b>Trigger: RMC Guwahati 3-Hour Nowcast Feed:</b> {nowcast_msg}"
-    elif c_20 > 0:
-        cond_class = "condition-banner-yellow"
-        cond_title = f"🟡 CONDITION YELLOW: LIGHTNING ACTIVITY NEAR PERIMETER ({active_district.upper()})"
-        cond_badge = "PERIMETER SENSOR"
-        cond_bg = "rgba(234, 179, 8, 0.2)"
-        cond_fg = "#FACC15"
-        cond_border = "rgba(234, 179, 8, 0.4)"
-        cond_desc = f"<b>Trigger: IITM-ILDN Ground Sensors:</b> {c_20} lightning strike(s) detected within 20 km of {active_district} perimeter."
-    else:
-        cond_class = "condition-banner-green"
-        cond_title = f"🟢 CONDITION GREEN: ROUTINE OPERATIONAL READINESS ({active_district.upper()})"
-        cond_badge = "ALL CLEAR"
-        cond_bg = "rgba(16, 185, 129, 0.2)"
-        cond_fg = "#6EE7B7"
-        cond_border = "rgba(16, 185, 129, 0.4)"
-        cond_desc = f"Atmospheric parameters within normal baseline. No severe weather warnings active for {active_district} across 5-day forecast, radar nowcast, or sensor feeds."
-
-    st.markdown(f"""
-    <div class="condition-banner {cond_class}">
-        <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                <div style="font-size: 1.15rem; font-weight: 800; color: #F8FAFC;">
-                    {cond_title}
-                </div>
-                <span style="background: {cond_bg}; color: {cond_fg}; border: 1px solid {cond_border}; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 9999px;">
-                    {cond_badge}
-                </span>
-            </div>
-            <div style="font-size: 0.85rem; color: #CBD5E1; line-height: 1.4;">
-                {cond_desc}
-            </div>
-        </div>
-        <div style="font-size: 0.78rem; color: #94A3B8; text-align: right;">
-            <b>EOC Ops Status:</b> Real-Time IMD Telemetry<br>
-            <b>Target Coordinates:</b> {active_coords}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 2. Key Metrics Row
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        today_t = temp_fc[0] if temp_fc else {}
-        st.metric(
-            label=f"Today's Temp ({active_district})",
-            value=f"{today_t.get('max_temp_c', 'N/A')}°C Max",
-            delta=f"Min: {today_t.get('min_temp_c', 'N/A')}°C (Dep: {today_t.get('departure_c', 0)}°C)"
-        )
-
-    with m2:
-        today_rf = rainfall[0] if rainfall else {}
-        st.metric(
-            label="Today's Rainfall Status",
-            value=today_rf.get("rainfall_category", "N/A"),
-            delta=f"Spatial: {today_rf.get('station_coverage', 'N/A')}"
-        )
-
-    with m3:
-        today_w = warnings[0] if warnings else {}
-        st.metric(
-            label="Severe Weather Alert",
-            value=f"{today_w.get('alert_color', 'Green')} Alert",
-            delta=today_w.get("alert_level", "No Warning"),
-            delta_color="inverse" if today_w.get("alert_color") in ["Yellow", "Orange", "Red"] else "normal"
-        )
-
-    with m4:
-        highest_color = "Green"
-        alert_district = "All Stable"
-        for u in upstream_data:
-            u_col = u.get("imd_alert_color", "Green")
-            if u_col in ["Red", "Orange"]:
-                highest_color = u_col
-                alert_district = f"{u.get('upstream_district')} ({u_col})"
+    pdf = PdfReader(io.BytesIO(pdf_content))
+    text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+    date_pattern = re.compile(
+        r"\b\d{1,2}(?:[-/. ]+[A-Za-z]{3,9}|[-/. ]+\d{1,2})[-/. ]+\d{2,4}\b"
+        r"|\b\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}\b"
+    )
+    date_formats = (
+        "%d-%b-%Y", "%d-%b-%y", "%d/%b/%Y", "%d/%b/%y", "%d.%b.%Y", "%d.%b.%y",
+        "%d-%B-%Y", "%d/%B/%Y", "%d %B %Y", "%d %b %Y", "%d-%m-%Y", "%d-%m-%y",
+        "%d/%m/%Y", "%d/%m/%y", "%d.%m.%Y", "%d.%m.%y",
+    )
+    date_tokens = date_pattern.findall(text)
+    # Some PDF extractors emit table-cell dates before the page title. Prefer
+    # the explicitly labelled issue date when the centre provides one.
+    date_token_group = (
+        r"(\d{1,2}(?:[-/. ]+[A-Za-z]{3,9}|[-/. ]+\d{1,2})[-/. ]+\d{2,4}"
+        r"|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})"
+    )
+    issue_date_match = re.search(r"\b(?:Issue\s+)?Date\s*:\s*" + date_token_group, text, re.I)
+    if issue_date_match:
+        date_tokens.insert(0, issue_date_match.group(1))
+    report_date = None
+    for token in date_tokens:
+        for date_format in date_formats:
+            try:
+                report_date = datetime.strptime(" ".join(token.split()), date_format).date()
                 break
-            elif u_col == "Yellow" and highest_color == "Green":
-                highest_color = "Yellow"
-                alert_district = f"{u.get('upstream_district')} (Yellow)"
-
-        st.metric(
-            label=f"Upstream IMD Status ({active_district})",
-            value=f"{highest_color} Alert" if highest_color != "Green" else "All Green (Stable)",
-            delta=f"Active on {alert_district}" if highest_color != "Green" else f"{len(upstream_data)} Predictors Monitored",
-            delta_color="inverse" if highest_color in ["Red", "Orange", "Yellow"] else "normal"
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # 3. Operational Snapshot Row (Atmosphere + Convective)
-    q1, q2 = st.columns(2)
-    with q1:
-        st.markdown(f"""
-        <div class="temp-card">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #F59E0B; text-transform: uppercase; margin-bottom: 4px;">
-                🌡️ Live Atmosphere & Past 24h Rain Snapshot — {active_district}
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 8px;">
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Ambient Temp</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: #FBBF24;">{temp_obs.get('temperature_c', 'N/A')} °C</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Expected Max/Min</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: #FDE68A;">{temp_obs.get('today_max_c', 'N/A')}° / {temp_obs.get('today_min_c', 'N/A')}°C</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Past 24h Actual Rain</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm') or '0.0 mm'}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage') or '0%'}</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    with q2:
-        alarm_lvl = damini.get("alarm_level", "🟢 All Clear (No Active Strikes)")
-        c_in = damini.get("total_strikes_inside_boundary", 0)
-        now_col = nowcast_info.get("alert_color", "Green")
-        now_text_color = '#EF4444' if now_col == 'Red' else ('#FB923C' if now_col == 'Orange' else ('#FACC15' if now_col == 'Yellow' else '#4ADE80'))
-        st.markdown(f"""
-        <div class="obs-card">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; text-transform: uppercase; margin-bottom: 4px;">
-                ⚡ Immediate Convective & Lightning Status — {active_district}
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 8px;">
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Damini Ground Strikes (0-45m)</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: {'#EF4444' if c_in > 0 else '#10B981'};">{c_in} Inside Boundary</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">RMC Nowcast Alert</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: {now_text_color};">{now_col} Alert</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.72rem; color: #94A3B8;">Sensor Alarm Level</div>
-                    <div style="font-size: 0.95rem; font-weight: 700; color: #6EE7B7;">{alarm_lvl}</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 4. 5-Day Visual Forecast Timeline
-    st.subheader(f"5-Day {active_district} Temperature, Forecast & Severe Weather Timeline (Source: IMD)")
-    cols = st.columns(len(rainfall))
-    for idx, (rf, col) in enumerate(zip(rainfall, cols)):
-        w = warnings[idx] if idx < len(warnings) else {}
-        t = temp_fc[idx] if idx < len(temp_fc) else {}
-        alert_color = w.get("alert_color", "Green")
-        badge_cls = "badge-red" if alert_color == "Red" else ("badge-orange" if alert_color == "Orange" else ("badge-yellow" if alert_color == "Yellow" else "badge-green"))
-        
-        with col:
-            st.markdown(f"""
-            <div class="card">
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Day {rf.get('day_index')} {'(Today)' if idx == 0 else ''}</div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #F8FAFC; margin: 2px 0 6px 0;">{rf.get('date', 'N/A')}</div>
-                    <div style="font-size: 0.88rem; font-weight: 700; color: #F59E0B; margin-bottom: 4px;">🌡️ {t.get('max_temp_c', '-')}°C / {t.get('min_temp_c', '-')}°C</div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #38BDF8; margin-bottom: 2px;">🌧️ {rf.get('rainfall_category')}</div>
-                    <div style="font-size: 0.78rem; color: #94A3B8; margin-bottom: 10px;">Stations: {rf.get('station_coverage')}</div>
-                </div>
-                <div style="border-top: 1px solid #334155; padding-top: 10px; margin-top: 6px;">
-                    <div style="margin-bottom: 6px;"><span class="{badge_cls}">{alert_color} Alert</span></div>
-                    <div style="font-size: 0.78rem; color: #CBD5E1; line-height: 1.35;"><b>Hazards:</b> {w.get('warning_summary', 'No Warning')}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-
-# -------------------------------------------------------------
-# TAB 2: HYDROMETEOROLOGY & INFLOWS
-# -------------------------------------------------------------
-with tab_hydro:
-    col_left, col_right = st.columns(2)
-
-    with col_left:
-        st.markdown(f"""
-        <div class="temp-card">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #F59E0B; text-transform: uppercase; margin-bottom: 4px;">
-                🌡️ Live Ambient Temperature & Atmosphere — {active_district} (Source: IMD)
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; margin-top: 8px;">
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Current Ambient Temp</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #FBBF24;">{temp_obs.get('temperature_c', 'N/A')} °C</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Today's Expected Max / Min</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #FDE68A;">{temp_obs.get('today_max_c', 'N/A')}° / {temp_obs.get('today_min_c', 'N/A')}°C</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Humidity & Wind</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #E2E8F0;">{temp_obs.get('relative_humidity_pct', 'N/A')}% | {temp_obs.get('wind_speed_kmh', 'N/A')} km/h</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_right:
-        st.markdown(f"""
-        <div class="obs-card">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; text-transform: uppercase; margin-bottom: 4px;">
-                📊 Past 24-Hour Observed Rainfall — {active_district} (Source: IMD - Recorded at 08:30 IST)
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 8px;">
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Date Recorded</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">{obs_rf.get('recorded_date', 'N/A')}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Actual Observed</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: #38BDF8;">{obs_rf.get('actual_rainfall_mm') or '0.0 mm'}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Normal Benchmark</div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #CBD5E1;">{obs_rf.get('normal_rainfall_mm') or '0.0 mm'}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Departure (%)</div>
-                    <div style="font-size: 1.15rem; font-weight: 800; color: #F87171;">{obs_rf.get('departure_percentage') or '0%'}</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader(f"Upstream Catchment & Predictor Weather Tracker (Target: {active_district} — Source: IMD)")
-    st.caption("Direct IMD observed rainfall, 5-day spatial forecast, and official severe weather warnings across influential upstream/neighbouring predictor districts.")
-
-    if upstream_data:
-        grid_cols = st.columns(min(len(upstream_data), 3))
-        for idx, mitem in enumerate(upstream_data):
-            mcol = grid_cols[idx % len(grid_cols)]
-            w_color = mitem.get("imd_alert_color", "Green")
-            w_summary = mitem.get("imd_warning_summary", "No Warning")
-            w_level = mitem.get("imd_alert_level", "No Warning (No Action)")
-            
-            if w_color == "Red":
-                border_col = "#EF4444"
-                badge_bg = "rgba(239, 68, 68, 0.2)"
-                badge_text = "#FCA5A5"
-                badge_border = "rgba(239, 68, 68, 0.4)"
-            elif w_color == "Orange":
-                border_col = "#F97316"
-                badge_bg = "rgba(249, 115, 22, 0.2)"
-                badge_text = "#FB923C"
-                badge_border = "rgba(249, 115, 22, 0.4)"
-            elif w_color == "Yellow":
-                border_col = "#EAB308"
-                badge_bg = "rgba(234, 179, 8, 0.2)"
-                badge_text = "#FACC15"
-                badge_border = "rgba(234, 179, 8, 0.4)"
-            else:
-                border_col = "#10B981"
-                badge_bg = "rgba(16, 185, 129, 0.2)"
-                badge_text = "#6EE7B7"
-                badge_border = "rgba(16, 185, 129, 0.4)"
-            
-            f1_entry = mitem["forecast_5days"][0] if mitem.get("forecast_5days") else {}
-            f1_cat = f1_entry.get("rainfall_category") or "Data Pending"
-            f1_cov = f1_entry.get("station_coverage") or "N/A"
-            r_link = mitem.get("river_link", mitem.get("river_link_to_hailakandi", "Catchment Drainage Corridor"))
-            
-            with mcol:
-                st.markdown(f"""
-                <div style="background: #1E293B; border: 1px solid #334155; border-left: 4px solid {border_col}; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; color: #F8FAFC;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
-                        <div style="font-size: 1.05rem; font-weight: 700; color: #F8FAFC;">
-                            📍 {mitem.get('upstream_district')} <span style="font-size: 0.85rem; color: #94A3B8;">({mitem.get('state')})</span>
-                        </div>
-                    </div>
-                    <div style="font-size: 0.78rem; color: #38BDF8; margin-bottom: 6px;">
-                        🔗 {r_link}
-                    </div>
-                    <div style="font-size: 0.85rem; color: #CBD5E1; margin-bottom: 4px;">
-                        <b>Past 24h Actual:</b> <span style="font-weight: 700; color: #38BDF8;">{mitem.get('past_24h_actual_rainfall')}</span> ({mitem.get('past_24h_departure', '0%')})
-                    </div>
-                    <div style="font-size: 0.85rem; color: #CBD5E1; margin-bottom: 8px;">
-                        <b>Day 1 Forecast:</b> {f1_cat} <span style="font-size: 0.75rem; color: #94A3B8;">({f1_cov})</span>
-                    </div>
-                    <div style="font-size: 0.78rem; font-weight: 700; color: {badge_text}; background: {badge_bg}; border: 1px solid {badge_border}; padding: 4px 10px; border-radius: 6px; display: inline-block;">
-                        🛡️ IMD {w_color} Alert: {w_summary if w_summary != 'No Warning' else w_level}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.info("Select one or more Secondary Predictor Districts above to activate upstream catchment tracking.")
-
-    # Data Tables for Hydrometeorology
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader(f"Hydrometeorology & Catchment Data Records ({active_district})")
-    
-    subtab_fc, subtab_catchment = st.tabs([
-        f"📊 {active_district} 5-Day Forecast Table",
-        "🌊 Secondary Predictor Catchment Table"
-    ])
-    with subtab_fc:
-        if os.path.exists(CSV_PATH):
-            df = pd.read_csv(CSV_PATH)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-    with subtab_catchment:
-        if os.path.exists(MIZORAM_CSV_PATH):
-            mdf = pd.read_csv(MIZORAM_CSV_PATH)
-            st.dataframe(mdf, use_container_width=True, hide_index=True)
-
-
-# -------------------------------------------------------------
-# TAB 3: CONVECTIVE & LIGHTNING HAZARDS
-# -------------------------------------------------------------
-with tab_convective:
-    st.markdown(f"""
-    <div style="font-size: 1.25rem; font-weight: 800; color: #F87171; margin-bottom: 4px;">
-        Lightning & Convective Hazard Monitoring ({active_district})
-    </div>
-    """, unsafe_allow_html=True)
-
-    timeframe_option = st.selectbox(
-        "Select Lightning Observation / Forecast Timeframe:",
-        options=[
-            "⚡ Real-Time Live Ground Strikes — [⏱️ Time Window: Past 0 to 45 Mins | Live Sensors]",
-            "🕒 Short-Range District Nowcast Bulletin — [⏱️ Time Window: Next 0 to 3 Hours | Official IMD]",
-            "🗺️ Convective Sector Hazard Risk Zones — [⏱️ Time Window: Next 3 to 6 Hours | Synoptic Cells]"
-        ],
-        index=0,
-        help="Switch between immediate live sensor strike alerts (Damini), short-range 3h nowcast, or extended 3-6h convective hazard zones."
+            except ValueError:
+                continue
+        if report_date:
+            break
+    if not report_date:
+        raise RuntimeError(f"{centre} PDF did not expose a recognizable issue date.")
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    today = now.date()
+    previous_day_still_valid = (
+        report_date == today - timedelta(days=1)
+        and now.time() < datetime.strptime("08:30", "%H:%M").time()
     )
+    if report_date != today and not previous_day_still_valid:
+        raise RuntimeError(f"{centre} forecast is dated {report_date.isoformat()} and is outside its live validity window.")
 
-    if "Past 0 to 45 Mins" in timeframe_option:
-        # Prominent Time Window Banner Strip
-        st.markdown("""
-        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.4); border-left: 5px solid #38BDF8; border-radius: 8px; padding: 10px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
-            <div style="font-size: 0.88rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.03em;">
-                ⏱️ ACTIVE OBSERVATION TIME WINDOW: <span style="background: rgba(56, 189, 248, 0.2); padding: 3px 8px; border-radius: 4px; color: #F8FAFC;">PAST 0 TO 45 MINUTES</span> (GROUND SENSOR OBSERVATION)
-            </div>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #BAE6FD; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 10px; border-radius: 4px;">
-                🛰️ Live IITM-ILDN / DAMINI Sensors
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+    # Preserve each centre's published wording; daily tables differ in layout.
+    # pdfplumber reads these source PDFs' table cells and keeps each forecast
+    # attached to its exact district row. Tripura uses a three-row cell group;
+    # Assam adds a rotated forecast-label column.
+    import pdfplumber
+    district_row = None
+    forecast_values = None
+    with pdfplumber.open(io.BytesIO(pdf_content)) as source_pdf:
+        for page in source_pdf.pages:
+            for table in page.extract_tables() or []:
+                for row_index, row in enumerate(table):
+                    if not row or not row[0]:
+                        continue
+                    labels = []
+                    for part in re.split(r"[/|]", str(row[0])):
+                        # RMC PDF text extraction sometimes inserts (cid:NNN)
+                        # glyph markers into the Hindi line beneath an English
+                        # district name. Strip those markers before matching.
+                        part = re.sub(r"\(cid:\d+\)", " ", part, flags=re.I)
+                        english_words = re.findall(r"[A-Za-z][A-Za-z&.'-]*", part)
+                        candidate = " ".join(english_words).strip()
+                        if candidate:
+                            labels.append(candidate)
+                    if not labels or not unique_district_label_match(district, labels, threshold=0.86):
+                        continue
+                    group = [row]
+                    for continuation in table[row_index + 1:row_index + 3]:
+                        if continuation and not str(continuation[0] or "").strip():
+                            group.append(continuation)
+                        else:
+                            break
+                    first_forecast_column = 2 if len(row) >= 9 else 1
+                    values = []
+                    for column in range(first_forecast_column, max(len(cells) for cells in group)):
+                        parts = []
+                        for cells in group:
+                            if column >= len(cells):
+                                continue
+                            cell = " ".join(str(cells[column] or "").split())
+                            if re.search(r"\b(?:dry|rain|ra/ts|thunder|isol|scattered|likely|places|few)\b", cell, re.I):
+                                parts.append(cell)
+                        values.append(" · ".join(dict.fromkeys(parts)) or None)
+                    if len(values) >= 5 and any(value for value in values[:5]):
+                        district_row = row[0]
+                        forecast_values = values
+                        break
+                if forecast_values is not None:
+                    break
+            if forecast_values is not None:
+                break
 
-        strikes_inside = damini.get("strikes_inside_district", [])
-        strikes_all = damini.get("strikes", [])
-        c_inside = damini.get("total_strikes_inside_boundary", len(strikes_inside))
-        c_20 = damini.get("total_strikes_20km", 0)
-        c_40 = damini.get("total_strikes_40km", 0)
-        alarm_lvl = damini.get("alarm_level", "🟢 All Clear (No Active Strikes inside District)")
-        bbox = damini.get("district_boundary_bbox", current_meta.get("bbox", {}))
-        
-        is_danger = c_inside > 0 or c_20 > 0
-        is_warn = c_40 > 0 and not is_danger
-        
-        banner_border = "#EF4444" if is_danger else ("#F59E0B" if is_warn else "#10B981")
-        badge_bg = "rgba(239, 68, 68, 0.2)" if is_danger else ("rgba(245, 158, 11, 0.2)" if is_warn else "rgba(16, 185, 129, 0.2)")
-        badge_fg = "#FCA5A5" if is_danger else ("#FCD34D" if is_warn else "#6EE7B7")
-        badge_border = "rgba(239, 68, 68, 0.4)" if is_danger else ("rgba(245, 158, 11, 0.4)" if is_warn else "rgba(16, 185, 129, 0.4)")
+    if forecast_values is None:
+        raise RuntimeError(f"{centre} current PDF has no parseable forecast row for {district}.")
+    return [{
+        "district": district, "date": (report_date + timedelta(days=index)).isoformat(),
+        "issue_date": report_date.isoformat(),
+        "rainfall": forecast_values[index], "coverage": "",
+        "source": f"{centre} district forecast PDF", "source_url": url,
+    } for index in range(5)]
 
-        nearest_km = damini.get('nearest_strike_km')
-        nearest_dir = damini.get('nearest_strike_direction', '')
-        nearest_display = f"{nearest_km} km ({nearest_dir})" if nearest_km is not None else "None in 120 km"
 
-        st.markdown(f"""
-        <div style="background: #1E293B; border: 1px solid #334155; border-left: 4px solid {banner_border}; border-radius: 12px; padding: 18px; margin-bottom: 14px; color: #F8FAFC;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-size: 1.05rem; font-weight: 800; color: #F8FAFC;">
-                    🛰️ Live Ground Lightning Strikes — Strictly Inside {active_district} Boundary
-                </div>
-                <span style="background: {badge_bg}; color: {badge_fg}; border: 1px solid {badge_border}; font-size: 0.78rem; font-weight: 700; padding: 3px 12px; border-radius: 9999px;">
-                    {alarm_lvl}
-                </span>
-            </div>
-            <div style="font-size: 0.82rem; color: #94A3B8; margin-bottom: 12px;">
-                <b>District Geographic Bounds:</b> Lat [{bbox.get('min_lat', '-')}°N to {bbox.get('max_lat', '-')}°N] | Lon [{bbox.get('min_lon', '-')}°E to {bbox.get('max_lon', '-')}°E]
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; margin: 12px 0; background: #0F172A; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">⚡ Strikes INSIDE Boundary (0–45m)</div>
-                    <div style="font-size: 1.45rem; font-weight: 800; color: {'#EF4444' if c_inside > 0 else '#10B981'};">{c_inside} Strikes</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Outer Perimeter (< 20 km)</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: {'#EF4444' if c_20 > 0 else '#10B981'};">{c_20} Strikes</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Approaching (20–40 km)</div>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: {'#F59E0B' if c_40 > 0 else '#10B981'};">{c_40} Strikes</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Latest Sensor Strike Time</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: #38BDF8;">{damini.get('nearest_strike_time_ist', 'No active strikes')}</div>
-                </div>
-            </div>
-            <div style="font-size: 0.84rem; color: {badge_fg}; background: {badge_bg}; border: 1px solid {badge_border}; padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
-                📢 <b>Field Sensor Advisory:</b> {damini.get('safety_action', 'Safe to proceed with normal outdoor activities.')}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+def fetch_live_district_forecasts(places, district_geometries=None):
+    """Fetch exact-district live forecasts; regional RMC text is never assigned to a district."""
+    states = sorted({state for _kind, state, _district in places}, key=normalized)
+    rain_by_state_day, failures = {}, {}
+    # The live IMD rainfall page has no <select>; its JavaScript map embeds the
+    # exact state labels passed to the rainfall endpoint. Read those live labels.
+    try:
+        rain_page = requests.get(IMD_DISTRICT_RAIN_FORECAST_PAGE, headers=HEADERS, timeout=(5, 20))
+        rain_page.raise_for_status()
+        rain_state_options = _imd_rainfall_map_state_labels(rain_page.text)
+    except Exception as exc:
+        rain_state_options = []
+        rain_state_error = str(exc)
+    else:
+        rain_state_error = ""
+    rain_state_values = {}
+    for state in states:
+        matched_state = unique_district_label_match(
+            state, [label for _value, label in rain_state_options], threshold=0.90
+        )
+        rain_state_values[state] = next(
+            (value for value, label in rain_state_options if label == matched_state), None
+        )
+    rain_jobs = [(state, day) for state in states if rain_state_values.get(state)
+                 for day in range(1, 6)]
+    for state in states:
+        if not rain_state_values.get(state):
+            reason = rain_state_error or "State not listed in IMD's live rainfall forecast selector."
+            for day in range(1, 6):
+                failures[(state, day)] = reason
+    with ThreadPoolExecutor(max_workers=min(10, max(1, len(rain_jobs)))) as pool:
+        futures = {pool.submit(live_imd_district_rain_forecast, rain_state_values[state], day): (state, day)
+                   for state, day in rain_jobs}
+        for future, pair in futures.items():
+            try:
+                rain_by_state_day[pair] = future.result()
+            except Exception as exc:
+                failures[pair] = str(exc)
 
-        if strikes_inside:
-            table_rows = []
-            active_count = 0
-            for s in strikes_inside:
-                s_lat = s.get('latitude')
-                s_lon = s.get('longitude')
-                age_val = s.get('age_minutes', 0)
-                age_str = s.get('age_formatted') or format_strike_age(age_val)
-                is_active = s.get('is_active_nowcast', (age_val <= 45.0 if age_val is not None else False))
-                gmaps_url = s.get('google_maps_url') or s.get('gmaps_url') or f"https://www.google.com/maps?q={s_lat},{s_lon}"
-                active_count += int(bool(is_active))
-                table_rows.append({
-                    "Coordinates": f"{s_lat}° N, {s_lon}° E",
-                    "Locality / Sector": s.get('nearest_locality', 'Unknown'),
-                    "Detected (IST)": s.get('timestamp_ist', 'Unknown'),
-                    "Age / Status": f"Active · {age_str}" if is_active else f"Historical · {age_str}",
-                    "Map": gmaps_url,
-                })
-            expander_title = f"Sensor records inside {active_district} · {active_count} active / {len(strikes_inside)} total"
-            with st.expander(expander_title, expanded=active_count > 0):
-                st.caption("Only records detected within the past 45 minutes are counted as active. Older sensor hits are shown as history.")
-                st.dataframe(
-                    pd.DataFrame(table_rows),
-                    column_config={
-                        "Map": st.column_config.LinkColumn(
-                            "Map",
-                            help="Open the strike coordinates in Google Maps",
-                            display_text="Open map ↗",
-                        )
-                    },
-                    use_container_width=True,
-                    hide_index=True,
+    output = []
+    met_centre_pdf_cache = {}
+    with ThreadPoolExecutor(max_workers=min(10, max(1, len(places)))) as pool:
+        temperature_jobs = {}
+        for _kind, state, district in places:
+            geometry = (district_geometries or {}).get((state, district))
+            if geometry is None:
+                geometry = next((candidate for (boundary_state, boundary_district), candidate
+                                 in (district_geometries or {}).items()
+                                 if normalized(boundary_state) == normalized(state)
+                                 and normalized(boundary_district) == normalized(district)), None)
+            if geometry is not None:
+                temperature_jobs[(state, district)] = pool.submit(
+                    live_open_meteo_temperature_forecast, geometry
                 )
-        else:
-            st.success(f"🟢 Zero ground lightning strikes detected strictly inside {active_district} boundary in the past sensor monitoring window.")
+        for kind, state, district in places:
+            try:
+                if (state, district) not in temperature_jobs:
+                    raise RuntimeError("No live district boundary point was returned for Open-Meteo.")
+                temperature_days = temperature_jobs[(state, district)].result()[:5]
+                temperature_error = "" if temperature_days else "Open-Meteo returned no dated temperature forecast rows."
+            except Exception as exc:
+                temperature_days, temperature_error = [], str(exc)
+            rainfall_days = []
+            met_centre_days = None
+            for day in range(1, 6):
+                day_records = rain_by_state_day.get((state, day), {})
+                matched_label = unique_district_label_match(district, list(day_records))
+                record = day_records.get(district_label_key(matched_label)) if matched_label else None
+                rainfall_days.append(record or {
+                    "district": district, "date": None, "rainfall": None, "coverage": None,
+                    "error": failures.get((state, day), "No exact live IMD district record was returned."),
+                })
+            # Use the matching Met Centre's live district PDF only when the
+            # nationwide IMD district feed did not return that district/day.
+            if any(row.get("rainfall") is None for row in rainfall_days):
+                try:
+                    state_key = normalized(state)
+                    source_configs = MC_DISTRICT_FORECAST_PDFS.get(state_key, [])
+                    last_source_error = "No current district PDF is connected for this Meteorological Centre."
+                    for source_config in source_configs:
+                        source_url = source_config[0]
+                        if source_url not in met_centre_pdf_cache:
+                            try:
+                                mc_response = requests.get(source_url, headers=HEADERS, timeout=(5, 30))
+                                mc_response.raise_for_status()
+                                met_centre_pdf_cache[source_url] = mc_response.content
+                            except Exception as exc:
+                                met_centre_pdf_cache[source_url] = exc
+                        cached_pdf = met_centre_pdf_cache[source_url]
+                        if isinstance(cached_pdf, Exception):
+                            last_source_error = str(cached_pdf)
+                            continue
+                        try:
+                            met_centre_days = live_met_centre_district_forecast(
+                                state, district, cached_pdf, source_config=source_config
+                            )
+                            break
+                        except Exception as exc:
+                            last_source_error = str(exc)
+                    if met_centre_days is None:
+                        raise RuntimeError(last_source_error)
+                    mc_by_date = {_forecast_date_key(row.get("date")): row for row in met_centre_days}
+                    for index, row in enumerate(rainfall_days):
+                        if row.get("rainfall") is None:
+                            mc_row = (mc_by_date.get(_forecast_date_key(row.get("date")))
+                                      if row.get("date") else met_centre_days[index])
+                            if mc_row and mc_row.get("rainfall") is not None:
+                                row.update(mc_row)
+                                row.pop("error", None)
+                except Exception:
+                    # Leave missing days visibly not reported rather than assigning a nearby
+                    # district, stale report, or undated regional forecast.
+                    pass
+            output.append({
+                "kind": kind, "state": state, "district": district,
+                "fetched_at": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds"),
+                "rainfall_days": rainfall_days, "temperature_days": temperature_days,
+                "temperature_error": temperature_error,
+            })
+    return output
 
-    elif "Next 0 to 3 Hours" in timeframe_option:
-        # Prominent Time Window Banner Strip
-        st.markdown("""
-        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(249, 115, 22, 0.4); border-left: 5px solid #F97316; border-radius: 8px; padding: 10px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
-            <div style="font-size: 0.88rem; font-weight: 800; color: #FB923C; letter-spacing: 0.03em;">
-                ⏱️ ACTIVE FORECAST TIME WINDOW: <span style="background: rgba(249, 115, 22, 0.2); padding: 3px 8px; border-radius: 4px; color: #F8FAFC;">NEXT 0 TO 3 HOURS</span> (OFFICIAL IMD NOWCAST BULLETIN)
-            </div>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #FED7AA; background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); padding: 2px 10px; border-radius: 4px;">
-                🏛️ Regional Meteorological Centre (RMC) Guwahati
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
 
-        alert_color = nowcast_info.get("alert_color", "Orange")
-        if alert_color == "Red":
-            badge_bg = "rgba(239, 68, 68, 0.2)"
-            badge_fg = "#FCA5A5"
-            badge_border = "rgba(239, 68, 68, 0.4)"
-            border_left_color = "#EF4444"
-        elif alert_color == "Orange":
-            badge_bg = "rgba(234, 88, 12, 0.2)"
-            badge_fg = "#FB923C"
-            badge_border = "rgba(234, 88, 12, 0.4)"
-            border_left_color = "#EA580C"
-        elif alert_color == "Yellow":
-            badge_bg = "rgba(234, 179, 8, 0.2)"
-            badge_fg = "#FACC15"
-            badge_border = "rgba(234, 179, 8, 0.4)"
-            border_left_color = "#CA8A04"
-        else:
-            badge_bg = "rgba(34, 197, 94, 0.2)"
-            badge_fg = "#4ADE80"
-            badge_border = "rgba(34, 197, 94, 0.4)"
-            border_left_color = "#16A34A"
+def build_live_report_pdf(live_results, forecast_results, generated_at, generated_by="Signed-in user"):
+    """Create a transient PDF from only the currently selected session's live feed results."""
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 
-        st.markdown(f"""
-        <div style="background: #1E293B; border: 1px solid #334155; border-left: 4px solid {border_left_color}; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; color: #F8FAFC;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <div style="font-size: 1.10rem; font-weight: 800; color: #F8FAFC;">
-                    🕒 RMC Guwahati 3-Hour District Nowcast Bulletin ({active_district})
-                </div>
-                <span style="background: {badge_bg}; color: {badge_fg}; border: 1px solid {badge_border}; font-size: 0.80rem; font-weight: 700; padding: 4px 14px; border-radius: 9999px;">
-                    {alert_color} Alert ({nowcast_info.get('alert_level', 'Be Prepared')})
-                </span>
-            </div>
-            <div style="background: #0F172A; border-left: 3px solid #38BDF8; border-radius: 6px; padding: 12px 14px; margin-bottom: 12px;">
-                <div style="font-size: 0.95rem; font-weight: 600; color: #E2E8F0; line-height: 1.5;">
-                    📢 {nowcast_info.get('message', f'Light to moderate rain with thunderstorm & lightning likely over {active_district} district during nowcast window.')}
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">⏱️ Valid Window</div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #38BDF8; margin-top: 2px;">Next 0 – 3 Hours (Live IMD Feed)</div>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">⚡ Convective Trigger</div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #FB923C; margin-top: 2px;">Thunderstorm & Lightning Activity</div>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">🌊 Storm Track Movement</div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #A78BFA; margin-top: 2px;">Propagating along {active_basin} Corridor</div>
-                </div>
-            </div>
-            <div style="font-size: 0.84rem; font-weight: 600; color: {badge_fg}; background: {badge_bg}; border: 1px solid {badge_border}; padding: 8px 12px; border-radius: 6px;">
-                🛡️ <b>Immediate Action Suggested:</b> {nowcast_info.get('action_suggested', 'Take shelter in safe structures during lightning activity.')}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    buffer = io.BytesIO()
+    navy = colors.HexColor("#193b4a")
+    teal = colors.HexColor("#287a68")
+    line = colors.HexColor("#d7e3df")
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="ReportTitle", parent=styles["Title"], fontName="Helvetica-Bold",
+                              fontSize=19, leading=24, textColor=navy, alignment=TA_CENTER, spaceAfter=5))
+    styles.add(ParagraphStyle(name="ReportSub", parent=styles["Normal"], fontSize=9, leading=13,
+                              textColor=colors.HexColor("#5e7078"), alignment=TA_CENTER, spaceAfter=14))
+    styles.add(ParagraphStyle(name="Section", parent=styles["Heading2"], fontName="Helvetica-Bold",
+                              fontSize=13, leading=17, textColor=navy, spaceBefore=12, spaceAfter=7))
+    styles.add(ParagraphStyle(name="District", parent=styles["Heading3"], fontName="Helvetica-Bold",
+                              fontSize=10, leading=13, textColor=teal, spaceBefore=8, spaceAfter=4))
+    styles.add(ParagraphStyle(name="Cell", parent=styles["BodyText"], fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name="TableHeader", parent=styles["BodyText"], fontName="Helvetica-Bold",
+                              fontSize=8, leading=10, textColor=colors.white))
+    styles.add(ParagraphStyle(name="Small", parent=styles["BodyText"], fontSize=8, leading=11,
+                              textColor=colors.HexColor("#5e7078")))
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15*mm, leftMargin=15*mm,
+                            topMargin=16*mm, bottomMargin=17*mm,
+                            title="DIWIS Live Weather Report", author="DIWIS")
 
+    def para(value, style="Cell"):
+        text = html.escape(str(value if value not in (None, "") else "No report"))
+        return Paragraph(text, styles[style])
+
+    def table(data, widths=None):
+        converted = [[para(cell, "TableHeader") for cell in data[0]]]
+        converted.extend([[para(cell) for cell in row] for row in data[1:]])
+        result = Table(converted, colWidths=widths, repeatRows=1, hAlign="LEFT")
+        result.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), navy),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+            ("GRID", (0, 0), (-1, -1), .4, line),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        return result
+
+    story = [
+        Paragraph("DIWIS · Live District Weather Report", styles["ReportTitle"]),
+        Paragraph(
+            f"Generated {html.escape(generated_at)} · Session-only data · No catchment analysis",
+            styles["ReportSub"],
+        ),
+    ]
+    all_keys = []
+    for item in live_results:
+        if item.get("error"):
+            all_keys.append((item.get("kind"), item.get("state"), item.get("district")))
+            continue
+        all_keys.append((item.get("kind"), item.get("state"), item.get("district")))
+    for forecast in forecast_results:
+        key = (forecast.get("kind"), forecast.get("state"), forecast.get("district"))
+        if key not in all_keys:
+            all_keys.append(key)
+    if not all_keys:
+        story.append(para("No live data was returned for the selected districts."))
+
+    current_by_key = {(item.get("kind"), item.get("state"), item.get("district")): item
+                      for item in live_results}
+    forecast_by_key = {(item.get("kind"), item.get("state"), item.get("district")): item
+                       for item in forecast_results}
+    primary_keys = [key for key in all_keys if key[0] == "Primary"]
+    secondary_keys = [key for key in all_keys if key[0] != "Primary"]
+    story.append(Paragraph("1. Primary district temperature", styles["Section"]))
+    for kind, state, district in primary_keys:
+        key = (kind, state, district)
+        current = current_by_key.get(key, {})
+        forecast = forecast_by_key.get(key, {})
+        story.append(Paragraph(f"{html.escape(str(kind))} · {html.escape(str(district))}, {html.escape(str(state))}",
+                               styles["District"]))
+        temp_rows = forecast.get("temperature_days") or []
+        temp_table = [["Open-Meteo forecast date", "Maximum (°C)", "Minimum (°C)"]]
+        for row in temp_rows:
+            temp_table.append([row.get("date"), row.get("maximum_c"), row.get("minimum_c")])
+        if len(temp_table) == 1:
+            temp_table.append(["No report", "No report", "No report"])
+        story.append(Spacer(1, 4))
+        story.append(table(temp_table, [55*mm, 55*mm, 55*mm]))
+        if temp_rows:
+            story.append(para(f"Temperature forecast source: {temp_rows[0].get('source') or 'Open-Meteo'}"
+                              + (f" · grid coordinates {temp_rows[0].get('grid_latitude')}, {temp_rows[0].get('grid_longitude')}"
+                                 if temp_rows[0].get("grid_latitude") is not None else ""), "Small"))
+
+    def append_official_data(keys):
+        for kind, state, district in keys:
+            key = (kind, state, district)
+            current = current_by_key.get(key, {})
+            forecast = forecast_by_key.get(key, {})
+            story.append(Paragraph(f"{html.escape(str(kind))} · {html.escape(str(district))}, {html.escape(str(state))}",
+                                   styles["District"]))
+            if kind != "Primary":
+                temp_rows = forecast.get("temperature_days") or []
+                if temp_rows:
+                    temp_table = [["Open-Meteo forecast date", "Maximum (°C)", "Minimum (°C)"]]
+                    temp_table.extend([[row.get("date"), row.get("maximum_c"), row.get("minimum_c")]
+                                       for row in temp_rows])
+                    story.append(table(temp_table, [55*mm, 55*mm, 55*mm]))
+                    story.append(para(f"Temperature forecast source: {temp_rows[0].get('source') or 'Open-Meteo'}"
+                                      + (f" · grid coordinates {temp_rows[0].get('grid_latitude')}, {temp_rows[0].get('grid_longitude')}"
+                                         if temp_rows[0].get("grid_latitude") is not None else ""), "Small"))
+            rainfall = current.get("rainfall") or {}
+            story.append(para(
+                f"Observed rainfall: {rainfall.get('value_mm') if rainfall.get('status') == 'OK' else 'No report'}"
+                f" · Date: {rainfall.get('date') or 'No report'} · Source: {rainfall.get('source') or rainfall.get('reason') or 'No report'}"
+            ))
+            warning = current.get("warnings") or {}
+            if warning.get("status") == "OK" and warning.get("items"):
+                for warning_item in warning["items"]:
+                    if isinstance(warning_item, dict):
+                        hazards = ", ".join(str(value) for value in warning_item.get("hazards", [])) or "Warning"
+                        story.append(para(f"Rain / thunderstorm warning: {hazards} · {format_clock_ampm(warning_item.get('text') or '')} · Source: {warning.get('source')}"))
+            elif warning.get("status") == "OK" and warning.get("no_warning_days"):
+                story.append(para(f"Rain / thunderstorm warning: Source reports no warning for day(s) {', '.join(map(str, warning['no_warning_days']))} · {warning.get('source')}"))
+            else:
+                story.append(para(f"Rain / thunderstorm warning: No report · {warning.get('reason') or 'No exact current official district record'}"))
+            cyclone = current.get("cyclone") or {}
+            cyclone_text = (f"Explicit cyclone warning reported · {cyclone.get('source')}"
+                            if cyclone.get("status") == "OK" and cyclone.get("overlaps")
+                            else f"No report · {cyclone.get('reason') or 'No verified current district cyclone record'}")
+            story.append(para(f"Cyclone: {cyclone_text}"))
+            lightning = current.get("lightning") or {}
+            coordinates = lightning.get("coordinates") or []
+            if coordinates:
+                coord_rows = [["Latitude", "Longitude", "Source hour (UTC)"]]
+                for point in coordinates:
+                    if isinstance(point, dict):
+                        coord_rows.append([point.get("latitude"), point.get("longitude"), format_clock_ampm(point.get("hour_utc"))])
+                    else:
+                        coord_rows.append([point, "", ""])
+                story.append(para("Live lightning strike coordinates:"))
+                story.append(table(coord_rows, [50*mm, 50*mm, 82*mm]))
+            else:
+                story.append(para(f"Live lightning strike coordinates: No report · {lightning.get('error') or 'No official coordinates returned'}"))
+
+            rain_forecasts = forecast.get("rainfall_days") or []
+            if rain_forecasts:
+                forecast_table = [["Day", "Forecast date", "Rainfall", "Coverage"]]
+                for index, row in enumerate(rain_forecasts, start=1):
+                    forecast_table.append([
+                        f"Day {index}", row.get("date"),
+                        row.get("rainfall") or "No report",
+                        row.get("coverage") or (row.get("error") or "No report"),
+                    ])
+                story.append(Spacer(1, 4))
+                story.append(table(forecast_table, [16*mm, 32*mm, 42*mm, 90*mm]))
+
+    story.append(Paragraph("3. Primary official live data", styles["Section"]))
+    if primary_keys:
+        append_official_data(primary_keys)
     else:
-        # Prominent Time Window Banner Strip
-        st.markdown("""
-        <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(168, 85, 247, 0.4); border-left: 5px solid #A855F7; border-radius: 8px; padding: 10px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
-            <div style="font-size: 0.88rem; font-weight: 800; color: #C084FC; letter-spacing: 0.03em;">
-                ⏱️ ACTIVE FORECAST TIME WINDOW: <span style="background: rgba(168, 85, 247, 0.2); padding: 3px 8px; border-radius: 4px; color: #F8FAFC;">NEXT 3 TO 6 HOURS</span> (SUB-DISTRICT CONVECTIVE HAZARD ZONES)
-            </div>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #E9D5FF; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); padding: 2px 10px; border-radius: 4px;">
-                🗺️ IMD Synoptic Micro-Zones
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        story.append(para("Primary district data was not returned in this session."))
 
-        st.markdown(f"""
-        <div style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 12px;">
-            Source: IMD / RMC Guwahati | <b>Extended Active Window:</b> Next 3 to 6 Hours | <b>Storm Track:</b> Propagating along {active_basin} corridor across {active_district}
-        </div>
-        """, unsafe_allow_html=True)
-
-        if active_sectors:
-            z_cols = st.columns(len(active_sectors))
-            for s, z_col in zip(active_sectors, z_cols):
-                s_color = s.get("alert_color", "Orange")
-                if s_color == "Red":
-                    border_col = "#EF4444"
-                    badge_bg = "rgba(239, 68, 68, 0.2)"
-                    badge_fg = "#FCA5A5"
-                    badge_border = "rgba(239, 68, 68, 0.4)"
-                elif s_color == "Orange":
-                    border_col = "#EA580C"
-                    badge_bg = "rgba(234, 88, 12, 0.2)"
-                    badge_fg = "#FB923C"
-                    badge_border = "rgba(234, 88, 12, 0.4)"
-                elif s_color == "Yellow":
-                    border_col = "#CA8A04"
-                    badge_bg = "rgba(234, 179, 8, 0.2)"
-                    badge_fg = "#FACC15"
-                    badge_border = "rgba(234, 179, 8, 0.4)"
-                else:
-                    border_col = "#10B981"
-                    badge_bg = "rgba(16, 185, 129, 0.2)"
-                    badge_fg = "#6EE7B7"
-                    badge_border = "rgba(16, 185, 129, 0.4)"
-
-                with z_col:
-                    st.markdown(f"""
-                    <div style="background: #1E293B; border: 1px solid #334155; border-left: 4px solid {border_col}; border-radius: 12px; padding: 16px 18px; height: 100%; color: #F8FAFC;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                            <div style="font-size: 1.05rem; font-weight: 800; color: #F8FAFC;">
-                                📍 {s.get('zone_name')}
-                            </div>
-                        </div>
-                        <div style="margin-bottom: 6px;">
-                            <span style="background: {badge_bg}; color: {badge_fg}; border: 1px solid {badge_border}; font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: 9999px;">
-                                {s.get('alert_level', f'{s_color} Alert')}
-                            </span>
-                        </div>
-                        <div style="font-size: 0.92rem; font-weight: 700; color: #38BDF8; font-family: monospace; margin-bottom: 6px;">
-                            🌐 {s.get('coordinates')}
-                        </div>
-                        <div style="font-size: 0.82rem; color: #CBD5E1; margin-bottom: 8px;">
-                            <b>Localities:</b> {s.get('localities')}
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px;">
-                            <span style="background: rgba(15, 23, 42, 0.6); color: #E2E8F0; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;">
-                                {s.get('hazard_phenomenon', '⚡ Thunderstorm & Lightning')}
-                            </span>
-                            <span style="background: rgba(15, 23, 42, 0.6); color: #94A3B8; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;">
-                                {s.get('expected_winds', '💨 Gusts 35–45 km/h')}
-                            </span>
-                        </div>
-                        <div style="font-size: 0.78rem; color: #94A3B8; font-style: italic; margin-bottom: 8px;">
-                            {s.get('convective_status', 'Orographic and riverine storm development.')}
-                        </div>
-                        <div style="font-size: 0.78rem; font-weight: 600; color: {badge_fg}; background: {badge_bg}; border: 1px solid {badge_border}; padding: 6px 10px; border-radius: 6px;">
-                            🛡️ <b>Action:</b> {s.get('action_suggested', 'Take shelter in sturdy structures during lightning.')}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-    # Sub-district Lightning Coordinate Zones Data Table
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader(f"⚡ {active_district} Sub-District Coordinate Sector Registry")
-    if os.path.exists(LIGHTNING_CSV_PATH):
-        ldf = pd.read_csv(LIGHTNING_CSV_PATH)
-        if "Latitude" in ldf.columns and "Longitude" in ldf.columns:
-            ldf["Google Maps"] = ldf.apply(
-                lambda r: f"https://www.google.com/maps?q={r['Latitude']},{r['Longitude']}", 
-                axis=1
-            )
-            st.dataframe(
-                ldf,
-                column_config={
-                    "Google Maps": st.column_config.LinkColumn(
-                        "🗺️ Google Maps",
-                        help="Click to view exact sector coordinates on Google Maps",
-                        display_text="🗺️ View on Google Maps ↗"
-                    )
-                },
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.dataframe(ldf, use_container_width=True, hide_index=True)
+    story.append(Paragraph("4. Selected secondary state and district data", styles["Section"]))
+    story.append(para("Only the secondary states and districts selected in DIWIS are included. No catchment or hydrological analysis is part of this section.", "Small"))
+    if secondary_keys:
+        append_official_data(secondary_keys)
     else:
-        st.info("Click 'Sync with IMD' to generate coordinate lightning data table.")
+        story.append(para("No secondary districts were selected."))
+
+    source_urls = [
+        ("IMD five-day district rainfall forecast", "https://mausam.imd.gov.in/responsive/5d_statewisedistricts_rf_forecast.php"),
+        ("IMD public district rainfall observations", "https://mausam.imd.gov.in/responsive/rainfallinformation.php"),
+        ("RMC Guwahati district warning and observation pages", "https://mausam.imd.gov.in/guwahati/"),
+        ("NRSC–ISRO Bhuvan Lightning Portal", "https://bhuvan-app1.nrsc.gov.in/lightning/"),
+        ("Open-Meteo temperature forecast", "https://open-meteo.com/"),
+    ]
+    story.append(Paragraph("Sources and report limits", styles["Section"]))
+    story.append(para("Values are included only when returned by the live official pages during this session. Missing, stale, or unmatched feeds remain not reported. No forecast is estimated, and no secondary catchment analysis is included.", "Small"))
+    for label, url in source_urls:
+        story.append(Paragraph(
+            f'<link href="{html.escape(url, quote=True)}" color="#287a68">{html.escape(label)}</link>',
+            styles["Small"],
+        ))
+    story.append(Spacer(1, 4))
+    story.append(para("Lightning reporting is limited to strike coordinates when the official feed supplies them.", "Small"))
+
+    def footer(canvas, document):
+        canvas.saveState()
+        canvas.setStrokeColor(line)
+        canvas.line(15*mm, 12*mm, A4[0] - 15*mm, 12*mm)
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#708089"))
+        canvas.setFont("Helvetica", 7)
+        canvas.drawString(15*mm, 7*mm, f"Generated by {str(generated_by)[:64]}")
+        canvas.drawRightString(A4[0] - 15*mm, 7*mm, f"Page {document.page}")
+        canvas.restoreState()
+
+    doc.build(story, onFirstPage=footer, onLaterPages=footer)
+    return buffer.getvalue()
 
 
-# -------------------------------------------------------------
-# TAB 4: OFFICIAL REPORTS & SQL ARCHIVE
-# -------------------------------------------------------------
-with tab_reports_sql:
-    st.subheader(f"Key Synoptical Excerpts Affecting {active_district} & Northeast (Source: IMD)")
-    st.caption("Extracted and analyzed from the official National All-India Weather Forecast Bulletin (Source: IMD)")
+def build_rainfall_report_pdf(live_results, forecast_results, generated_at, generated_by="Signed-in user"):
+    """Create an in-memory report from this session's live official-source results."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 
-    if synoptic_data:
-        for item in synoptic_data:
-            impact_text = item.get('impact_on_hailakandi', '').replace("Hailakandi", active_district)
-            st.markdown(f"""
-            <div class="synoptic-card">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #38BDF8; text-transform: uppercase; margin-bottom: 2px;">
-                    📌 {item.get('category')}
-                </div>
-                <div style="font-size: 1.05rem; font-weight: 700; color: #F8FAFC; margin-bottom: 6px;">
-                    {item.get('headline')}
-                </div>
-                <div style="font-size: 0.88rem; color: #CBD5E1; margin-bottom: 8px; line-height: 1.45;">
-                    {item.get('details')}
-                </div>
-                <div style="font-size: 0.82rem; font-weight: 600; color: #6EE7B7; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 12px; border-radius: 6px; display: inline-block;">
-                    📍 Impact on {active_district}: {impact_text}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    buffer = io.BytesIO()
+    navy = colors.HexColor("#193b4a")
+    teal = colors.HexColor("#287a68")
+    border = colors.HexColor("#d7e3df")
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="RainReportTitle", parent=styles["Title"], fontName="Helvetica-Bold",
+                              fontSize=19, leading=24, textColor=navy, alignment=1, spaceAfter=5))
+    styles.add(ParagraphStyle(name="RainReportSub", parent=styles["Normal"], fontSize=9, leading=13,
+                              textColor=colors.HexColor("#5e7078"), alignment=1, spaceAfter=14))
+    styles.add(ParagraphStyle(name="BulletinAuthority", parent=styles["Title"], fontName="Helvetica-Bold",
+                              fontSize=14, leading=18, textColor=colors.HexColor("#17233a"), alignment=1, spaceAfter=2))
+    styles.add(ParagraphStyle(name="BulletinSystem", parent=styles["Normal"], fontName="Helvetica-Bold",
+                              fontSize=11, leading=14, textColor=colors.HexColor("#0087d4"), alignment=1, spaceAfter=3))
+    styles.add(ParagraphStyle(name="BulletinMeta", parent=styles["Normal"], fontSize=8, leading=10,
+                              textColor=colors.HexColor("#46566f"), alignment=1, spaceAfter=2))
+    styles.add(ParagraphStyle(name="RainSection", parent=styles["Heading2"], fontName="Helvetica-Bold",
+                              fontSize=13, leading=17, textColor=navy, spaceBefore=12, spaceAfter=7))
+    styles.add(ParagraphStyle(name="RainDistrict", parent=styles["Heading3"], fontName="Helvetica-Bold",
+                              fontSize=10, leading=13, textColor=teal, spaceBefore=8, spaceAfter=4))
+    styles.add(ParagraphStyle(name="RainCell", parent=styles["BodyText"], fontSize=8, leading=10))
+    styles.add(ParagraphStyle(name="RainHeader", parent=styles["BodyText"], fontName="Helvetica-Bold",
+                              fontSize=8, leading=10, textColor=colors.white))
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15*mm, leftMargin=15*mm,
+                            topMargin=16*mm, bottomMargin=17*mm,
+                            title="DIWIS Live District Weather Report", author="DIWIS")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader(f"DIWIS SQL Database & Historical Trends — {active_district}")
-    st.caption(f"Structured SQLite relational database archiving daily observations, 5-day forecasts, lightning strikes, and upstream catchment inflows specifically for {active_district}, Assam.")
+    def table(rows, widths):
+        converted = [[Paragraph(html.escape(str(value if value not in (None, "") else "No report")),
+                                styles["RainHeader"] if row_index == 0 else styles["RainCell"])
+                      for value in row] for row_index, row in enumerate(rows)]
+        result = Table(converted, colWidths=widths, repeatRows=1, hAlign="LEFT")
+        result.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), navy),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+            ("GRID", (0, 0), (-1, -1), .4, border),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        return result
 
-    stats = get_district_tables_stats(active_district, DB_PATH)
-    s1, s2, s3, s4 = st.columns(4)
-
-    with s1:
-        st.metric(
-            label=f"Daily Observations ({active_district})",
-            value=f"{stats.get('daily_observations', 0)} Records",
-            delta="IMD Recorded Rain & Temps"
-        )
-
-    with s2:
-        st.metric(
-            label=f"5-Day Forecasts ({active_district})",
-            value=f"{stats.get('forecast_5days', 0)} Records",
-            delta="Spatial Predictions Logged"
-        )
-
-    with s3:
-        st.metric(
-            label=f"Lightning Strikes ({active_district})",
-            value=f"{stats.get('lightning_sensor_events', 0)} Events",
-            delta="IITM-ILDN Sensor Fixes"
-        )
-
-    with s4:
-        st.metric(
-            label=f"Upstream Inflows for {active_district}",
-            value=f"{stats.get('upstream_catchment_records', 0)} Records",
-            delta="Runoff Tracking Logs"
-        )
-
-    sql_tab1, sql_tab2, sql_tab3, sql_tab4, sql_tab5 = st.tabs([
-        f"📊 {active_district} Observations",
-        f"📅 {active_district} Forecasts Log",
-        f"⚡ {active_district} Lightning Archive",
-        f"🌊 Upstream Catchment for {active_district}",
-        "💻 Custom Query Console"
-    ])
-
-    with sql_tab1:
-        obs_query = "SELECT recorded_date, district, state, actual_rainfall_mm, normal_rainfall_mm, departure_pct, departure_category, ambient_temp_c, today_max_c, today_min_c, relative_humidity_pct, wind_speed_kmh, scraped_at FROM daily_observations WHERE district = ? ORDER BY recorded_date DESC;"
-        df_obs = query_dataframe(obs_query, params=(active_district,), db_path=DB_PATH)
-        if not df_obs.empty:
-            st.dataframe(df_obs, use_container_width=True, hide_index=True)
-            csv_obs = df_obs.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label=f"📥 Download {active_district} Observations (CSV)",
-                data=csv_obs,
-                file_name=f"diwis_daily_observations_{active_district.lower()}.csv",
-                mime="text/csv",
-                key="dl_obs_sql"
-            )
-        else:
-            st.info(f"No records in daily_observations for {active_district} yet. Click 'Sync with IMD & SQL Database' to populate database.")
-
-    with sql_tab2:
-        fc_query = "SELECT forecast_issued_at, day_index, target_date, district, rainfall_category, station_coverage, max_temp_c, min_temp_c, alert_color, alert_level, warning_summary FROM forecast_5days WHERE district = ? ORDER BY forecast_issued_at DESC, day_index ASC;"
-        df_fc = query_dataframe(fc_query, params=(active_district,), db_path=DB_PATH)
-        if not df_fc.empty:
-            st.dataframe(df_fc, use_container_width=True, hide_index=True)
-            csv_fc = df_fc.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label=f"📥 Download {active_district} Forecasts Archive (CSV)",
-                data=csv_fc,
-                file_name=f"diwis_forecast_archive_{active_district.lower()}.csv",
-                mime="text/csv",
-                key="dl_fc_sql"
-            )
-        else:
-            st.info(f"No records in forecast_5days for {active_district} yet. Click 'Sync with IMD & SQL Database' to populate database.")
-
-    with sql_tab3:
-        lt_query = "SELECT detection_time_ist, district, latitude, longitude, nearest_locality, age_minutes, logged_at FROM lightning_sensor_events WHERE district = ? ORDER BY id DESC LIMIT 500;"
-        df_lt = query_dataframe(lt_query, params=(active_district,), db_path=DB_PATH)
-        if not df_lt.empty:
-            df_lt['Strike Age'] = df_lt['age_minutes'].apply(format_strike_age)
-            df_lt['Google Maps'] = df_lt.apply(
-                lambda r: f"https://www.google.com/maps?q={r['latitude']},{r['longitude']}",
-                axis=1
-            )
-            st.dataframe(
-                df_lt[['detection_time_ist', 'district', 'latitude', 'longitude', 'nearest_locality', 'Strike Age', 'Google Maps', 'logged_at']],
-                column_config={
-                    "Google Maps": st.column_config.LinkColumn(
-                        "🗺️ Google Maps",
-                        help="Click to view exact coordinate location on Google Maps",
-                        display_text="🗺️ View on Google Maps ↗"
-                    )
-                },
-                use_container_width=True,
-                hide_index=True
-            )
-            csv_lt = df_lt.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label=f"📥 Download {active_district} Lightning Log (CSV)",
-                data=csv_lt,
-                file_name=f"diwis_lightning_events_{active_district.lower()}.csv",
-                mime="text/csv",
-                key="dl_lt_sql"
-            )
-        else:
-            st.info(f"No ground lightning strikes logged in database for {active_district}.")
-
-    with sql_tab4:
-        up_query = "SELECT record_date, target_district, upstream_district, upstream_state, river_link, past_24h_rainfall_mm, departure_pct, day1_rainfall_forecast, imd_alert_color, imd_warning_summary FROM upstream_catchment_records WHERE target_district = ? ORDER BY record_date DESC;"
-        df_up = query_dataframe(up_query, params=(active_district,), db_path=DB_PATH)
-        if not df_up.empty:
-            st.dataframe(df_up, use_container_width=True, hide_index=True)
-            csv_up = df_up.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label=f"📥 Download Upstream Catchment Log for {active_district} (CSV)",
-                data=csv_up,
-                file_name=f"diwis_upstream_catchment_log_{active_district.lower()}.csv",
-                mime="text/csv",
-                key="dl_up_sql"
-            )
-        else:
-            st.info(f"No records in upstream_catchment_records for {active_district} yet. Click 'Sync with IMD & SQL Database' to populate database.")
-
-    with sql_tab5:
-        st.markdown("#### ⚡ Custom Query Console")
-        st.caption(f"Select a structured query insight from the dropdown below to explore historical observations, severe warnings, and catchment inflows specifically for **{active_district}**.")
-        
-        query_presets = {
-            f"📊 1. All Daily Observations for {active_district}": (
-                "SELECT recorded_date, district, actual_rainfall_mm, normal_rainfall_mm, departure_pct, departure_category, ambient_temp_c, today_max_c, today_min_c, relative_humidity_pct, scraped_at FROM daily_observations WHERE district = ? ORDER BY recorded_date DESC LIMIT 50;",
-                (active_district,)
-            ),
-            f"🌧️ 2. Top Rainfall Events & Departures in {active_district}": (
-                "SELECT recorded_date, district, actual_rainfall_mm, normal_rainfall_mm, departure_pct, departure_category FROM daily_observations WHERE district = ? ORDER BY actual_rainfall_mm DESC LIMIT 15;",
-                (active_district,)
-            ),
-            f"⚠️ 3. Active Severe Weather Warnings for {active_district}": (
-                "SELECT forecast_issued_at, day_index, target_date, district, alert_color, alert_level, warning_summary FROM forecast_5days WHERE district = ? AND alert_color IN ('Yellow', 'Orange', 'Red') ORDER BY forecast_issued_at DESC, day_index ASC;",
-                (active_district,)
-            ),
-            f"🌊 4. Upstream Catchment Runoff Predictors for {active_district}": (
-                "SELECT record_date, target_district, upstream_district, river_link, past_24h_rainfall_mm, departure_pct, imd_alert_color, imd_warning_summary FROM upstream_catchment_records WHERE target_district = ? ORDER BY record_date DESC;",
-                (active_district,)
-            ),
-            f"📈 5. {active_district} Database Record Counts Summary": (
-                "SELECT 'daily_observations' as dataset, count(*) as records FROM daily_observations WHERE district = ? UNION ALL SELECT 'forecast_5days', count(*) FROM forecast_5days WHERE district = ? UNION ALL SELECT 'lightning_sensor_events', count(*) FROM lightning_sensor_events WHERE district = ? UNION ALL SELECT 'upstream_catchment_records', count(*) FROM upstream_catchment_records WHERE target_district = ?;",
-                (active_district, active_district, active_district, active_district)
-            )
-        }
-        
-        preset_choice = st.selectbox("📌 Select Query Insight:", list(query_presets.keys()))
-        selected_sql, selected_params = query_presets[preset_choice]
-        
-        result_df = query_dataframe(selected_sql, params=selected_params, db_path=DB_PATH)
-        if not result_df.empty:
-            st.dataframe(result_df, use_container_width=True, hide_index=True)
-            st.download_button(
-                label=f"📥 Download Query Result for {active_district} (CSV)",
-                data=result_df.to_csv(index=False).encode('utf-8'),
-                file_name=f"diwis_{active_district.lower()}_query_result.csv",
-                mime="text/csv",
-                key="dl_custom_sql_res"
-            )
-        else:
-            st.info(f"No records returned for {active_district}. Click 'Sync with IMD & SQL Database' above to populate database.")
-
-
-# -------------------------------------------------------------
-# TAB 5: TELEMETRY & DATA PROVENANCE
-# -------------------------------------------------------------
-with tab_provenance:
-    st.markdown(f"""
-    <div style="margin-top: 0.5rem; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #334155; padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #38BDF8; margin-bottom: 3px;">
-                🏛️ Authoritative Data Provenance & Telemetry
-            </div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #F8FAFC;">
-                Official IMD Meteorological Feeds & Verification Registry
-            </div>
-            <div style="font-size: 0.82rem; color: #94A3B8; margin-top: 2px;">
-                Continuous telemetry synchronization with Ministry of Earth Sciences (MoES), IMD NWFC, and IITM Pune nodes.
-            </div>
-        </div>
-        <div style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ADE80; font-size: 0.76rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px;">
-            🟢 All 6 Feeds Operational (200 OK)
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    sources_list = [
-        {
-            "stream": f"🌧️ 5-Day Rainfall Model ({active_district})",
-            "agency": "IMD New Delhi / NWFC",
-            "status": "LIVE SYNC 200 OK",
-            "protocol": "IMD Forecast Portal",
-            "description": "Official interactive district rainfall forecast maps, coverage classifications, and quantitative precipitation forecasts.",
-            "url": f"https://mausam.imd.gov.in/responsive/rainfallinformation/district_rain.php?id={primary_state}&day=Day_1"
-        },
-        {
-            "stream": "📊 Hydrological Services & Basin Rainfall",
-            "agency": "IMD Hydro-Meteorology",
-            "status": "LIVE SYNC 200 OK",
-            "protocol": "Hydromet Services",
-            "description": "Official hydro-meteorological river basin precipitation, daily departure stats, and reservoir catchment monitoring.",
-            "url": "https://mausam.imd.gov.in/responsive/servicesHydrological.php"
-        },
-        {
-            "stream": "⚠️ 5-Day Severe Weather Warning GIS",
-            "agency": "IMD Central GIS Division",
-            "status": "LIVE SYNC 200 OK",
-            "protocol": "National GIS Map",
-            "description": "Official interactive GIS geospatial portal rendering color-coded severe weather warnings, thunderstorm alerts, and hazard maps.",
-            "url": "https://mausam.imd.gov.in/responsive/districtWiseWarningGIS.php"
-        },
-        {
-            "stream": "⚡ Real-Time 3-Hour Nowcast GIS",
-            "agency": "RMC Guwahati / IMD",
-            "status": "LIVE SYNC 200 OK",
-            "protocol": "Radar Nowcast GIS",
-            "description": "Interactive live convective thunderstorm radar tracking, squall warnings, and real-time short-range district alerts.",
-            "url": "https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php"
-        },
-        {
-            "stream": "⚡ DAMINI Lightning Sensor Network",
-            "agency": "IITM Pune (MoES)",
-            "status": "LIVE SENSOR 200 OK",
-            "protocol": "IITM-ILDN Network",
-            "description": "Official Indian Lightning Detection Network (ILDN) interactive sensor portal mapping real-time cloud-to-ground strike locations.",
-            "url": "https://ildn.in/imap.php"
-        },
-        {
-            "stream": "📄 National Synoptic Bulletin (AIWFB)",
-            "agency": "NWFC New Delhi",
-            "status": "LIVE BULLETIN 200 OK",
-            "protocol": "Official Synoptic Portal",
-            "description": "Daily official executive meteorological briefing covering synoptic systems, depressions, and monsoon trough movements.",
-            "url": "https://mausam.imd.gov.in/responsive/all_india_forcast_bulletin.php"
-        }
+    current_by_key = {(item.get("kind"), item.get("state"), item.get("district")): item
+                      for item in live_results}
+    forecast_by_key = {(item.get("kind"), item.get("state"), item.get("district")): item
+                       for item in forecast_results}
+    all_keys = list(current_by_key)
+    all_keys.extend(key for key in forecast_by_key if key not in all_keys)
+    primary_keys = [key for key in all_keys if key[0] == "Primary"]
+    secondary_keys = [key for key in all_keys if key[0] != "Primary"]
+    primary_header = primary_keys[0] if primary_keys else (all_keys[0] if all_keys else ("Primary", "Assam", "District not selected"))
+    _, header_state, header_district = primary_header
+    safe_district = html.escape(str(header_district))
+    safe_state = html.escape(str(header_state))
+    story = [
+        Paragraph(f"DISTRICT DISASTER MANAGEMENT AUTHORITY (DDMA), {safe_district.upper()}", styles["BulletinAuthority"]),
+        Paragraph("District Integrated Weather Information System (DIWIS) — Daily Bulletin", styles["BulletinSystem"]),
+        Paragraph(f"District: {safe_district}, {safe_state}", styles["BulletinMeta"]),
+        Paragraph(
+            "Data Sources: India Meteorological Department (IMD), RMC Guwahati, Open-Meteo & NRSC–ISRO Bhuvan"
+            f" &nbsp;|&nbsp; Bulletin Issued: {html.escape(generated_at)}",
+            styles["BulletinMeta"],
+        ),
+        Spacer(1, 4),
+        HRFlowable(width="100%", thickness=1.2, color=colors.HexColor("#0087d4"),
+                   spaceBefore=2, spaceAfter=7),
     ]
 
-    prov_col1, prov_col2, prov_col3 = st.columns(3)
-    for idx, s in enumerate(sources_list):
-        col = [prov_col1, prov_col2, prov_col3][idx % 3]
-        with col:
-            st.markdown(f"""
-            <div class="provenance-card">
-                <div>
-                    <div class="prov-header">
-                        <span class="prov-badge">🏛️ {s['agency']}</span>
-                        <span class="prov-status">🟢 {s['status']}</span>
-                    </div>
-                    <div class="prov-title">{s['stream']}</div>
-                    <div class="prov-desc">{s['description']}</div>
-                </div>
-                <div class="prov-footer">
-                    <span class="prov-protocol">{s['protocol']}</span>
-                    <a href="{s['url']}" target="_blank" rel="noopener noreferrer" class="prov-btn">
-                        <span>↗ Verify Official Feed</span>
-                    </a>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    def append_rainfall(keys):
+        for key in keys:
+            kind, state, district = key
+            current = current_by_key.get(key, {})
+            forecast = forecast_by_key.get(key, {})
+            story.append(Paragraph(
+                f"{html.escape(str(kind))} · {html.escape(str(district))}, {html.escape(str(state))}",
+                styles["RainDistrict"],
+            ))
+            story.append(Paragraph(
+                html.escape(f"DIWIS data: {freshness_label(current.get('fetched_at'))}"),
+                styles["RainCell"],
+            ))
+            observed = current.get("rainfall") or {}
+            observed_value = observed.get("value_mm") if observed.get("status") == "OK" else None
+            observed_label = ("No rain reported (0 mm)" if isinstance(observed_value, (int, float)) and observed_value == 0
+                              else f"{observed_value} mm" if observed_value is not None else "No report · no verified live value")
+            story.append(table([
+                ["Observed rainfall", "Observation date", "Official source"],
+                [observed_label,
+                 observed.get("date"), observed.get("source") or observed.get("reason")],
+            ], [48*mm, 42*mm, 90*mm]))
+
+            rain_days = forecast.get("rainfall_days") or []
+            forecast_rows = [["Forecast day", "Forecast date", "Rainfall forecast", "Distribution / coverage"]]
+            for index, row in enumerate(rain_days, start=1):
+                forecast_rows.append([
+                    f"Day {index}", row.get("date"),
+                    row.get("rainfall") or "No report",
+                    row.get("coverage") or "No report",
+                ])
+            if len(forecast_rows) == 1:
+                forecast_rows.append(["No report", "No report", "No report", "No report"])
+            story.append(Spacer(1, 4))
+            story.append(table(forecast_rows, [25*mm, 34*mm, 44*mm, 77*mm]))
+
+    def append_primary_live(keys):
+        for key in keys:
+            kind, state, district = key
+            current = current_by_key.get(key, {})
+            forecast = forecast_by_key.get(key, {})
+            story.append(Paragraph(
+                f"{html.escape(str(district))}, {html.escape(str(state))}", styles["RainDistrict"]
+            ))
+            story.append(Paragraph(
+                html.escape(f"DIWIS data: {freshness_label(current.get('fetched_at'))}"),
+                styles["RainCell"],
+            ))
+            if current.get("error"):
+                story.append(Paragraph(f"Live request not reported: {html.escape(str(current['error']))}", styles["RainCell"]))
+                continue
+
+            rainfall = current.get("rainfall") or {}
+            rainfall_value = rainfall.get("value_mm") if rainfall.get("status") == "OK" else None
+            rainfall_label = ("No rain reported (0 mm)" if isinstance(rainfall_value, (int, float)) and rainfall_value == 0
+                              else f"{rainfall_value} mm" if rainfall_value is not None else "No report · no verified live value")
+            rainfall_source = rainfall.get("source") or rainfall.get("reason")
+            if rainfall.get("station"):
+                rainfall_source = f"{rainfall_source} · station {rainfall['station']}"
+            if rainfall.get("coverage_note"):
+                rainfall_source = f"{rainfall_source} · {rainfall['coverage_note']}"
+            story.append(table([
+                ["Live observation", "Value", "Date / issue time", "Official source or status"],
+                ["Observed rainfall", rainfall_label, rainfall.get("date"),
+                 rainfall_source],
+            ], [47*mm, 30*mm, 35*mm, 72*mm]))
+
+            rain_days = forecast.get("rainfall_days") or []
+            rain_rows = [["Rainfall forecast date", "Forecast", "Coverage / source status"]]
+            rain_rows.extend([[row.get("date"), row.get("rainfall") if row.get("rainfall") is not None else "No report",
+                               row.get("coverage") or row.get("error") or "No report"] for row in rain_days])
+            if len(rain_rows) == 1:
+                rain_rows.append(["No report", "No report", forecast.get("error") or "No live forecast returned"])
+            story.append(Spacer(1, 4))
+            story.append(table(rain_rows, [42*mm, 55*mm, 87*mm]))
+
+            temp_days = forecast.get("temperature_days") or []
+            temp_rows = [["Temperature forecast date", "Maximum (°C)", "Minimum (°C)"]]
+            temp_rows.extend([[row.get("date"), row.get("maximum_c"), row.get("minimum_c")] for row in temp_days])
+            if len(temp_rows) == 1:
+                temp_rows.append(["No report", "No report", forecast.get("error") or "No live forecast returned"])
+            story.append(Spacer(1, 4))
+            story.append(table(temp_rows, [70*mm, 55*mm, 59*mm]))
+
+            warnings = current.get("warnings") or {}
+            nowcast = current.get("nowcast") or {}
+            warning_items = warnings.get("items") or []
+            warning_text = []
+            for item in warning_items:
+                if isinstance(item, dict):
+                    hazards = ", ".join(map(str, item.get("hazards") or [])) or "Official warning"
+                    warning_text.append(f"{hazards}: {format_clock_ampm(item.get('text') or '')}".strip())
+            if warnings.get("status") == "OK" and not warning_text and warnings.get("no_warning_days"):
+                warning_text.append("Source reports no warning for day(s) " + ", ".join(map(str, warnings["no_warning_days"])))
+            warning_status = "\n".join(warning_text) if warning_text else warnings.get("reason") or "No report"
+            story.append(Spacer(1, 4))
+            story.append(table([
+                ["Official warning / hazard feed", "Live result", "Source / issue date"],
+                ["Rain / thunderstorm", warning_status, warnings.get("source") or warnings.get("issue_date") or "No report"],
+                ["Live district nowcast", (
+                    ("No warning" if nowcast.get("no_warning") else format_clock_ampm(nowcast.get("message") or "Live nowcast returned a warning"))
+                    + (f" · issued {nowcast.get('issue_date')} {format_feed_clock(nowcast.get('issue_time'))} IST" if nowcast.get("issue_date") else "")
+                    + (f" · valid up to {format_feed_clock(nowcast.get('valid_until'))} IST" if nowcast.get("valid_until") else "")
+                    if nowcast.get("status") == "OK" else (
+                        f"Expired · {nowcast_expiry_label(nowcast)}"
+                        if nowcast.get("status") == "EXPIRED"
+                        else f"STALE · last verified {nowcast.get('last_verified_at') or 'time not recorded'}"
+                        if nowcast.get("status") == "STALE"
+                        else f"No report · {nowcast.get('reason') or 'No verified live nowcast'}")),
+                 nowcast.get("source") or "No report"],
+            ], [42*mm, 92*mm, 50*mm]))
+
+            lightning = current.get("lightning") or {}
+            coordinates = lightning.get("coordinates") or []
+            coordinate_rows = [[
+                "Latitude", "Longitude", "Bhuvan source time", "Feed ID", "Current",
+            ]]
+            coordinate_rows.extend([[
+                point.get("latitude"), point.get("longitude"),
+                point.get("source_time") or "Not supplied",
+                point.get("feed_id") or "Not supplied",
+                point.get("current") or "Not supplied",
+            ]
+                                    if isinstance(point, dict)
+                                    else [point, "No report", "No report", "No report", "No report"]
+                                    for point in coordinates])
+            if len(coordinate_rows) == 1:
+                coordinate_rows.append([
+                    "No feed points inside district" if lightning.get("status") == "OK"
+                    else "NRSC live feed not reported",
+                    format_clock_ampm(lightning.get("window_start")) or "No report",
+                    "", "", "",
+                ])
+            story.append(Spacer(1, 4))
+            story.append(Paragraph(
+                f"Source: NRSC–ISRO Bhuvan hourly lightning data · window "
+                f"{format_clock_ampm(lightning.get('window_start')) or 'not reported'} to {format_clock_ampm(lightning.get('window_end')) or 'not reported'}. "
+                "Only point records within the selected district boundary are listed.",
+                styles["RainCell"]))
+            story.append(Paragraph(
+                f"Bhuvan points returned inside this district boundary: {len(coordinates)}.",
+                styles["RainCell"],
+            ))
+            story.append(table(coordinate_rows, [28*mm, 28*mm, 50*mm, 35*mm, 35*mm]))
+
+    story.append(Paragraph("1. Primary district · all returned live data", styles["RainSection"]))
+    if primary_keys:
+        append_primary_live(primary_keys)
+    else:
+        story.append(Paragraph("Primary district live data was not returned in this session.", styles["RainCell"]))
+    story.append(Paragraph("4. Selected secondary state and district rainfall", styles["RainSection"]))
+    story.append(Paragraph(
+        "Includes observed rainfall and rainfall forecasts returned for the selected secondary districts. "
+        "No secondary temperature, cyclone, thunderstorm, lightning, or catchment content is included.",
+        styles["RainCell"],
+    ))
+    if secondary_keys:
+        append_rainfall(secondary_keys)
+    else:
+        story.append(Paragraph("No secondary districts were selected.", styles["RainCell"]))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(
+        'Sources queried live by DIWIS: <link href="https://mausam.imd.gov.in/responsive/rainfallinformation.php" color="#287a68">'
+        'IMD observed district rainfall</link> · '
+        '<link href="https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/Rain_Download.html" color="#287a68">'
+        'IMD real-time 0.25° grid (only where a district has no IMD page value)</link> · '
+        '<link href="https://mausam.imd.gov.in/responsive/5d_statewisedistricts_rf_forecast.php" color="#287a68">'
+        'IMD five-day district rainfall forecast</link> · '
+        '<link href="https://open-meteo.com/" color="#287a68">Open-Meteo temperature model</link> · '
+        f'<link href="{RMC_DAILY_REPORT_URL}" color="#287a68">RMC Guwahati live daily forecast PDF</link> · '
+        f'<link href="{IMD_NOWCAST_MAP_URL}" color="#287a68">IMD district nowcast</link> · '
+        f'<link href="{IMD_WARNING_MAP_URL}" color="#287a68">IMD district warnings</link>. '
+        'Field-level sources and not reported statuses are shown above. '
+        'No cached or assumed readings are substituted.',
+        styles["RainCell"],
+    ))
+
+    def footer(canvas, document):
+        canvas.saveState()
+        canvas.setStrokeColor(border)
+        canvas.line(15*mm, 12*mm, A4[0] - 15*mm, 12*mm)
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#708089"))
+        canvas.setFont("Helvetica", 7)
+        canvas.drawString(15*mm, 7*mm, f"Generated by {str(generated_by)[:64]}")
+        canvas.drawRightString(A4[0] - 15*mm, 7*mm, f"Page {document.page}")
+        canvas.restoreState()
+
+    doc.build(story, onFirstPage=footer, onLaterPages=footer)
+    return buffer.getvalue()
+
+
+try:
+    with st.spinner("Connecting to live district and state boundaries…"):
+        neighbor_candidates, district_state, district_geometries, district_options = live_administrative_geography()
+except Exception as exc:
+    st.error(f"Live administrative geography is not reported: {exc}")
+    st.info("No saved or hard-coded district list is used. Refresh after the live boundary service is available.")
+    st.stop()
+
+# Preserve the existing account authentication, role checks, assigned-district lock, and password reset.
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if not st.session_state.authenticated:
+    welcome_col, login_col = st.columns([1.05, .95], gap="small")
+    with welcome_col:
+        st.markdown("""
+        <div class="login-welcome">
+          <div class="login-welcome-mark">🌦</div>
+          <h1>Welcome to DIWIS</h1>
+          <p>District Integrated Weather Info System brings district weather observations, forecasts and official warnings together in one clear workspace.</p>
+          <div class="login-caption">LIVE DISTRICT WEATHER · IMD &amp; RMC SOURCES</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with login_col:
+      with st.container(key="login_form_col"):
+        st.markdown('<div class="login-form-title">Sign in to your account</div><div class="login-form-hint">Use your assigned DIWIS account to continue.</div>', unsafe_allow_html=True)
+        with st.form("diwis_login_form"):
+            login_district = st.selectbox("Operational district · Assam", district_options)
+            st.caption("District list comes live from IMD's current district layers; a district IMD has not published yet will not appear.")
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            submit = st.form_submit_button("Sign in", type="primary", width="stretch")
+        if submit:
+            ok, message, user = authenticate_user(username, password, login_district, db_path=DB_PATH)
+            if ok and user:
+                st.session_state.authenticated = True
+                st.session_state.user = user
+                st.session_state.primary_district = user.get("active_district") or login_district
+                st.rerun()
+            else:
+                st.error(message)
+    st.stop()
+
+if st.session_state.get("data_pipeline_version") != DATA_PIPELINE_VERSION:
+    st.session_state.pop("live_results", None)
+    st.session_state.pop("live_selection", None)
+    st.session_state.pop("live_synced_at", None)
+    st.session_state.pop("live_synced_epoch", None)
+    st.session_state.pop("live_forecasts", None)
+    st.session_state.pop("live_forecast_selection", None)
+    st.session_state.data_pipeline_version = DATA_PIPELINE_VERSION
+
+user = st.session_state.get("user") or {}
+user_role = user.get("role", "staff")
+user_district = user.get("active_district") or user.get("district", "")
+if user.get("must_change_password") == 1:
+    st.warning("Change your initial password to continue.")
+    with st.form("required_password_change"):
+        old_password = st.text_input("Current password", type="password")
+        new_password = st.text_input("New password · at least 6 characters", type="password")
+        confirm_password = st.text_input("Confirm new password", type="password")
+        save_password = st.form_submit_button("Update password", type="primary")
+    if save_password:
+        if new_password != confirm_password or len(new_password.strip()) < 6:
+            st.error("Enter matching passwords with at least 6 characters.")
+        else:
+            ok, message = update_user_password(user.get("username", ""), new_password, current_password=old_password, db_path=DB_PATH)
+            if ok:
+                st.session_state.user["must_change_password"] = 0
+                st.success("Password updated.")
+                st.rerun()
+            else:
+                st.error(message)
+    st.stop()
+
+st.sidebar.markdown('''<div class="sidebar-brand"><div class="sidebar-brand-mark">🌦</div><div><div class="sidebar-brand-name">DIWIS</div><div class="sidebar-brand-caption">District weather workspace</div></div></div>''', unsafe_allow_html=True)
+navigation = ["Dashboard"]
+if user_role in ("district_admin", "superadmin"):
+    navigation.append("User administration")
+navigation.append("Data sources")
+navigation.append("My account")
+if st.session_state.get("diwis_navigation") not in navigation:
+    st.session_state.diwis_navigation = "Dashboard"
+page = st.sidebar.radio("Navigation", navigation, index=0, key="diwis_navigation", label_visibility="collapsed")
+st.sidebar.divider()
+st.sidebar.caption("LOCATION FILTERS")
+st.sidebar.caption(f"Signed in · {user.get('full_name') or user.get('username')}")
+
+if user_role == "superadmin":
+    current_primary = st.session_state.get("primary_district") or user_district
+    match_index = next((i for i, name in enumerate(district_options)
+                        if normalized(name) == normalized(current_primary)), 0)
+    primary_district = st.sidebar.selectbox("Primary district · Assam", district_options,
+                                            index=match_index, key="primary_district_selector")
+    st.session_state.primary_district = primary_district
+else:
+    primary_district = user_district
+    st.sidebar.text_input("Primary district · Assam", value=primary_district, disabled=True)
+
+neighboring_states = st.sidebar.multiselect(
+    "Secondary states", neighbor_candidates,
+    help="Includes Assam and states bordering Assam, from live administrative boundaries.",
+    key="selected_neighbor_states",
+)
+secondary_district_options = sorted(
+    {(state_name, district_name) for state_name, district_name in district_state
+     if state_name in neighboring_states
+     and not (normalized(state_name) == "assam" and normalized(district_name) == normalized(primary_district))},
+    key=lambda item: (normalized(item[0]), normalized(item[1]))
+)
+stored_pairs = st.session_state.get("selected_neighbor_districts", [])
+valid_pairs = [pair for pair in stored_pairs if pair in secondary_district_options]
+if stored_pairs != valid_pairs:
+    st.session_state.selected_neighbor_districts = valid_pairs
+selected_pairs = st.sidebar.multiselect(
+    "Secondary districts · multiple", secondary_district_options,
+    format_func=lambda item: f"{item[1]} · {item[0]}",
+    disabled=not neighboring_states, key="selected_neighbor_districts",
+)
+if page == "User administration" and user_role in ("district_admin", "superadmin"):
+    st.subheader("User administration")
+    st.caption("Manage account access. Weather readings are not stored with account records.")
+    with st.form("create_portal_user"):
+        allowed_roles = ["staff"] + (["district_admin", "superadmin"] if user_role == "superadmin" else [])
+        new_role = st.selectbox("Account role", allowed_roles)
+        new_district = st.selectbox("Account district", district_options)
+        new_username = st.text_input("New username")
+        new_full_name = st.text_input("Name")
+        new_password = st.text_input("Initial password · at least 6 characters", type="password")
+        create_submit = st.form_submit_button("Create account", type="primary")
+    if create_submit:
+        if len(new_password.strip()) < 6:
+            st.error("Initial password must have at least 6 characters.")
+        else:
+            ok, message = create_user(new_username, new_password, new_full_name, new_role,
+                                      "ALL" if new_role == "superadmin" else new_district,
+                                      created_by=user.get("username", "operator"), db_path=DB_PATH)
+            (st.success if ok else st.error)(message)
+    accounts = get_district_users(user_district if user_role != "superadmin" else None,
+                                  requester_role=user_role, db_path=DB_PATH)
+    if accounts:
+        st.dataframe(accounts, hide_index=True, width="stretch")
+
+elif page == "Data sources":
+    st.subheader("Data sources")
+    st.caption("Where each reading on the dashboard comes from. Every value on the dashboard shows its own source and date.")
+    st.markdown(
+        "**Observed rainfall**  \n"
+        "[IMD district rainfall](https://mausam.imd.gov.in/responsive/rainfallinformation.php) · "
+        "[IMD 0.25° real-time grid](https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/Rain_Download.html) "
+        "(area-weighted estimate, used only when the district page has no value) · "
+        "[RMC Guwahati](https://mausam.imd.gov.in/guwahati/) (Assam stations)\n\n"
+        "**Rain forecast**  \n"
+        "[IMD five-day district forecast](https://mausam.imd.gov.in/responsive/5d_statewisedistricts_rf_forecast.php) · "
+        "Regional Met Centre district PDFs\n\n"
+        "**Temperature**  \n"
+        "[Open-Meteo](https://open-meteo.com/) model forecast at the district's reference point\n\n"
+        "**Warnings and nowcast**  \n"
+        "[IMD district warnings](https://mausam.imd.gov.in/responsive/districtWiseWarningGIS.php) · "
+        "[IMD district nowcast](https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php) · "
+        "RMC Guwahati fallback for Assam\n\n"
+        "**Lightning coordinates**  \n"
+        "[NRSC–ISRO Bhuvan](https://bhuvan-app1.nrsc.gov.in/lightning/)"
+    )
+
+elif page == "My account":
+    st.subheader("My account")
+    st.write(user.get("full_name") or user.get("username"))
+    st.caption(f"Role: {user_role.replace('_', ' ').title()} · Assigned district: {user_district}")
+    if st.button("Sign out", width="stretch"):
+        st.session_state.clear()
+        st.rerun()
+
+def fetch_selected_live_data(places):
+    results = []
+    progress = st.progress(0)
+    rmc_station_report = None
+    rmc_station_error = None
+    public_rainfall_records = None
+    public_rainfall_error = None
+    rmc_today_report = None
+    rmc_today_error = None
+
+    def get_public_rainfall_records():
+        nonlocal public_rainfall_records, public_rainfall_error
+        if public_rainfall_records is None and public_rainfall_error is None:
+            try:
+                public_rainfall_records = live_imd_public_rainfall_records()
+            except Exception as exc:
+                public_rainfall_error = str(exc)
+        if public_rainfall_error:
+            raise RuntimeError(public_rainfall_error)
+        return public_rainfall_records
+
+    def get_rmc_station_report():
+        nonlocal rmc_station_report, rmc_station_error
+        if rmc_station_report is None and rmc_station_error is None:
+            try:
+                rmc_station_report = live_rmc_assam_station_observations()
+            except Exception as exc:
+                rmc_station_error = str(exc)
+        if rmc_station_error:
+            raise RuntimeError(rmc_station_error)
+        return rmc_station_report
+
+    def get_rmc_today_report():
+        nonlocal rmc_today_report, rmc_today_error
+        if rmc_today_report is None and rmc_today_error is None:
+            try:
+                rmc_today_report = live_rmc_assam_today_report()
+            except Exception as exc:
+                rmc_today_error = str(exc)
+        if rmc_today_error:
+            raise RuntimeError(rmc_today_error)
+        return rmc_today_report
+
+    lightning_feed = None
+    lightning_feed_error = None
+    warning_features = None
+    warning_feed_error = None
+    nowcast_features = None
+    nowcast_feed_error = None
+    rmc_warning_records = None
+    rmc_warning_error = None
+    rmc_nowcast_records = None
+    rmc_nowcast_error = None
+
+    def get_rmc_warning_records():
+        nonlocal rmc_warning_records, rmc_warning_error
+        if rmc_warning_records is None and rmc_warning_error is None:
+            try:
+                rmc_warning_records = live_rmc_assam_warning_features()
+            except Exception as exc:
+                rmc_warning_error = str(exc)
+        if rmc_warning_error:
+            raise RuntimeError(rmc_warning_error)
+        return rmc_warning_records
+
+    def get_rmc_nowcast_records():
+        nonlocal rmc_nowcast_records, rmc_nowcast_error
+        if rmc_nowcast_records is None and rmc_nowcast_error is None:
+            try:
+                rmc_nowcast_records = live_rmc_assam_nowcast_records()
+            except Exception as exc:
+                rmc_nowcast_error = str(exc)
+        if rmc_nowcast_error:
+            raise RuntimeError(rmc_nowcast_error)
+        return rmc_nowcast_records
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        lightning_future = pool.submit(live_nrsc_lightning_hourly_records)
+        warning_future = pool.submit(live_imd_district_feed, IMD_DISTRICT_WARNING_LAYER)
+        nowcast_future = pool.submit(live_imd_district_feed, IMD_DISTRICT_NOWCAST_LAYER)
+        try:
+            lightning_feed = lightning_future.result()
+        except Exception as exc:
+            lightning_feed_error = str(exc)
+        try:
+            warning_features = warning_future.result()
+        except Exception as exc:
+            warning_feed_error = str(exc)
+        try:
+            nowcast_features = nowcast_future.result()
+        except Exception as exc:
+            nowcast_feed_error = str(exc)
+
+    for index, (kind, state, district) in enumerate(places):
+        try:
+            district_geometry = next(
+                (geometry for (boundary_state, boundary_district), geometry in district_geometries.items()
+                 if normalized(boundary_state) == normalized(state)
+                 and normalized(boundary_district) == normalized(district)),
+                None,
+            )
+            if district_geometry is None:
+                raise RuntimeError(f"No exact live IMD boundary match for {district}, {state}.")
+            rainfall = None
+            try:
+                rainfall = {"status": "OK", **live_imd_public_rainfall(
+                    state, district, get_public_rainfall_records())}
+            except Exception as imd_rain_error:
+                rainfall_error = f"IMD public page: {imd_rain_error}"
+            if rainfall is None and normalized(state) == "assam":
+                try:
+                    row = live_rmc_today_station_value(get_rmc_today_report(), district)
+                    if row.get("rainfall") is None:
+                        raise RuntimeError("RMC has no rainfall value for this station today.")
+                    rainfall = {"status": "OK", "value_mm": row["rainfall"], "date": row["date"],
+                                "source": row["source"], "station": row["station"],
+                                "matched_source_label": row.get("matched_source_label"),
+                                "coverage_note": row.get("coverage_note")}
+                except Exception as rmc_exc:
+                    try:
+                        row = live_rmc_assam_station_value(get_rmc_station_report(), district)
+                        rainfall = {"status": "OK", "value_mm": row.get("rain_mm"), "date": row["date"],
+                                    "source": row["source"], "station": row.get("station"),
+                                    "matched_source_label": row.get("matched_source_label"),
+                                    "coverage_note": row.get("coverage_note")}
+                    except Exception as pdf_exc:
+                        rainfall_error += f" RMC public report: {rmc_exc}; RMC daily report: {pdf_exc}"
+            if rainfall is None:
+                try:
+                    rainfall = {"status": "OK", **live_imd_grid_district_rainfall(district_geometry)}
+                except Exception as grid_exc:
+                    rainfall_error += f" IMD real-time grid: {grid_exc}"
+            if rainfall is None:
+                rainfall = {"status": "UNAVAILABLE", "reason": rainfall_error}
+
+            temperatures = {
+                "status": "FORECAST_ONLY",
+                "source": "Open-Meteo live model forecast",
+                "reason": "Temperature is sourced from Open-Meteo only.",
+            }
+
+            if warning_features is not None:
+                warnings = live_imd_district_warning(warning_features, state, district, district_geometry)
+            else:
+                warnings = {"status": "UNAVAILABLE", "items": [], "reason": warning_feed_error}
+            if warnings.get("status") != "OK" and normalized(state) == "assam":
+                try:
+                    warnings = live_rmc_assam_district_warning(get_rmc_warning_records(), district)
+                except Exception as exc:
+                    warnings["reason"] = f"IMD district feed: {warning_feed_error or warnings.get('reason')}; RMC Guwahati: {exc}"
+
+            nowcast = compute_nowcast(state, district, district_geometry, nowcast_features,
+                                      nowcast_feed_error, get_rmc_nowcast_records)
+            nowcast_checked_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
+            nowcast["last_checked_at"] = nowcast_checked_at
+            if nowcast.get("status") in {"OK", "EXPIRED"}:
+                nowcast["last_verified_at"] = nowcast_checked_at
+
+            cyclone_items = [warning for warning in warnings.get("items", [])
+                             if warning_mentions_cyclone(warning)]
+            if cyclone_items:
+                cyclone = {"status": "OK", "overlaps": True,
+                           "source": warnings.get("source") or "IMD district warning map",
+                           "issue_date": warnings.get("issue_date"), "items": cyclone_items}
+            else:
+                cyclone = {"status": "UNAVAILABLE", "reason":
+                           "No explicit current district cyclone warning was found in the public RMC warning page."}
+
+            if lightning_feed is not None:
+                lightning = live_nrsc_lightning_coordinates(lightning_feed, district_geometry)
+            else:
+                lightning = {"status": "UNAVAILABLE", "coordinates": [], "error": lightning_feed_error}
+            results.append({"district": district, "state": state, "kind": kind,
+                            "fetched_at": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds"),
+                            "rainfall": rainfall, "temperatures": temperatures,
+                            "lightning": lightning, "warnings": warnings, "nowcast": nowcast,
+                            "cyclone": cyclone})
+        except Exception as exc:
+            results.append({"district": district, "state": state, "kind": kind, "error": str(exc)})
+        progress.progress((index + 1) / len(places))
+    st.session_state.live_results = results
+    assam_geometries = sorted(
+        ((district, geometry) for (state, district), geometry in district_geometries.items()
+         if normalized(state) == "assam"),
+        key=lambda row: normalized(row[0]),
+    )
+    if lightning_feed is None:
+        st.session_state.assam_lightning_results = [
+            {"district": district, "status": "UNAVAILABLE", "coordinates": [],
+             "error": lightning_feed_error}
+            for district, _geometry in assam_geometries
+        ]
+        st.session_state.assam_lightning_feed_count = None
+        st.session_state.assam_lightning_window = None
+    else:
+        st.session_state.assam_lightning_results = [
+            {"district": district, **live_nrsc_lightning_coordinates(lightning_feed, geometry)}
+            for district, geometry in assam_geometries
+        ]
+        st.session_state.assam_lightning_feed_count = len(lightning_feed["records"])
+        st.session_state.assam_lightning_window = {
+            "start": lightning_feed["window_start"].strftime("%Y-%m-%d %H:%M UTC"),
+            "end": lightning_feed["window_end"].strftime("%Y-%m-%d %H:%M UTC"),
+        }
+    st.session_state.live_synced_at = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %I:%M:%S %p IST")
+    st.session_state.live_selection = tuple(places)
+
+
+@st.fragment(run_every="15m")
+def render_live_dashboard(primary_district, selected_pairs):
+    st.subheader("Live district conditions")
+    places = [("Primary", "Assam", primary_district)] + [("Secondary", state, district) for state, district in selected_pairs]
+    selection_key = tuple(places)
+    import time as _time
+    last_sync = st.session_state.get("live_synced_epoch", 0)
+    selection_changed = st.session_state.get("live_selection") != selection_key
+    sync_due = selection_changed or not last_sync or _time.time() - last_sync >= 12 * 60 * 60
+    button_label = "Load live data" if "live_results" not in st.session_state else "Refresh live data"
+    manual_refresh = st.button(button_label, type="primary", width="stretch")
+    if manual_refresh or sync_due:
+        with st.status("Syncing live data…", expanded=False) as load_status:
+            fetch_selected_live_data(places)
+            load_status.update(label="Loading district forecasts…", state="running")
+            st.session_state.live_forecasts = fetch_live_district_forecasts(places, district_geometries)
+            st.session_state.live_forecast_selection = selection_key
+            st.session_state.live_forecast_synced_at = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %I:%M:%S %p IST")
+            try:
+                st.session_state.live_snapshot_count = save_live_daily_snapshot(
+                    st.session_state.get("live_results", []),
+                    st.session_state.live_forecasts,
+                    db_path=DB_PATH,
+                )
+                st.session_state.live_snapshot_error = ""
+            except Exception as exc:
+                st.session_state.live_snapshot_error = str(exc)
+            load_status.update(label="Live data loaded", state="complete")
+        st.session_state.live_synced_epoch = _time.time()
+        st.session_state.nowcast_checked_epoch = _time.time()
+        selection_changed = False
+    elif (st.session_state.get("live_results") and not selection_changed
+          and _time.time() - st.session_state.get("nowcast_checked_epoch", 0) >= 10 * 60):
+        # Nowcasts are short-lived: re-read just those sources every ~15 minutes and store
+        # the new entry (with its own issue/validity times) when the source has changed.
+        changed_districts = refresh_live_nowcasts(places, district_geometries)
+        st.session_state.nowcast_checked_epoch = _time.time()
+        if changed_districts:
+            try:
+                save_live_daily_snapshot(st.session_state.get("live_results", []),
+                                         st.session_state.get("live_forecasts", []), db_path=DB_PATH)
+            except Exception as exc:
+                st.session_state.live_snapshot_error = str(exc)
+    snapshot_message = ("Refresh snapshot saved to SQLite history"
+                        if not st.session_state.get("live_snapshot_error")
+                        else "SQLite history save failed")
+    st.caption(
+        f"Updated: {st.session_state.get('live_synced_at', 'Not loaded')} · Full auto-sync every 12 hours · "
+        f"Nowcasts re-checked every 15 minutes (last check: {st.session_state.get('nowcast_checked_at', 'not yet')}) · "
+        f"{snapshot_message}"
+    )
+    if st.session_state.get("live_snapshot_error"):
+        st.warning("Live data loaded, but the daily SQLite snapshot could not be saved.")
+    results = [] if selection_changed else st.session_state.get("live_results", [])
+    if selection_changed:
+        st.info("Syncing live data for the selected districts…")
+    forecast_selection = st.session_state.get("live_forecast_selection")
+    forecast_results = (st.session_state.get("live_forecasts", [])
+                        if forecast_selection == selection_key else [])
+    forecast_by_place = {
+        (normalized(row.get("state")), normalized(row.get("district"))): row
+        for row in forecast_results
+    }
+    st.subheader("5-day district forecast")
+    if forecast_results:
+        st.caption(f"Live forecast request: {st.session_state.get('live_forecast_synced_at', 'time not reported')} · Rain: [IMD district rainfall forecast](https://mausam.imd.gov.in/responsive/5d_statewisedistricts_rf_forecast.php) · Temperature: [Open-Meteo](https://open-meteo.com/) only")
+        forecast_group = None
+        for forecast in forecast_results:
+            current_group = "Primary" if forecast["kind"] == "Primary" else "Selected neighboring districts"
+            if current_group != forecast_group:
+                st.markdown(f"#### {current_group}")
+                forecast_group = current_group
+            st.markdown(f"**{forecast['kind']} · {forecast['district']}, {forecast['state']}**")
+            st.caption(
+                f"DIWIS forecast fetch: {freshness_label(forecast.get('fetched_at'))} · "
+                f"source issue date: {next((row.get('issue_date') for row in forecast.get('rainfall_days', []) if row.get('issue_date')), 'not provided by feed')}."
+            )
+            temp_rows = forecast.get("temperature_days") or []
+            temperatures_by_date = {
+                _forecast_date_key(row.get("date")): row for row in temp_rows
+                if _forecast_date_key(row.get("date"))
+            }
+            rows = []
+            rain_rows = forecast.get("rainfall_days") or []
+            for index in range(1, 6):
+                rain = rain_rows[index - 1] if index <= len(rain_rows) else {}
+                temp_candidate = temp_rows[index - 1] if index <= len(temp_rows) else {}
+                forecast_date = rain.get("date") or temp_candidate.get("date") or "—"
+                forecast_date_key = _forecast_date_key(forecast_date)
+                temperature = temperatures_by_date.get(forecast_date_key, {}) if forecast_date_key else {}
+                rows.append({
+                    "Forecast day": f"Day {index}",
+                    "Forecast date": forecast_date,
+                    "Rainfall forecast": (
+                        "No rain" if str(rain.get("coverage") or "").strip().casefold() == "no rain"
+                        else " · ".join(value for value in (
+                            str(rain.get("rainfall") or "").strip(),
+                            str(rain.get("coverage") or "").strip(),
+                        ) if value)
+                        if rain.get("rainfall") is not None else "Not reported"
+                    ),
+                    "Rainfall source": rain.get("source") or "—",
+                    # Always text, so the column is one type (numbers mixed with text break Arrow conversion).
+                    "Temperature max (°C)": temperature_cell(temperature.get("maximum_c")),
+                    "Temperature min (°C)": temperature_cell(temperature.get("minimum_c")),
+                })
+            st.dataframe(rows, hide_index=True, width="stretch")
+            if temp_rows:
+                temp_source = temp_rows[0]
+                if temp_source.get("source_url") == "https://open-meteo.com/":
+                    grid_lat, grid_lon = temp_source.get("grid_latitude"), temp_source.get("grid_longitude")
+                    point_caption = (f" · model grid {grid_lat:.3f}, {grid_lon:.3f}"
+                                     if isinstance(grid_lat, (int, float)) and isinstance(grid_lon, (int, float))
+                                     else "")
+                    st.caption(f"Temperature source: [Open-Meteo live model forecast](https://open-meteo.com/) · grid forecast at this district's live boundary reference point{point_caption}.")
+                else:
+                    st.caption(f"Temperature source: {temp_source.get('source') or 'Open-Meteo'}")
+            missing_rain = [rain.get("error") for rain in forecast.get("rainfall_days", [])
+                            if rain.get("error")]
+            if missing_rain:
+                st.caption("Rainfall: " + str(missing_rain[0])[:140])
+            if not temp_rows:
+                st.caption("Open-Meteo temperature: " + str(forecast.get("temperature_error") or "No forecast returned.")[:140])
+    elif forecast_selection != selection_key:
+        st.info("Load live data to see forecasts.")
+    if results:
+        st.subheader("Current results")
+        if selected_pairs:
+            st.caption("Neighboring-district readings require exact live feed matches; connected RMC station reports cover Assam.")
+        current_group = None
+        for item in results:
+            group = "Primary" if item["kind"] == "Primary" else "Selected neighboring districts"
+            if group != current_group:
+                st.markdown(f"#### {group}")
+                current_group = group
+            st.subheader(f"{item['kind']} · {item['district']}, {item['state']}")
+            if item.get("error"):
+                st.warning(f"No live district result: {item.get('error')}")
+                continue
+            st.caption(
+                f"DIWIS data fetch: {freshness_label(item.get('fetched_at'))} · "
+                "Source issue/observation dates are shown per feed when available."
+            )
+            rainfall = item.get("rainfall") or {}
+            temperatures = item.get("temperatures") or {}
+            temperature_forecast = forecast_by_place.get(
+                (normalized(item.get("state")), normalized(item.get("district"))), {}
+            ).get("temperature_days") or []
+            forecast_today = temperature_forecast[0] if temperature_forecast else {}
+            using_temperature_forecast = (
+                temperatures.get("status") != "OK"
+                and forecast_today.get("maximum_c") is not None
+                and forecast_today.get("minimum_c") is not None
+            )
+            max_temp = forecast_today.get("maximum_c") if using_temperature_forecast else temperatures.get("maximum_c")
+            min_temp = forecast_today.get("minimum_c") if using_temperature_forecast else temperatures.get("minimum_c")
+            m1, m2, m3 = st.columns(3)
+            rain_value = rainfall.get("value_mm")
+            try:
+                rain_number = float(rain_value)
+            except (TypeError, ValueError):
+                rain_number = None
+            rain_display = (("No rain · 0 mm" if rain_number == 0
+                             else f"{rain_number:g} mm" if rain_number is not None else str(rain_value))
+                            if rainfall.get("status") == "OK" else "No current district reading")
+            rain_label = (
+                "District rainfall · IMD grid average"
+                if str(rainfall.get("source", "")).startswith("IMD real-time 0.25° rainfall grid")
+                else "Station rainfall · daily observed" if rainfall.get("station")
+                else "District rainfall · daily observed"
+            )
+            m1.metric(rain_label, rain_display)
+            maximum = temperatures.get("maximum_c")
+            minimum = temperatures.get("minimum_c")
+            temp_label = "Temperature forecast" if using_temperature_forecast else "Temperature observed"
+            m2.metric(f"{temp_label} · maximum", f"{float(max_temp):g} °C" if max_temp is not None else "No report")
+            m3.metric(f"{temp_label} · minimum", f"{float(min_temp):g} °C" if min_temp is not None else "No report")
+            source_notes = []
+            if rainfall.get("status") == "OK":
+                station = f" · station {rainfall['station']}" if rainfall.get("station") else ""
+                matched_label = (f" · source label {rainfall['matched_source_label']}"
+                                 if rainfall.get("matched_source_label") else "")
+                coverage_note = (f" · {rainfall['coverage_note']}"
+                                 if rainfall.get("coverage_note") else "")
+                source_notes.append(
+                    f"rainfall: {rainfall.get('source', 'IMD')} · date {rainfall.get('date')}"
+                    f"{station}{matched_label}{coverage_note}"
+                )
+            else:
+                source_notes.append(f"Rainfall: {rainfall.get('reason') or 'no matching current district record'}")
+            if temperatures.get("status") == "OK":
+                missing_extrema = []
+                if maximum is None:
+                    missing_extrema.append("maximum not reported")
+                if minimum is None:
+                    missing_extrema.append("minimum not reported")
+                detail = f" · {' and '.join(missing_extrema)}" if missing_extrema else ""
+                source_notes.append(f"Temperature: {temperatures.get('source')} · {temperatures.get('date')} · {temperatures.get('station')}{detail}")
+            else:
+                if using_temperature_forecast:
+                    source_notes.append(
+                        f"Temperature forecast: {forecast_today.get('source')} · {forecast_today.get('date')}"
+                    )
+                else:
+                    source_notes.append(f"Temperature: {temperatures.get('reason') or 'no current district station report'}")
+            st.caption(" · ".join(source_notes))
+            source_urls = []
+            if rainfall.get("status") == "OK":
+                rain_source_links = {
+                    "IMD public district rainfall page": "[IMD public district rainfall](https://mausam.imd.gov.in/responsive/rainfallinformation.php)",
+                    "IMD real-time 0.25° rainfall grid (area-weighted district average)": "[IMD real-time 0.25° grid](https://www.imdpune.gov.in/cmpg/Realtimedata/Rainfall/Rain_Download.html)",
+                    "RMC Guwahati today's weather report": "[RMC Guwahati today's weather report](https://mausam.imd.gov.in/imd_latest/contents/Todaysweather_mc.php?id=24)",
+                    "RMC Guwahati daily station report": "[RMC Guwahati daily report](https://mausam.imd.gov.in/guwahati/mcdata/dwr.pdf)",
+                }
+                source_urls.append(rain_source_links.get(rainfall.get("source"), ""))
+            if any(source_urls):
+                st.caption("Source: " + " · ".join(dict.fromkeys(link for link in source_urls if link)))
+            warnings = item.get("warnings") or {}
+            st.markdown("**Rain and thunderstorm warning**")
+            if warnings.get("status") != "OK":
+                st.caption(f"No warning feed result · {warnings.get('reason') or 'IMD did not return a current district record'}")
+            elif warnings.get("items"):
+                for warning in warnings["items"]:
+                    if not isinstance(warning, dict):
+                        continue
+                    hazards = warning.get("hazards") or []
+                    label = ", ".join(str(hazard) for hazard in hazards) or "Warning"
+                    extra_text = format_clock_ampm(warning.get("text"))
+                    extra = f" · {extra_text}" if extra_text else ""
+                    st.write(f"Day {warning.get('day', '—')} · {warning.get('date') or 'Date not reported'} · {label}{extra}")
+                if warnings.get("source") == "RMC Guwahati":
+                    warning_link = "[RMC Guwahati warning portal](https://mausam.imd.gov.in/imd_latest/contents/districtwise-warning_mc.php?id=24)"
+                else:
+                    warning_link = f"[IMD district warning map]({IMD_WARNING_MAP_URL})"
+                st.caption(f"Source: {warnings.get('source', 'IMD')} · Updated {format_clock_ampm(warnings.get('updated_at') or warnings.get('issue_date') or 'time not reported')} · {warning_link}")
+            elif warnings.get("no_warning_days"):
+                days = ", ".join(str(day) for day in warnings["no_warning_days"])
+                st.caption(f"{warnings.get('source', 'IMD')}: No warning · Days {days} · Updated {format_clock_ampm(warnings.get('updated_at') or warnings.get('issue_date') or 'time not reported')}")
+            else:
+                st.caption("No thunderstorm warning details in feed")
+            if warnings.get("status") == "OK" and warnings.get("missing_days"):
+                st.caption("Feed left day(s) " + ", ".join(map(str, warnings["missing_days"]))
+                           + " blank. Treat those days as not reported, not as no warning.")
+            if warnings.get("status") == "OK":
+                warning_issue_date = warnings.get("issue_date") or warnings.get("updated_at")
+                st.caption(
+                    f"DIWIS checked with the live request · source issue date: "
+                    f"{warning_issue_date or 'not provided'} · source update time: not provided by this feed."
+                )
+            nowcast = item.get("nowcast") or {}
+            st.markdown("**Nowcast**")
+            if nowcast.get("status") == "OK":
+                issue = f"Issued {nowcast.get('issue_date') or 'time not supplied'} {format_feed_clock(nowcast.get('issue_time')) or ''} IST".strip()
+                valid = f" · valid up to {format_feed_clock(nowcast.get('valid_until'))} IST" if nowcast.get("valid_until") else ""
+                if nowcast.get("no_warning"):
+                    st.success(f"No warning · {issue}{valid}")
+                else:
+                    st.warning(f"{format_clock_ampm(nowcast.get('message') or 'Live nowcast returned a district entry.')} · {issue}{valid}")
+                if nowcast.get("source") == "RMC Guwahati district-wise nowcast":
+                    st.caption("Source: [RMC Guwahati nowcast](https://mausam.imd.gov.in/imd_latest/contents/districtwisewarnings_mc.php?id=24)")
+                else:
+                    st.caption(f"Source: [IMD district nowcast map]({IMD_NOWCAST_MAP_URL})")
+            elif nowcast.get("status") == "STALE":
+                last_verified = freshness_label(nowcast.get("last_verified_at"), stale_after_minutes=15)
+                message = nowcast.get("message") or "Last verified nowcast"
+                st.warning(
+                    f"STALE — last verified nowcast: {format_clock_ampm(message)}. "
+                    f"{last_verified}; latest recheck failed."
+                )
+                st.caption(
+                    f"{nowcast.get('recheck_error') or 'No current nowcast was verified.'} · "
+                    f"[IMD nowcast map]({IMD_NOWCAST_MAP_URL})"
+                )
+            elif nowcast.get("status") == "EXPIRED":
+                st.info(f"Expired · {nowcast_expiry_label(nowcast)}")
+                recheck_note = f" · latest recheck failed: {nowcast['recheck_error']}" if nowcast.get("recheck_error") else ""
+                st.caption(f"Source: [IMD district nowcast map]({IMD_NOWCAST_MAP_URL}){recheck_note}")
+            else:
+                st.caption(f"No current nowcast entry · {nowcast.get('reason') or 'IMD did not return a district record'} · [IMD nowcast map]({IMD_NOWCAST_MAP_URL})")
+            cyclone = item.get("cyclone") or {}
+            st.markdown("**Cyclone warning**")
+            if cyclone.get("status") != "OK":
+                if warnings.get("status") == "OK" and not any(
+                    warning_mentions_cyclone(warning)
+                    for warning in warnings.get("items", []) if isinstance(warning, dict)
+                ):
+                    st.caption("No cyclone warning listed in district feed")
+                else:
+                    st.caption(f"No cyclone status in current feed · {cyclone.get('reason') or warnings.get('reason') or 'no district cyclone entry'}")
+            elif cyclone.get("overlaps"):
+                if cyclone.get("source") == "RMC Guwahati district warning":
+                    st.warning(f"RMC Guwahati has an explicit cyclone-related warning for this district · {cyclone.get('issue_date')}.")
+                else:
+                    st.warning(f"The live {cyclone.get('source', 'district warning feed')} includes a cyclone-related warning for this district.")
+            else:
+                st.caption("No cyclone warning listed · RMC Guwahati")
+            lightning = item.get("lightning") or {}
+            st.markdown("**Live lightning strike coordinates**")
+            if lightning.get("status") == "OK":
+                strikes = lightning.get("coordinates", [])
+                if strikes:
+                    st.caption(f"{len(strikes)} Bhuvan feed point(s) returned inside this district boundary.")
+                    st.dataframe(strikes, hide_index=True, width="stretch")
+                else:
+                    st.caption("0 Bhuvan feed points returned inside this district boundary; this does not prove no lightning occurred.")
+                st.caption(
+                    f"Source: [NRSC–ISRO Bhuvan Lightning](https://bhuvan-app1.nrsc.gov.in/lightning/) · "
+                    f"window {format_clock_ampm(lightning.get('window_start'))} to "
+                    f"{format_clock_ampm(lightning.get('window_end'))} · "
+                    f"DIWIS fetch: {freshness_label(item.get('fetched_at'))}"
+                )
+            else:
+                st.caption(f"No coordinates returned · {lightning.get('error') or 'feed did not return district strike coordinates'} · [NRSC–ISRO Bhuvan](https://bhuvan-app1.nrsc.gov.in/lightning/)")
+    assam_lightning_results = st.session_state.get("assam_lightning_results") or []
+    if assam_lightning_results:
+        st.divider()
+        st.subheader("Bhuvan lightning feed · all Assam districts")
+        st.caption(
+            f"Query window: {st.session_state.get('assam_lightning_window') or {}} · "
+            f"Bhuvan returned {st.session_state.get('assam_lightning_feed_count', 0)} point records "
+            "across its queried feed; counts below are points inside each district polygon. "
+            "Zero returned points is not proof that no lightning occurred."
+        )
+        unavailable_lightning = [
+            row for row in assam_lightning_results if row.get("status") != "OK"
+        ]
+        if unavailable_lightning:
+            st.warning(
+                "The Bhuvan feed was unavailable; district counts are not reported. "
+                + str(unavailable_lightning[0].get("error") or "No feed response.")
+            )
+        else:
+            district_counts = []
+            strike_rows = []
+            for row in assam_lightning_results:
+                strikes = row.get("coordinates") or []
+                district_counts.append({
+                    "District": row["district"],
+                    "Feed points inside boundary": len(strikes),
+                    "Result": (
+                        f"{len(strikes)} point(s) returned"
+                        if strikes else "No points returned inside boundary"
+                    ),
+                })
+                for strike in strikes:
+                    strike_rows.append({
+                        "District": row["district"],
+                        "Latitude": strike["latitude"],
+                        "Longitude": strike["longitude"],
+                        "Bhuvan source time": strike.get("source_time") or "Not supplied",
+                        "Feed ID": strike.get("feed_id") or "Not supplied",
+                        "Current": strike.get("current") or "Not supplied",
+                        "Queried hour (UTC)": strike["hour_utc"],
+                    })
+            st.dataframe(district_counts, hide_index=True, width="stretch")
+            if strike_rows:
+                st.markdown("**Feed points inside Assam district boundaries**")
+                st.dataframe(strike_rows, hide_index=True, width="stretch")
+            else:
+                st.caption(
+                    "Bhuvan returned no points inside the 35 Assam district polygons "
+                    "for this query window. This describes the feed response, not a "
+                    "verified absence of lightning."
+                )
+    st.divider()
+    st.subheader("Download report")
+    st.caption("PDF: primary live data and selected district rainfall/forecasts.")
+    if results or forecast_results:
+        generated_at = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p IST")
+        generated_by = user.get("full_name") or user.get("username") or "Signed-in user"
+        try:
+            pdf_bytes = build_rainfall_report_pdf(results, forecast_results, generated_at, generated_by)
+            report_filename = f"DIWIS_Live_District_Report_{datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%Y%m%d_%I%M%p')}.pdf"
+            st.download_button(
+                "Download PDF report", data=pdf_bytes, file_name=report_filename,
+                mime="application/pdf", type="primary", width="stretch",
+            )
+        except Exception as exc:
+            st.error(f"Could not create the PDF report: {exc}")
+    else:
+        st.button("Download PDF report", disabled=True, width="stretch")
+
+
+if page == "Dashboard":
+    st.subheader("District dashboard")
+    st.caption(f"Primary: {primary_district}, Assam · Comparison districts: {len(selected_pairs)}")
+    render_live_dashboard(primary_district, selected_pairs)

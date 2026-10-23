@@ -17,6 +17,7 @@ import hashlib
 import hmac
 import secrets
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -163,7 +164,66 @@ def init_db(db_path: str = None):
     )
     """)
 
-    # 7. Users and Authentication (Salted Scrypt Hashed Passwords & RBAC)
+    # 7. Live DIWIS district snapshots: every verified feed response per selected
+    # district and local calendar day, with raw JSON retained for analysis.
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS live_daily_snapshots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        snapshot_date TEXT NOT NULL,
+        synced_at TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        state TEXT NOT NULL,
+        district TEXT NOT NULL,
+        observed_rainfall_mm REAL,
+        observed_rainfall_date TEXT,
+        rainfall_source TEXT,
+        rainfall_status TEXT,
+        live_json TEXT NOT NULL,
+        forecast_json TEXT NOT NULL
+    )
+    """)
+    unique_snapshot_index = None
+    for index in cursor.execute("PRAGMA index_list(live_daily_snapshots)").fetchall():
+        if not index["unique"]:
+            continue
+        columns = {row["name"] for row in cursor.execute(
+            f"PRAGMA index_info('{index['name']}')"
+        ).fetchall()}
+        if columns == {"snapshot_date", "kind", "state", "district"}:
+            unique_snapshot_index = index["name"]
+            break
+    if unique_snapshot_index:
+        cursor.execute("""
+            CREATE TABLE live_daily_snapshots_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                snapshot_date TEXT NOT NULL,
+                synced_at TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                state TEXT NOT NULL,
+                district TEXT NOT NULL,
+                observed_rainfall_mm REAL,
+                observed_rainfall_date TEXT,
+                rainfall_source TEXT,
+                rainfall_status TEXT,
+                live_json TEXT NOT NULL,
+                forecast_json TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            INSERT INTO live_daily_snapshots_history (
+                id, snapshot_date, synced_at, kind, state, district,
+                observed_rainfall_mm, observed_rainfall_date, rainfall_source,
+                rainfall_status, live_json, forecast_json
+            )
+            SELECT id, snapshot_date, synced_at, kind, state, district,
+                   observed_rainfall_mm, observed_rainfall_date, rainfall_source,
+                   rainfall_status, live_json, forecast_json
+            FROM live_daily_snapshots
+        """)
+        cursor.execute("DROP TABLE live_daily_snapshots")
+        cursor.execute("ALTER TABLE live_daily_snapshots_history RENAME TO live_daily_snapshots")
+
+    # 8. Users and Authentication (Salted Scrypt Passwords & RBAC)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -195,34 +255,22 @@ def init_db(db_path: str = None):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_up_target_date ON upstream_catchment_records(target_district, record_date);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_district ON users(district);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_live_daily_location_date ON live_daily_snapshots(state, district, snapshot_date);")
 
-    # Auto-seed initial administration accounts if table is empty
+    # Bootstrap only from an explicitly configured secret. Never ship a known
+    # default password or pre-create district accounts with a shared credential.
     cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] == 0:
+    bootstrap_pwd = os.environ.get("DIWIS_ADMIN_PASSWORD", "").strip()
+    if cursor.fetchone()[0] == 0 and bootstrap_pwd:
         now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        bootstrap_pwd = os.environ.get("DIWIS_ADMIN_PASSWORD", "admin123")
         p_bootstrap = hash_password(bootstrap_pwd)
-        must_change = 1 if bootstrap_pwd == "admin123" else 0
+        must_change = 1
         
         # Master Super Administrator
         cursor.execute("""
         INSERT INTO users (username, password_hash, full_name, role, district, created_at, created_by, must_change_password)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, ('admin', p_bootstrap, 'State Super Administrator', 'superadmin', 'ALL', now_ts, 'system', must_change))
-
-        # Seed District Admins for all Assam districts
-        try:
-            from geo_registry import NE_STATES_DISTRICTS
-            assam_dists = NE_STATES_DISTRICTS.get("Assam", [])
-            for d in assam_dists:
-                clean_dist = d.lower().replace(" ", "").replace("-", "_")
-                u_name = f"admin_{clean_dist}"
-                cursor.execute("""
-                INSERT OR IGNORE INTO users (username, password_hash, full_name, role, district, created_at, created_by, must_change_password)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (u_name, p_bootstrap, f"{d} DDMA District Admin", "district_admin", d, now_ts, "system", must_change))
-        except Exception:
-            pass
 
     conn.commit()
     conn.close()
@@ -524,8 +572,8 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
         actual_rf = _parse_float(obs.get("actual_rainfall_mm"))
         norm_rf = _parse_float(obs.get("normal_rainfall_mm"))
         dep_pct = _parse_float(obs.get("departure_percentage"))
-        dep_cat = obs.get("departure_category", "Normal")
-        telemetry_st = obs.get("status", "OK")
+        dep_cat = obs.get("departure_category", "Data Unavailable")
+        telemetry_st = obs.get("status", "UNAVAILABLE")
         
         amb_temp = _parse_float(temp_obs.get("temperature_c"))
         max_temp = _parse_float(temp_obs.get("today_max_c"))
@@ -578,9 +626,9 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
             w = warnings_fc[idx] if idx < len(warnings_fc) else {}
             t = temp_fc[idx] if idx < len(temp_fc) else {}
 
-            w_col = w.get("alert_color", "Green")
-            w_lvl = w.get("alert_level", "No Action")
-            w_sum = w.get("warning_summary", "No Warning")
+            w_col = w.get("alert_color")
+            w_lvl = w.get("alert_level", "Warning status unavailable")
+            w_sum = w.get("warning_summary", "Data Unavailable")
 
             t_max = _parse_float(t.get("max_temp_c"))
             t_min = _parse_float(t.get("min_temp_c"))
@@ -641,9 +689,9 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
             f1_c = f1.get("rainfall_category", "N/A")
             f1_cov = f1.get("station_coverage", "N/A")
             
-            w_c = u.get("imd_alert_color", "Green")
-            w_l = u.get("imd_alert_level", "No Warning")
-            w_s = u.get("imd_warning_summary", "No Warning")
+            w_c = u.get("imd_alert_color")
+            w_l = u.get("imd_alert_level", "Warning status unavailable")
+            w_s = u.get("imd_warning_summary", "Data Unavailable")
 
             cursor.execute("""
             INSERT INTO upstream_catchment_records (
@@ -676,7 +724,7 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
             SELECT id FROM nowcast_bulletins 
             WHERE district = ? AND alert_color = ? AND warning_message = ? 
             ORDER BY id DESC LIMIT 1
-            """, (district, nowcast.get("alert_color", "Green"), msg_txt))
+            """, (district, nowcast.get("alert_color"), msg_txt))
             if not cursor.fetchone():
                 cursor.execute("""
                 INSERT INTO nowcast_bulletins (
@@ -685,8 +733,8 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
                 """, (
                     district,
                     scraped_at,
-                    nowcast.get("alert_color", "Green"),
-                    nowcast.get("alert_level", "Be Prepared"),
+                    nowcast.get("alert_color"),
+                    nowcast.get("alert_level", "Nowcast status unavailable"),
                     msg_txt,
                     nowcast.get("action_suggested", "")
                 ))
@@ -702,6 +750,61 @@ def save_snapshot_to_db(data: dict, db_path: str = None):
 
     except Exception as e:
         print(f"[SQL Error] Failed to write data to SQLite database: {e}")
+    finally:
+        conn.close()
+
+
+def save_live_daily_snapshot(live_results: list, forecast_results: list,
+                             db_path: str = None) -> int:
+    """Append live app responses to history for the selected districts.
+
+    Values and source statuses are stored as returned by the live feeds. Missing
+    measurements remain SQL NULL and are never converted to zero or inferred.
+    """
+    live_by_key = {
+        (item.get("kind"), item.get("state"), item.get("district")): item
+        for item in (live_results or []) if isinstance(item, dict)
+    }
+    forecast_by_key = {
+        (item.get("kind"), item.get("state"), item.get("district")): item
+        for item in (forecast_results or []) if isinstance(item, dict)
+    }
+    keys = list(live_by_key)
+    keys.extend(key for key in forecast_by_key if key not in live_by_key)
+    if not keys:
+        return 0
+
+    synced_at = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds")
+    snapshot_date = synced_at[:10]
+    target_path = resolve_db_path(db_path)
+    init_db(target_path)
+    conn = get_connection(target_path)
+    try:
+        for kind, state, district in keys:
+            live = live_by_key.get((kind, state, district), {})
+            forecast = forecast_by_key.get((kind, state, district), {})
+            rainfall = live.get("rainfall") or {}
+            rainfall_value = rainfall.get("value_mm") if rainfall.get("status") == "OK" else None
+            rainfall_value = _parse_float(rainfall_value)
+            live_json = json.dumps(live, ensure_ascii=False, default=str)
+            forecast_json = json.dumps(forecast, ensure_ascii=False, default=str)
+            conn.execute("""
+                INSERT INTO live_daily_snapshots (
+                    snapshot_date, synced_at, kind, state, district,
+                    observed_rainfall_mm, observed_rainfall_date, rainfall_source,
+                    rainfall_status, live_json, forecast_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                snapshot_date, synced_at, kind or "", state or "", district or "",
+                rainfall_value, rainfall.get("date"), rainfall.get("source"),
+                rainfall.get("status") or ("ERROR" if live.get("error") else "NOT_REPORTED"),
+                live_json, forecast_json,
+            ))
+        conn.commit()
+        return len(keys)
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 

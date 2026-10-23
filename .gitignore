@@ -19,6 +19,7 @@ output_hailakandi/pdfs/
 *.pdf
 
 # SQLite temporary WAL and SHM files
+data/*.db
 *.db-wal
 *.db-shm
 output_hailakandi/*.db
@@ -26,5 +27,6 @@ output_hailakandi/*.db
 # IDE & OS
 .vscode/
 .idea/
+.streamlit/secrets.toml
 .DS_Store
 Thumbs.db

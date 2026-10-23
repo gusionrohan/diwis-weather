@@ -12,8 +12,8 @@ toolbarMode = "minimal"
 showErrorDetails = false
 
 [theme]
-primaryColor = "#0284C7"
-backgroundColor = "#0F172A"
-secondaryBackgroundColor = "#1E293B"
-textColor = "#F8FAFC"
+primaryColor = "#287A68"
+backgroundColor = "#F4F7F8"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#20313B"
 font = "sans serif"

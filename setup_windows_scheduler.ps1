@@ -1,19 +1,38 @@
-# PowerShell script to register Windows Scheduled Task for DHARA Weather Scraper
-$taskName = "DHARA_Weather_SQL_Sync"
-$action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument '/c "D:\WebScrap\run_sync.bat"'
+$ErrorActionPreference = "Stop"
+$taskName = "DIWIS_Daily_History_Collection"
+$projectRoot = $PSScriptRoot
+$scriptPath = Join-Path $projectRoot "daily_snapshot.py"
+$python = (Get-Command python.exe -ErrorAction Stop).Source
 
-# Trigger at 08:45 AM daily and 04:45 PM daily
-$trigger1 = New-ScheduledTaskTrigger -Daily -At "08:45AM"
-$trigger2 = New-ScheduledTaskTrigger -Daily -At "04:45PM"
-
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-
-# Register or update task
-try {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($trigger1, $trigger2) -Settings $settings -Description "Automatic sync for DHARA IMD Weather & SQL Database"
-    Write-Host "✅ Successfully registered Windows Scheduled Task: $taskName" -ForegroundColor Green
-    Write-Host "   Triggers: Daily at 08:45 AM and 04:45 PM IST" -ForegroundColor Cyan
-} catch {
-    Write-Host "❌ Error creating scheduled task: $_" -ForegroundColor Red
+if (-not (Test-Path $scriptPath)) {
+    throw "Collector script not found: $scriptPath"
 }
+
+$action = New-ScheduledTaskAction `
+    -Execute $python `
+    -Argument "`"$scriptPath`"" `
+    -WorkingDirectory $projectRoot
+$trigger = New-ScheduledTaskTrigger -Daily -At "09:00AM"
+$settings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -MultipleInstances IgnoreNew `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 4)
+$principal = New-ScheduledTaskPrincipal `
+    -UserId "$env:USERDOMAIN\$env:USERNAME" `
+    -LogonType Interactive `
+    -RunLevel Limited
+
+Register-ScheduledTask `
+    -TaskName $taskName `
+    -Action $action `
+    -Trigger $trigger `
+    -Settings $settings `
+    -Principal $principal `
+    -Description "Append daily live DIWIS history for all districts offered by the app." `
+    -Force | Out-Null
+
+Write-Host "Registered $taskName to run daily at 09:00 in the Windows system time zone."
+Write-Host "The current task runs while $env:USERNAME is logged on and starts late runs when possible."
+Write-Host "Collector logs: $(Join-Path $projectRoot 'logs\daily_snapshot.log')"
