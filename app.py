@@ -2560,29 +2560,6 @@ def fetch_selected_live_data(places):
             results.append({"district": district, "state": state, "kind": kind, "error": str(exc)})
         progress.progress((index + 1) / len(places))
     st.session_state.live_results = results
-    assam_geometries = sorted(
-        ((district, geometry) for (state, district), geometry in district_geometries.items()
-         if normalized(state) == "assam"),
-        key=lambda row: normalized(row[0]),
-    )
-    if lightning_feed is None:
-        st.session_state.assam_lightning_results = [
-            {"district": district, "status": "UNAVAILABLE", "coordinates": [],
-             "error": lightning_feed_error}
-            for district, _geometry in assam_geometries
-        ]
-        st.session_state.assam_lightning_feed_count = None
-        st.session_state.assam_lightning_window = None
-    else:
-        st.session_state.assam_lightning_results = [
-            {"district": district, **live_nrsc_lightning_coordinates(lightning_feed, geometry)}
-            for district, geometry in assam_geometries
-        ]
-        st.session_state.assam_lightning_feed_count = len(lightning_feed["records"])
-        st.session_state.assam_lightning_window = {
-            "start": lightning_feed["window_start"].strftime("%Y-%m-%d %H:%M UTC"),
-            "end": lightning_feed["window_end"].strftime("%Y-%m-%d %H:%M UTC"),
-        }
     st.session_state.live_synced_at = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %I:%M:%S %p IST")
     st.session_state.live_selection = tuple(places)
 
@@ -2900,57 +2877,6 @@ def render_live_dashboard(primary_district, selected_pairs):
                 )
             else:
                 st.caption(f"No coordinates returned · {lightning.get('error') or 'feed did not return district strike coordinates'} · [NRSC–ISRO Bhuvan](https://bhuvan-app1.nrsc.gov.in/lightning/)")
-    assam_lightning_results = st.session_state.get("assam_lightning_results") or []
-    if assam_lightning_results:
-        st.divider()
-        st.subheader("Bhuvan lightning feed · all Assam districts")
-        st.caption(
-            f"Query window: {st.session_state.get('assam_lightning_window') or {}} · "
-            f"Bhuvan returned {st.session_state.get('assam_lightning_feed_count', 0)} point records "
-            "across its queried feed; counts below are points inside each district polygon. "
-            "Zero returned points is not proof that no lightning occurred."
-        )
-        unavailable_lightning = [
-            row for row in assam_lightning_results if row.get("status") != "OK"
-        ]
-        if unavailable_lightning:
-            st.warning(
-                "The Bhuvan feed was unavailable; district counts are not reported. "
-                + str(unavailable_lightning[0].get("error") or "No feed response.")
-            )
-        else:
-            district_counts = []
-            strike_rows = []
-            for row in assam_lightning_results:
-                strikes = row.get("coordinates") or []
-                district_counts.append({
-                    "District": row["district"],
-                    "Feed points inside boundary": len(strikes),
-                    "Result": (
-                        f"{len(strikes)} point(s) returned"
-                        if strikes else "No points returned inside boundary"
-                    ),
-                })
-                for strike in strikes:
-                    strike_rows.append({
-                        "District": row["district"],
-                        "Latitude": strike["latitude"],
-                        "Longitude": strike["longitude"],
-                        "Bhuvan source time": strike.get("source_time") or "Not supplied",
-                        "Feed ID": strike.get("feed_id") or "Not supplied",
-                        "Current": strike.get("current") or "Not supplied",
-                        "Queried hour (UTC)": strike["hour_utc"],
-                    })
-            st.dataframe(district_counts, hide_index=True, width="stretch")
-            if strike_rows:
-                st.markdown("**Feed points inside Assam district boundaries**")
-                st.dataframe(strike_rows, hide_index=True, width="stretch")
-            else:
-                st.caption(
-                    "Bhuvan returned no points inside the 35 Assam district polygons "
-                    "for this query window. This describes the feed response, not a "
-                    "verified absence of lightning."
-                )
     st.divider()
     st.subheader("Download report")
     st.caption("PDF: primary live data and selected district rainfall/forecasts.")
