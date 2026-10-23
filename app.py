@@ -2112,9 +2112,10 @@ def build_rainfall_report_pdf(live_results, forecast_results, generated_at, gene
             warning_status = "\n".join(warning_text) if warning_text else warnings.get("reason") or "No report"
             story.append(Spacer(1, 4))
             story.append(table([
-                ["Official warning / hazard feed", "Live result", "Source / issue date"],
-                ["Rain / thunderstorm", warning_status, warnings.get("source") or warnings.get("issue_date") or "No report"],
-                ["Live district nowcast", (
+                ["Upcoming official alert", "Live result", "Source / issue date"],
+                ["District warning outlook · Days 1–5", warning_status,
+                 warnings.get("source") or warnings.get("issue_date") or "No report"],
+                ["Short-range nowcast · validity shown", (
                     ("No warning" if nowcast.get("no_warning") else format_clock_ampm(nowcast.get("message") or "Live nowcast returned a warning"))
                     + (f" · issued {nowcast.get('issue_date')} {format_feed_clock(nowcast.get('issue_time'))} IST" if nowcast.get("issue_date") else "")
                     + (f" · valid up to {format_feed_clock(nowcast.get('valid_until'))} IST" if nowcast.get("valid_until") else "")
@@ -2152,7 +2153,7 @@ def build_rainfall_report_pdf(live_results, forecast_results, generated_at, gene
             story.append(Paragraph(
                 f"Source: NRSC–ISRO Bhuvan hourly lightning data · window "
                 f"{format_clock_ampm(lightning.get('window_start')) or 'not reported'} to {format_clock_ampm(lightning.get('window_end')) or 'not reported'}. "
-                "Only point records within the selected district boundary are listed.",
+                "Recent observed points only; this feed is not a forecast. Only point records within the selected district boundary are listed.",
                 styles["RainCell"]))
             story.append(Paragraph(
                 f"Bhuvan points returned inside this district boundary: {len(coordinates)}.",
@@ -2782,10 +2783,12 @@ def render_live_dashboard(primary_district, selected_pairs):
             if any(source_urls):
                 st.caption("Source: " + " · ".join(dict.fromkeys(link for link in source_urls if link)))
             warnings = item.get("warnings") or {}
-            st.markdown("**Rain and thunderstorm warning**")
+            st.markdown("**Upcoming official thunderstorm / lightning alerts**")
+            st.caption("District-level outlooks only; these do not predict exact strike locations.")
             if warnings.get("status") != "OK":
-                st.caption(f"No warning feed result · {warnings.get('reason') or 'IMD did not return a current district record'}")
+                st.caption(f"Upcoming district warning outlook unavailable · {warnings.get('reason') or 'IMD did not return a current district record'}")
             elif warnings.get("items"):
+                st.caption("District warning outlook · Days 1–5")
                 for warning in warnings["items"]:
                     if not isinstance(warning, dict):
                         continue
@@ -2814,7 +2817,7 @@ def render_live_dashboard(primary_district, selected_pairs):
                     f"{warning_issue_date or 'not provided'} · source update time: not provided by this feed."
                 )
             nowcast = item.get("nowcast") or {}
-            st.markdown("**Nowcast**")
+            st.markdown("**Short-range nowcast · upcoming hours**")
             if nowcast.get("status") == "OK":
                 issue = f"Issued {nowcast.get('issue_date') or 'time not supplied'} {format_feed_clock(nowcast.get('issue_time')) or ''} IST".strip()
                 valid = f" · valid up to {format_feed_clock(nowcast.get('valid_until'))} IST" if nowcast.get("valid_until") else ""
@@ -2861,7 +2864,8 @@ def render_live_dashboard(primary_district, selected_pairs):
             else:
                 st.caption("No cyclone warning listed · RMC Guwahati")
             lightning = item.get("lightning") or {}
-            st.markdown("**Live lightning strike coordinates**")
+            st.markdown("**Recent observed lightning strikes · previous six completed hours**")
+            st.caption("Bhuvan strike observations only; this feed does not forecast upcoming lightning.")
             if lightning.get("status") == "OK":
                 strikes = lightning.get("coordinates", [])
                 if strikes:
