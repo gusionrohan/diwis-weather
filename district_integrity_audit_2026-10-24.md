@@ -1,6 +1,6 @@
 # DIWIS district data integrity audit
 
-**Snapshot checked:** 24 October 2026 (India Standard Time)  
+**Snapshot checked:** 24 October 2026 (India Standard Time)
 **Coverage:** 113 districts in the eight states currently offered by DIWIS: Arunachal Pradesh, Assam, Manipur, Meghalaya, Mizoram, Nagaland, Tripura, and West Bengal.
 
 ## Result
