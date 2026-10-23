@@ -13,7 +13,7 @@
       ]
     },
     "source": "India Meteorological Department (IMD) & IITM-ILDN (DAMINI Network)",
-    "scraped_at_local": "2026-10-23T08:33:54.148777",
+    "scraped_at_local": "2026-10-23T15:49:49.962734",
     "output_directory": "output/kamrup_metropolitan"
   },
   "temperature_data": {
@@ -26,7 +26,7 @@
       "today_max_c": null,
       "today_min_c": null,
       "source": "Open-Meteo / IMD (Offline)",
-      "recorded_at_ist": "2026-10-23 08:32 IST"
+      "recorded_at_ist": "2026-10-23 15:48 IST"
     },
     "daily_temperature_forecast_5days": [
       {
@@ -279,14 +279,14 @@
     "state": "Assam",
     "issuing_center": "RMC Guwahati",
     "date": "2026-10-23",
-    "time_of_issue_ist": "08:33 Hrs",
-    "valid_upto_ist": "11:33 Hrs",
+    "time_of_issue_ist": "15:49 Hrs",
+    "valid_upto_ist": "18:49 Hrs",
     "alert_color": "Green",
     "alert_level": "No Warning (All Clear)",
     "message": "No active convective nowcast warning issued for Kamrup Metropolitan district by RMC Guwahati at this time.",
     "impact": "Normal conditions; no severe storm hazard reported.",
     "action_suggested": "No safety restrictions. Continue normal outdoor operations.",
-    "last_updated_utc": "2026-10-23T13:07:37Z",
+    "last_updated_utc": "2026-10-23T18:49:47Z",
     "has_active_nowcast": false
   },
   "upstream_mizoram_rainfall": [
@@ -478,20 +478,20 @@
     }
   ],
   "synoptic_bulletin": {
-    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/c2dc4a6b156393350a3b0faa573aad6d.pdf",
+    "source_pdf_url": "https://mausam.imd.gov.in/backend/assets/aiwfb_pdf/a491c91484265cfcad4e4efe281e8da6.pdf",
     "local_pdf_path": "output/kamrup_metropolitan/pdfs/IMD_All_India_Weather_Forecast_Bulletin.pdf",
     "download_successful": true,
     "synoptic_excerpts": [
       {
         "category": "Official IMD Regional Outlook (Lower Assam)",
         "headline": "Northeast Regional Atmospheric Systems",
-        "details": "No significant weather likely over Northwest, Central, West & Northeast India during the week. Fishermen warning: Arabian Sea: Along and off Karnataka, Kerala coasts, over Lakshadweep Area, Comorin area adjoining Maldives till 27th October. Bay of Bengal: Over Gulf of Mannar, Sri Lanka coasts on 27th October; over Andaman Sea during 23rd to 27th October, over many parts of eastcentral & southeast Bay of Bengal during 23rd to 26th October and over",
+        "details": "Isolated to Scattered rainfall likely over Arunachal Pradesh during 28th-29th October; Assam & Meghalaya during 27th-29th October; Nagaland, Manipur, Mizoram & Tripura during 23rd-29th October. Isolated heavy rainfall likely over Assam & Meghalaya on 29th October; Nagaland, Manipur, Mizoram & Tripura on 28th October. West India: No significant weather likely over West India during the week. South Peninsular India:",
         "impact_on_hailakandi": "Synoptic influence affecting Kamrup Metropolitan and adjoining river basins."
       },
       {
         "category": "National Synoptic Weather Systems",
         "headline": "Significant National Features",
-        "details": "Weather Systems and Warnings: South Peninsular India: Fairly Widespread to Widespread rainfall likely over Tamil Nadu, Puducherry & Karaikal during 23rd-24th October; Kerala & Mahe and Lakshadweep during 23rd-26th October; Coastal Karnataka and South Interior Karnataka during 23rd-24th October. Isolated thunderstorm, lightning & gusty winds (speed reaching 40-50 kmph gusting to 60 kmph) likely",
+        "details": "Weather Systems and Warnings: Northwest India: Isolated to Scattered rainfall accompanied with thunderstorm & lightning likely over northwest India. Isolated heavy rainfall likely over East Uttar Pradesh on 29th October. Central India: Fairly Widespread to Widespread rainfall accompanied with thunderstorm & lightning likely over East Madhya",
         "impact_on_hailakandi": "Influences regional air masses and moisture advection into Kamrup Metropolitan."
       }
     ]

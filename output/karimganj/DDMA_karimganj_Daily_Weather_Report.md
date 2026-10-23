@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Karimganj (Assam) | **Basin:** Kushiara & Longai River Basin | **HQ Coordinates:** 24.87°N, 92.35°E  
-**Bulletin Issued:** 2026-10-23 08:32:40 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 15:48:37 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 31.2 °C
-* **Today's Maximum / Minimum Temperature:** 31.2°C / 23.5°C
-* **Relative Humidity:** 62% | **Surface Wind Speed:** 2.3 km/h
+* **Current Ambient Temperature:** 25.7 °C
+* **Today's Maximum / Minimum Temperature:** 31.0°C / 23.5°C
+* **Relative Humidity:** 89% | **Surface Wind Speed:** 1.0 km/h
 
 ---
 
@@ -52,8 +52,8 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| North Tripura | Tripura | Juri and Longai river interstate tributary corridor into Karimganj | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Mamit | Mizoram | Longai river headwaters flowing into Karimganj lowlands | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| North Tripura | Tripura | Juri and Longai river interstate tributary corridor into Karimganj | 0.1 mm | Dry (No rain) | Green Alert (No Warning) |
+| Mamit | Mizoram | Longai river headwaters flowing into Karimganj lowlands | 0.1 mm | Dry (No rain) | Green Alert (No Warning) |
 | Unakoti | Tripura | Manu-Singla watershed drainage corridor into southern Karimganj | 0 mm | Data Pending (N/A) | Green Alert (No Warning) |
 
 ---

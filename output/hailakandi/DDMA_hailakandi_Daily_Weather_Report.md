@@ -3,23 +3,23 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Hailakandi (Assam) | **Basin:** Barak Sub-Basin (Dhaleswari & Katakhal Corridor) | **HQ Coordinates:** 24.68°N, 92.56°E  
-**Bulletin Issued:** 2026-10-23 08:29:50 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 15:45:30 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 31.0 °C
-* **Today's Maximum / Minimum Temperature:** 31.0°C / 23.4°C
-* **Relative Humidity:** 61% | **Surface Wind Speed:** 1.0 km/h
+* **Current Ambient Temperature:** 26.7 °C
+* **Today's Maximum / Minimum Temperature:** 30.7°C / 23.4°C
+* **Relative Humidity:** 80% | **Surface Wind Speed:** 0.6 km/h
 
 ---
 
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 3.8 mm
-* **Rainfall Departure (%):** -99% (Large Deficient)
+* **Normal Standard Benchmark:** 1.9 mm
+* **Rainfall Departure (%):** -100% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -52,9 +52,9 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Kolasib | Mizoram | Direct southern border & Tlawng/Dhaleswari River entry into Hailakandi | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Mamit | Mizoram | Southwestern boundary & Tut/Katakhal River catchment draining into Hailakandi | 0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Aizawl | Mizoram | Headwaters of Dhaleswari River catchment draining north | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| Kolasib | Mizoram | Direct southern border & Tlawng/Dhaleswari River entry into Hailakandi | 1.9 mm | Dry (No rain) | Green Alert (No Warning) |
+| Mamit | Mizoram | Southwestern boundary & Tut/Katakhal River catchment draining into Hailakandi | 0.1 mm | Dry (No rain) | Green Alert (No Warning) |
+| Aizawl | Mizoram | Headwaters of Dhaleswari River catchment draining north | 13.2 mm | Dry (No rain) | Green Alert (No Warning) |
 
 ---
 

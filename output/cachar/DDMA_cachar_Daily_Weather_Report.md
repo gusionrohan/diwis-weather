@@ -3,7 +3,7 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Cachar (Assam) | **Basin:** Central Barak River Basin | **HQ Coordinates:** 24.83°N, 92.79°E  
-**Bulletin Issued:** 2026-10-23 08:31:26 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 15:47:15 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
@@ -18,7 +18,7 @@
 ### 2. 🌧️ Observed Rainfall & 5-Day Rainfall Forecast Matrix
 *Source: IMD Hydro-Meteorological Division (08:30 IST Record) & Central GeoServer Warning Network*
 * **Past 24h Recorded Rainfall (at 08:30 IST):** 0 mm
-* **Normal Standard Benchmark:** 4 mm
+* **Normal Standard Benchmark:** 1.7 mm
 * **Rainfall Departure (%):** -100% (Large Deficient)
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
@@ -53,7 +53,7 @@
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Pherzawl | Manipur | Upper Tuivai & Barak main stream headwaters in southern Manipur | 0.0 mm | Dry (No rain) | Green Alert (No Warning) |
-| Kolasib | Mizoram | Southern Barak tributary drainage through Sonai & Dholai | 0 mm | Dry (No rain) | Green Alert (No Warning) |
+| Kolasib | Mizoram | Southern Barak tributary drainage through Sonai & Dholai | 1.9 mm | Dry (No rain) | Green Alert (No Warning) |
 | East Jaintia Hills | Meghalaya | Lubha and Jatinga river headwaters discharging into Cachar | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Jiribam | Manipur | Jiri river boundary confluence joining Barak river at Jirimukh | 0.0 mm | Data Pending (N/A) | Green Alert (No Warning) |
 

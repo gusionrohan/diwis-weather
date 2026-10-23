@@ -1,6 +1,6 @@
 Day Index,Forecast Date,District,State,Max Temp (°C),Min Temp (°C),Rainfall Forecast,Station Coverage,Severe Weather Alert Color,Warning Alert Level,Warning Types,Data Source
-1,2026-10-23,Hailakandi,Assam,31.0,23.4,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-2,2026-10-24,Hailakandi,Assam,31.5,23.6,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-3,2026-10-25,Hailakandi,Assam,32.4,23.7,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-4,2026-10-26,Hailakandi,Assam,33.3,23.6,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
-5,2026-10-27,Hailakandi,Assam,34.1,24.1,Isolated,Stations=1-25%,Green,No Warning (No Action),No Warning,Source: IMD
+1,2026-10-23,Hailakandi,Assam,30.7,23.4,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+2,2026-10-24,Hailakandi,Assam,31.3,23.4,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+3,2026-10-25,Hailakandi,Assam,32.4,23.2,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+4,2026-10-26,Hailakandi,Assam,33.1,22.5,Dry,No rain,Green,No Warning (No Action),No Warning,Source: IMD
+5,2026-10-27,Hailakandi,Assam,33.8,23.8,Isolated,Stations=1-25%,Green,No Warning (No Action),No Warning,Source: IMD

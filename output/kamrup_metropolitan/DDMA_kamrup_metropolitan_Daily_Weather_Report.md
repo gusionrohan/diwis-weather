@@ -3,7 +3,7 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Kamrup Metropolitan (Assam) | **Basin:** Middle Brahmaputra & Meghalaya Plateau Catchment | **HQ Coordinates:** 26.18°N, 91.75°E  
-**Bulletin Issued:** 2026-10-23 08:33:54 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 15:49:49 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
