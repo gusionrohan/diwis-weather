@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Karimganj (Assam) | **Basin:** Kushiara & Longai River Basin | **HQ Coordinates:** 24.87°N, 92.35°E  
-**Bulletin Issued:** 2026-10-22 15:56:26 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 08:32:40 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** N/A (Station Pending)
-* **Today's Maximum / Minimum Temperature:** N/A
-* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
+* **Current Ambient Temperature:** 31.2 °C
+* **Today's Maximum / Minimum Temperature:** 31.2°C / 23.5°C
+* **Relative Humidity:** 62% | **Surface Wind Speed:** 2.3 km/h
 
 ---
 
@@ -23,11 +23,11 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-26 | Data Pending | N/A | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-26 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-27 | Isolated | Stations=1-25% | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
@@ -52,7 +52,7 @@
 
 | Predictor District | State | Catchment / River Link | Past 24h Actual Rain | Day 1 Forecast | IMD Warning Alert |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| North Tripura | Tripura | Juri and Longai river interstate tributary corridor into Karimganj | 0 mm | Isolated (Stations=1-25%) | Green Alert (No Warning) |
+| North Tripura | Tripura | Juri and Longai river interstate tributary corridor into Karimganj | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Mamit | Mizoram | Longai river headwaters flowing into Karimganj lowlands | 0 mm | Dry (No rain) | Green Alert (No Warning) |
 | Unakoti | Tripura | Manu-Singla watershed drainage corridor into southern Karimganj | 0 mm | Data Pending (N/A) | Green Alert (No Warning) |
 

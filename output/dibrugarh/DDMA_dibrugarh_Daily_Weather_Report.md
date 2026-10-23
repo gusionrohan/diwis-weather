@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Dibrugarh (Assam) | **Basin:** Upper Brahmaputra & Burhi Dihing Basin | **HQ Coordinates:** 27.47°N, 94.91°E  
-**Bulletin Issued:** 2026-10-22 15:58:33 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 08:35:09 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 23.7 °C
-* **Today's Maximum / Minimum Temperature:** 30.4°C / 21.1°C
-* **Relative Humidity:** 86% | **Surface Wind Speed:** 1.7 km/h
+* **Current Ambient Temperature:** 30.0 °C
+* **Today's Maximum / Minimum Temperature:** 30.1°C / 20.1°C
+* **Relative Humidity:** 54% | **Surface Wind Speed:** 0.7 km/h
 
 ---
 
@@ -23,11 +23,11 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-26 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-27 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 

@@ -3,15 +3,15 @@
 **Daily Weather & Hydrological Intelligence Bulletin**
 
 **District:** Kamrup Metropolitan (Assam) | **Basin:** Middle Brahmaputra & Meghalaya Plateau Catchment | **HQ Coordinates:** 26.18°N, 91.75°E  
-**Bulletin Issued:** 2026-10-22 15:57:29 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
+**Bulletin Issued:** 2026-10-23 08:33:54 IST | **Primary Data Source:** India Meteorological Department (IMD) & IITM-ILDN
 
 ---
 
 ### 1. 🌡️ Current Meteorological Observations & Temperature
 *Source: Surface Station Network & IMD / Regional Observatories*
-* **Current Ambient Temperature:** 27.4 °C
-* **Today's Maximum / Minimum Temperature:** 32.5°C / 22.9°C
-* **Relative Humidity:** 70% | **Surface Wind Speed:** 1.8 km/h
+* **Current Ambient Temperature:** N/A (Station Pending)
+* **Today's Maximum / Minimum Temperature:** N/A
+* **Relative Humidity:** N/A | **Surface Wind Speed:** N/A
 
 ---
 
@@ -23,11 +23,11 @@
 
 | Day | Forecast Date | Rainfall Prediction | Station Coverage | Severe Weather Alert Level | Hazard Types |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Day 1 | 2026-10-21 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 2 | 2026-10-22 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 3 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 4 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
-| Day 5 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 1 | 2026-10-23 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 2 | 2026-10-24 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 3 | 2026-10-25 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 4 | 2026-10-26 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
+| Day 5 | 2026-10-27 | Dry | No rain | Green Alert (No Warning (No Action)) | No Warning |
 
 ---
 
